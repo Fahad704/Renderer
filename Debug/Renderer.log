@@ -1,0 +1,6 @@
+﻿  window.cpp
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\window.cpp(55,29): error C2440: '=': cannot convert from 'LRESULT (__cdecl *)(HWND,UINT,WPARAM,LPARAM)' to 'WNDPROC'
+  C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\window.cpp(55,29):
+  This conversion requires a reinterpret_cast, a C-style cast or parenthesized function-style cast
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\window.cpp(68,4): warning C4065: switch statement contains 'default' but no 'case' labels

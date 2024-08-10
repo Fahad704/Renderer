@@ -1,0 +1,135 @@
+﻿  Window.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'Window.cpp')
+  C:\Libraries\GLAD\include\glad\glad.h(32,1):
+  see previous definition of 'APIENTRY'
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Globals.cpp(7,16): warning C4305: 'initializing': truncation from 'double' to 'float'
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(23,13): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(24,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(40,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(45,16): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(57,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(62,13): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(244,22): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(245,22): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(246,22): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(248,19): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(249,19): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(250,19): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(271,11): warning C4244: 'argument': conversion from 'double' to 'const unsigned __int64', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(271,20): warning C4244: 'argument': conversion from 'double' to 'const unsigned __int64', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(286,13): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(291,38): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(634,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(637,19): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(638,19): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(640,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(641,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(645,16): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(645,13): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(651,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(652,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(654,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(658,16): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(658,13): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Main.cpp(130,9): warning C4244: 'argument': conversion from 'double' to 'DWORD', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Window.cpp(52,14): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Window.cpp(63,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.38.33130\include\type_traits(1741,98): warning C4244: 'argument': conversion from 'unsigned __int64' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.38.33130\include\type_traits(1741,98):
+  the template instantiation context (the oldest one first) is
+  	C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Main.cpp(89,27):
+  	see reference to function template instantiation 'std::thread::thread<void(__cdecl &)(int,int),size_t&,size_t&,0>(_Fn,size_t &,size_t &)' being compiled
+          with
+          [
+              _Fn=void (__cdecl &)(int,int)
+          ]
+  	C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.38.33130\include\thread(93,9):
+  	see reference to function template instantiation 'void std::thread::_Start<void(__cdecl &)(int,int),size_t&,size_t&>(_Fn,size_t &,size_t &)' being compiled
+          with
+          [
+              _Fn=void (__cdecl &)(int,int)
+          ]
+  	C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.38.33130\include\thread(76,40):
+  	see reference to function template instantiation 'unsigned int (__cdecl *std::thread::_Get_invoke<_Tuple,0,1,2>(std::integer_sequence<size_t,0,1,2>) noexcept)(void *)' being compiled
+  	C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.38.33130\include\thread(67,17):
+  	see reference to function template instantiation 'unsigned int std::thread::_Invoke<_Tuple,0,1,2>(void *) noexcept' being compiled
+  	C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.38.33130\include\thread(60,14):
+  	see reference to function template instantiation 'void std::invoke<void(__cdecl *)(int,int),unsigned __int64,unsigned __int64>(_Callable &&,_Ty1 &&,unsigned __int64 &&) noexcept(false)' being compiled
+          with
+          [
+              _Callable=void (__cdecl *)(int,int),
+              _Ty1=unsigned __int64
+          ]
+  
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.38.33130\include\type_traits(1741,67): warning C4244: 'argument': conversion from 'unsigned __int64' to 'int', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+  Generating code
+  3 of 1168 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    9 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Renderer.vcxproj -> C:\Users\Hp\Desktop\C++ progs\Renderer\x64\Release\Renderer.exe

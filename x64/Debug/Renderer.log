@@ -1,0 +1,89 @@
+﻿  window.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'window.cpp')
+  C:\Libraries\GLAD\include\glad\glad.h(32,1):
+  see previous definition of 'APIENTRY'
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(22,13): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(23,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(39,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(44,16): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(56,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(61,13): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(198,13): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(265,8): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(286,13): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(287,25): warning C4244: 'argument': conversion from 'double' to 'const unsigned __int64', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(288,26): warning C4244: 'argument': conversion from 'double' to 'const unsigned __int64', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(291,25): warning C4244: 'argument': conversion from 'double' to 'const unsigned __int64', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(291,47): warning C4244: 'argument': conversion from 'double' to 'const unsigned __int64', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(292,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(581,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(584,19): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(585,19): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(587,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(588,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(592,16): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(592,13): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(598,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(599,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(601,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(605,16): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\Renderer.cpp(605,13): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\main.cpp(121,9): warning C4244: 'argument': conversion from 'double' to 'DWORD', possible loss of data
+  (compiling source file 'window.cpp')
+  
+C:\Users\Hp\Desktop\C++ progs\Renderer\Renderer\window.cpp(57,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  Renderer.vcxproj -> C:\Users\Hp\Desktop\C++ progs\Renderer\x64\Debug\Renderer.exe

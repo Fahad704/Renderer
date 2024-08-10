@@ -1,0 +1,5 @@
+#without BVH(Release)
+Computation finished at 0 :Update():47.835550 seconds
+
+#without BVH(debug)
+Computation finished at 0 :Update():514.818466 seconds
