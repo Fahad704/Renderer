@@ -1,7 +1,6 @@
 #pragma once
 #include "Window.cpp"
 #define WHITE {255,255,255}
-//#include "window.cpp"
 internal void clearScreen(u32 color) {
 	u32* pixel = (u32*)render_state.memory;
 	for (int y = 0; y < render_state.height; y++) {
@@ -9,6 +8,9 @@ internal void clearScreen(u32 color) {
  			*pixel++ = color;
 		}
 	}
+}
+internal void exportToPPM() {
+	//TODO : implement ppm image rendering
 }
 internal void putPixel(int x, int y,Colour color) {
 	u32 hex_color = rgbtoHex(color);
@@ -185,6 +187,7 @@ std::pair<double, double> viewportToCanvas(double x, double y) {
 	return { x * (canvas.x / vpWidth) ,y * (canvas.y / vpHeight) };
 }
 Vector projectVertex(Vector v) {
+	//Perspective Projection
 	std::pair<double, double> result = viewportToCanvas(double(v.x * d / v.z), double(v.y * d / v.z));
 	return { result.first,result.second ,d};
 }
@@ -216,18 +219,17 @@ internal void draw_triangle(Triangle t,bool wireframe = false) {
 	if (p2.y > p3.y)swap(p2, p3);
 
 	if (wireframe) {
+		//Skipping pixels outside of screen
 		if (p1.x > (canvas.x / 2.f) || p1.y >= (canvas.y / 2.f) || p1.x <= -(canvas.x / 2.f) || p1.y <= -(canvas.y / 2.f)) {
-			//std::cout << "Attempting to draw outside screen\nTriangle skipped\n";
 			return;
 		}
 		else if (p2.x > (canvas.x / 2.f) || p2.y >= (canvas.y / 2.f) || p2.x <= -(canvas.x / 2.f) || p2.y <= -(canvas.y / 2.f)) {
-			//std::cout << "Attempting to draw outside screen\nTriangle skipped\n";
 			return;
 		}
 		else if (p3.x > (canvas.x / 2.f) || p3.y >= (canvas.y / 2.f) || p3.x <= -(canvas.x / 2.f) || p3.y <= -(canvas.y / 2.f)) {
-			//std::cout << "Attempting to draw outside screen\nTriangle skipped\n";
 			return;
 		}
+		//Drawing wireframe
 		drawLine(p1, p2, color);
 		drawLine(p2, p3, color);
 		drawLine(p3, p1, color);
@@ -249,12 +251,6 @@ internal void draw_triangle(Triangle t,bool wireframe = false) {
 	interpolate(0, p2.y, 1, p3.y, h12);
 	interpolate(0, p1.y, 1, p3.y, h02);
 
-	/*if (h01.size()) {
-		h01.pop_back();
-	}
-	if (x01.size()) {
-		x01.pop_back();
-	}*/
 	//concatenate short sides doubleo x01
 	for (const double& val : x12) {
 		x01.push_back(val);
@@ -283,15 +279,13 @@ internal void draw_triangle(Triangle t,bool wireframe = false) {
 			h_right = h02;
 		}
 	}
-	for (int y = p1.y; y < p3.y; y++) {
+	for (int y = (p1.y); y < p3.y; y++) {
 		double x_l = x_left[y - int(p1.y)];
 		double x_r = x_right[y - int(p1.y)];
 
 		std::vector<double> h_segment = {};
 		interpolate(h_left[y - int(p1.y)], x_l, h_left[y - int(p1.y)], x_r, h_segment);
 		for (int x = int(x_l); x < x_r; x++) {
-			//Colour shaded_color = color;
-			//shaded_color = color * h_segment[x - int(x_l)];
 			if (isIn(double(x), double(-canvas.x / 2.f), double(canvas.x / 2.f)) && isIn(double(y), double(-canvas.y / 2.f), double(canvas.y / 2.f))) {
 				putPixel(x, y, color);
 			}
