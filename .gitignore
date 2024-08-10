@@ -1,6 +1,5 @@
-
-Debug/*
-x64/*
+Debug/
+x64/
 *.ico
 *.rc
 *.vcxproj
@@ -8,5 +7,5 @@ x64/*
 *.user
 *.sln
 *.iobj
-*.obj
 *.pdb
+*.ipdb
