@@ -1,6 +1,5 @@
 Debug/
 x64/
-.gitignore
 *.ico
 *.rc
 *.vcxproj
