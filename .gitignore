@@ -1,0 +1,12 @@
+
+Debug/*
+x64/*
+*.ico
+*.rc
+*.vcxproj
+*.aps
+*.user
+*.sln
+*.iobj
+*.obj
+*.pdb
