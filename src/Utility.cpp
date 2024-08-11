@@ -9,10 +9,10 @@
 #include <typeinfo>
 #include <glad/glad.h>
 #include <iomanip>
-#include <thread>
+#include <thread> 
 #include <time.h>
 #include "Window.cpp"
-
+#include "Vector.cpp"
 #define infinity 2000000000
 
 typedef unsigned int u32;
@@ -71,65 +71,6 @@ void clamp(u32& num, u32 min_limit, u32 max_limit) {
 	}
 	return;
 }
-
-struct Vector {
-	double x;
-	double y;
-	double z;
-	Vector(double x = 0, double y = 0, double z = 0) {
-		this->x = x;
-		this->y = y;
-		this->z = z;
-	}
-	Vector operator+(const Vector& vec) {
-		return { (this->x + vec.x),(this->y + vec.y),(this->z + vec.z) };
-	}
-	Vector operator+(const double& vec) {
-		return { (this->x + vec),(this->y + vec),(this->z + vec) };
-	}
-	Vector operator*(const Vector& vec) {
-		return { (this->x * vec.x),(this->y * vec.y),(this->z * vec.z) };
-	}
-	Vector operator*(const double& vec) {
-		return { (this->x * vec),(this->y * vec),(this->z * vec) };
-	}
-	Vector operator/(const Vector& vec) {
-		return { (this->x / vec.x),(this->y / vec.y),(this->z / vec.z) };
-	}
-	Vector operator/(const double& vec) {
-		return { (this->x / vec),(this->y / vec),(this->z / vec) };
-	}
-	Vector operator-(const Vector& vec) {
-		return { (this->x - vec.x),(this->y - vec.y),(this->z - vec.z) };
-	}
-	Vector operator-(const double& vec) {
-		return { (this->x - vec),(this->y - vec),(this->z - vec) };
-	}
-	Vector operator-() {
-		return{ (-this->x),(-this->y),(-this->z) };
-	}
-	bool operator==(const Vector& vec) {
-		return ( (this->x == vec.x)&&(this->y == vec.y)&&(this->z == vec.z) );
-	}
-	friend bool operator==(const Vector&vec,const Vector& vec2) {
-		return ((vec2.x == vec.x) && (vec2.y == vec.y) && (vec2.z == vec.z));
-	}
-	friend bool operator!=(const Vector& vec, const Vector& vec2) {
-		return ((vec2.x != vec.x) || (vec2.y != vec.y) || (vec2.z != vec.z));
-	}
-	friend Vector operator*(const double num, const Vector& vec) {
-		return { (vec.x * num),(vec.y * num),(vec.z * num) };
-	}
-	friend Vector operator/(const double num, const Vector& vec) {
-		return { (num / vec.x),(num / vec.y),(num / vec.z) };
-	}
-	friend Vector operator-(const Vector& vec1, const Vector& vec2) {
-		return {(vec1.x-vec2.x),(vec1.y-vec2.y),(vec1.z-vec2.z)};
-	}
-	friend Vector cross(const Vector&,const Vector&);
-	friend double dot(Vector&, Vector&);
-	friend double length(const Vector);
-};
 struct Colour {
 	u8 R;
 	u8 G;
@@ -176,20 +117,6 @@ public:
 		return { u8(newcol.x),u8(newcol.y),u8(newcol.z) };
 	}
 };
-inline Vector cross(const Vector& vec1,const Vector& vec2)
-{
-	Vector cross = {};
-	cross.x = (vec1.y * vec2.z) - (vec1.z * vec2.y);
-	cross.y = (vec1.z * vec2.x) - (vec1.x * vec2.z);
-	cross.z = (vec1.x * vec2.y) - (vec1.y * vec2.x);
-	return cross;
-}
-inline double length(const Vector vec) {
-	return sqrt((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z));
-}
-inline double dot(Vector& first,Vector& second) {
-	return ((first.x*second.x)+(first.y*second.y)+(first.z*second.z));
-}
 internal Colour hexToRGB(u32 hex) {
 	Colour color;
 	color.R = ((hex >> 16) & 0xff);
@@ -199,7 +126,7 @@ internal Colour hexToRGB(u32 hex) {
 }
 u32 rgbtoHex(Colour RGB) {
 	return u32((RGB.R << 16) | (RGB.G << 8) | RGB.B);
-} 
+}
 enum class Type
 {
 	ST_BASE=0,
@@ -210,7 +137,7 @@ struct Object {
 	Colour color;
 	double specular;
 	double reflectiveness;
-	virtual Type GetType()
+	virtual Type getType()
 	{
 		return Type::ST_BASE;
 	}
@@ -226,7 +153,7 @@ struct Sphere : Object{
 		this->specular = specular;
 		this->reflectiveness = reflectiveness;
 	}
-	virtual Type GetType()
+	virtual Type getType()
 	{
 		return Type::ST_SPHERE;
 	}
@@ -235,7 +162,9 @@ struct Triangle : Object {
 	Vector p[3];
 	Vector normal;
 	Triangle() {
-		p[3] = {};
+		p[0] = {};
+		p[1] = {};
+		p[2] = {};
 		color = { 255,0,0 };
 		reflectiveness = 0;
 		specular = -1;
@@ -252,7 +181,7 @@ struct Triangle : Object {
 	{
 		return Type::ST_TRIANGLE;
 	}
-	Vector get_normal()
+	Vector getNormal()
 	{
 		//anti clockwise
 		if (normal == Vector{0, 0, 0})

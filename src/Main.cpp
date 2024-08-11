@@ -9,19 +9,19 @@ double fdt=0.06;
 void init() {
 	debugState = DebugState::DS_OFF;
 	//Spheres (currently only rendered in ray tracing)
-	std::vector<Sphere> spheres = {};
-	Sphere spherestem[] = {
+	std::vector<Sphere> spheres = {}; 
+	//Sphere spherestem[] = {
 		//	//Position-----Radius---Colour----specular-reflect//
 			//{ { 0 , 0  , 3}, 1  ,{255,0 , 0}	,500,  0.2f},
 			//{ { 2 ,  0  , 4}, 1  ,{0, 0, 255}	,500,  0.4f },
-			{ { -2, 0   , 4}, 1  ,{0, 255, 0}	,10,   0.3f},
-		     // {{ 1, 1   , 0}, 0.5f  ,{0, 255, 0}	,10,   0.3f},
-			{ { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
-	};
-	int spherecount = sizeof(spherestem) / sizeof(Sphere);
-	for (int i = 0; i < spherecount; i++) {
-		spheres.push_back(spherestem[i]);
-	}
+			//{ { -2, 0   , 4}, 1  ,{0, 255, 0}	,10,   0.3f},
+		   // {{ 1, 1   , 0}, 0.5f  ,{0, 255, 0}	,10,   0.3f},
+			//{ { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
+	//};
+	//int spherecount = sizeof(spherestem) / sizeof(Sphere);
+	//for (int i = 0; i < spherecount; i++) {
+	//	spheres.push_back(spherestem[i]);
+	//}
 
 	std::vector<Light> lights = {
 		//--Type----------Pos----Dir--intensity//
@@ -29,13 +29,13 @@ void init() {
 		{LT_POINT      ,{2,1,0},{0,0,0},0.6f},
 		{LT_DIRECTIONAL,{0,0,0},{1,4,4},0.2f}
 	};
+
 	std::vector<Triangle> triangles = {};
 	std::vector<Mesh> meshes = {};
-	Mesh King = loadOBJ("Models/king.obj");
-	King.setPos({ 0,-0.8f,3 } ,Colour{ 255,255,255 });
-	King.reflectiveness = 0.9f;
-	King.specular = 1000;
+
+	Mesh King = loadOBJ("../Models/king.obj", { 0,-0.8f,3 }, { 255,255,255 }, 0.9f,1000);
 	meshes.push_back(King);
+
 	scene = { spheres,triangles,meshes,lights };
 }
 void update(Input* input) {
@@ -88,14 +88,14 @@ void update(Input* input) {
 	clearScreen(0x000000);
 	if (rendMode){
 		//Ray tracing with 4 threads
-		size_t thread_count = 4;
-		std::vector<std::thread> t_objs(thread_count);
-		for (size_t i = 0; i < thread_count; i++)
+		size_t threadCount = 4;
+		std::vector<std::thread> tObjs(threadCount);
+		for (size_t i = 0; i < threadCount; i++)
 		{
-			t_objs[i] = std::thread(RayTraceThr, i, thread_count);
+			tObjs[i] = std::thread(rayTraceThr, i, threadCount);
 		}
-		for (size_t i = 0; i < t_objs.size(); i++) {
-			t_objs[i].join();
+		for (size_t i = 0; i < tObjs.size(); i++) {
+			tObjs[i].join();
 		}
 		std::time_t endTime;
 		timer::Duration deltaTime = timer_end(start, endTime);
@@ -116,5 +116,5 @@ void update(Input* input) {
 	timer::Duration deltaTime = timer_end(start,endTime);
 	fdt = deltaTime.count();
 	//Display fps on console
-	std::cout <<std::fixed<<"\r" <<1.f/(deltaTime.count()) << " FPS" << std::flush;
+	//std::cout <<std::fixed<<"\r" <<1.f/(deltaTime.count()) << " FPS" << std::flush;
 }

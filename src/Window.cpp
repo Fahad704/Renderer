@@ -2,14 +2,14 @@
 #include "Utility.cpp"
 #include <Windows.h>
 global_variable bool running = true;
-struct Render_State {
+struct RenderState {
 	int height;
 	int width;
 	void* memory;
 	BITMAPINFO bitmapinfo;
 };
-
-static Render_State render_state;
+ 
+static RenderState renderState;
 static HWND window = {};
 
 #include "Platform_common.cpp"
@@ -24,7 +24,7 @@ LRESULT window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	case WM_CLOSE:
 	case WM_DESTROY: {
 		running = false;
-		if (render_state.memory) VirtualFree(render_state.memory, 0, MEM_RELEASE);
+		if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
 		FreeConsole();
 		std::fclose(stdout);
 		DestroyWindow(hWnd);
@@ -32,22 +32,22 @@ LRESULT window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	case WM_SIZE: {
 		RECT rect;
 		GetClientRect(hWnd, &rect);
-		render_state.width = rect.right - rect.left;
-		render_state.height = rect.bottom - rect.top;
+		renderState.width = rect.right - rect.left;
+		renderState.height = rect.bottom - rect.top;
 
-		int buffer_size = render_state.width * render_state.height * sizeof(unsigned int);
+		int buffer_size = renderState.width * renderState.height * sizeof(unsigned int);
 
-		if (render_state.memory) VirtualFree(render_state.memory, 0, MEM_RELEASE);
-		render_state.memory = VirtualAlloc(0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+		if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
+		renderState.memory = VirtualAlloc(0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
-		render_state.bitmapinfo.bmiHeader.biSize = sizeof(render_state.bitmapinfo.bmiHeader);
-		render_state.bitmapinfo.bmiHeader.biWidth = render_state.width;
-		render_state.bitmapinfo.bmiHeader.biHeight = render_state.height;
-		render_state.bitmapinfo.bmiHeader.biPlanes = 1;
-		render_state.bitmapinfo.bmiHeader.biBitCount = 32;
-		render_state.bitmapinfo.bmiHeader.biCompression = BI_RGB;
-		canvas = { double(render_state.width), double(render_state.height)};
-		double aspectratio = double(render_state.width) / double(render_state.height);
+		renderState.bitmapinfo.bmiHeader.biSize = sizeof(renderState.bitmapinfo.bmiHeader);
+		renderState.bitmapinfo.bmiHeader.biWidth = renderState.width;
+		renderState.bitmapinfo.bmiHeader.biHeight = renderState.height;
+		renderState.bitmapinfo.bmiHeader.biPlanes = 1;
+		renderState.bitmapinfo.bmiHeader.biBitCount = 32;
+		renderState.bitmapinfo.bmiHeader.biCompression = BI_RGB;
+		canvas = { double(renderState.width), double(renderState.height)};
+		double aspectratio = double(renderState.width) / double(renderState.height);
 		vpWidth = 1;
 		vpHeight = aspectratio;
 	}break;
@@ -129,6 +129,6 @@ input.buttons[b].isDown = isDown;\
 			
 
 		//Render
-		StretchDIBits(hdc, 0, render_state.height-1, render_state.width, -render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
+		StretchDIBits(hdc, 0, renderState.height-1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 	}
 }

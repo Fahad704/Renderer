@@ -2,9 +2,9 @@
 #include "Window.cpp"
 #define WHITE {255,255,255}
 internal void clearScreen(u32 color) {
-	u32* pixel = (u32*)render_state.memory;
-	for (int y = 0; y < render_state.height; y++) {
-		for (int x = 0; x < render_state.width; x++) {
+	u32* pixel = (u32*)renderState.memory;
+	for (int y = 0; y < renderState.height; y++) {
+		for (int x = 0; x < renderState.width; x++) {
  			*pixel++ = color;
 		}
 	}
@@ -13,11 +13,11 @@ internal void exportToPPM() {
 	//TODO : implement ppm image rendering
 }
 internal void putPixel(int x, int y,Colour color) {
-	u32 hex_color = rgbtoHex(color);
-	x += render_state.width / 2; 
-	y = (render_state.height / 2) - y;
-	u32* pixel = (u32*)render_state.memory + x + (y*render_state.width);
-	*pixel = hex_color;
+	u32 hexColor = rgbtoHex(color);
+	x += renderState.width / 2; 
+	y = (renderState.height / 2) - y;
+	u32* pixel = (u32*)renderState.memory + x + (y*renderState.width);
+	*pixel = hexColor;
 }
 internal void drawSquare(double x,double y,int size, Colour color) {
 	x -= size * 0.5f;
@@ -86,7 +86,7 @@ Mesh loadOBJ(std::string filename, Vector pos = { 0,0,0 }, Colour color = { 0,0,
 	OBJFile.open(filename);
 	if (!OBJFile)
 	{
-		std::cerr << "Cannot open file " << filename << "\n";
+		std::cout << "Cannot open file " << filename << "\n";
 		return {};
 	}
 	std::unordered_map<std::string, Modes> map = {
@@ -203,7 +203,7 @@ void interpolate(double x0, int y0, double x1, double y1,std::vector<double>& ar
 		x += aspectratio;
 	}
 }
-internal void draw_triangle(Triangle t,bool wireframe = false) {
+internal void drawTriangle(Triangle t,bool wireframe = false) {
 	for (int i = 0; i < 3; i++) {
 		if (t.p[i].x <= -(canvas.x / 2.f) || t.p[i].x >= (canvas.x / 2.f) || t.p[i].y <= -(canvas.y / 2.f) || t.p[i].y >= (canvas.x / 2.f)) {
 			return;
@@ -259,33 +259,33 @@ internal void draw_triangle(Triangle t,bool wireframe = false) {
 		h01.push_back(val);
 	}
 	double m = floor(x02.size() / 2);
-	std::vector<double> x_left = {};
-	std::vector<double> x_right = {};
-	std::vector<double> h_left = {};
-	std::vector<double> h_right = {};
+	std::vector<double> xLeft = {};
+	std::vector<double> xRight = {};
+	std::vector<double> hLeft = {};
+	std::vector<double> hRight = {};
 	if (x02.size()) {
 		if (x02[m] < x01[m]) {
-			x_left = x02;
-			x_right = x01;
+			xLeft = x02;
+			xRight = x01;
 
-			h_left = h02;
-			h_right = h01;
+			hLeft = h02;
+			hRight = h01;
 		}
 		else {
-			x_left = x01;
-			x_right = x02;
+			xLeft = x01;
+			xRight = x02;
 
-			h_left = h01;
-			h_right = h02;
+			hLeft = h01;
+			hRight = h02;
 		}
 	}
 	for (int y = (p1.y); y < p3.y; y++) {
-		double x_l = x_left[y - int(p1.y)];
-		double x_r = x_right[y - int(p1.y)];
+		double xL = xLeft[y - int(p1.y)];
+		double xR = xRight[y - int(p1.y)];
 
-		std::vector<double> h_segment = {};
-		interpolate(h_left[y - int(p1.y)], x_l, h_left[y - int(p1.y)], x_r, h_segment);
-		for (int x = int(x_l); x < x_r; x++) {
+		std::vector<double> hSegment = {};
+		interpolate(hLeft[y - int(p1.y)], xL, hLeft[y - int(p1.y)], xR, hSegment);
+		for (int x = int(xL); x < xR; x++) {
 			if (isIn(double(x), double(-canvas.x / 2.f), double(canvas.x / 2.f)) && isIn(double(y), double(-canvas.y / 2.f), double(canvas.y / 2.f))) {
 				putPixel(x, y, color);
 			}
@@ -347,7 +347,7 @@ double intersectRaySphere(Vector& O,Vector& D,Sphere& sphere) {
 internal double intersectRayTriangle(Vector O, Vector D, Triangle triangle)
 {
 	double t = 0;
-	Vector N = triangle.get_normal();
+	Vector N = triangle.getNormal();
 	double NdotRay = dot(N, D);
 
 	if (NdotRay > 0)
@@ -363,24 +363,24 @@ internal double intersectRayTriangle(Vector O, Vector D, Triangle triangle)
 
 	//edge 0
 	Vector edge = triangle.p[1] - triangle.p[0];
-	Vector Pline = P - triangle.p[0];
-	C = cross(edge, Pline);
+	Vector pLine = P - triangle.p[0];
+	C = cross(edge, pLine);
 
 	if (dot(N, C) < 0)
 		return infinity; //Point is outside/Rightside edge 0;
 	
 	//edge 1
 	edge = triangle.p[2] - triangle.p[1];
-	Pline = P - triangle.p[1];
-	C = cross(edge, Pline);
+	pLine = P - triangle.p[1];
+	C = cross(edge, pLine);
 
 	if (dot(N, C) < 0)
 		return infinity; //Point is outside/Rightside edge 1;
 
 	//edge 2
 	edge = triangle.p[0] - triangle.p[2];
-	Pline = P - triangle.p[2];
-	C = cross(edge, Pline);
+	pLine = P - triangle.p[2];
+	C = cross(edge, pLine);
 
 	if (dot(N, C) < 0)
 		return infinity; //Point is outside/Rightside edge 2;
@@ -389,17 +389,7 @@ internal double intersectRayTriangle(Vector O, Vector D, Triangle triangle)
 }
 bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
 {
-	//static bool result = false;
-	/*static Vector param_O = {0,0,0};
-	static Vector param_D = {0,0,0};
-	static Box param_box = {0,0};
-	if ((O == param_O) && (D == param_D) && (box == param_box)) {
-		return result;
-	}*/
 	Vector invDir = 1.0f / D;
-	/*if (!D.x)invDir.x = INFINITY;
-	if (!D.y)invDir.y = INFINITY;
-	if (!D.z)invDir.z = INFINITY;*/
 	double tmin, tmax, tymin, tymax, tzmin, tzmax;
 	if (invDir.x >= 0) {
 		tmin = (box.lowest.x - O.x) * invDir.x;
@@ -420,7 +410,6 @@ bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
 	}
 
 	if ((tmin > tymax) || (tymin > tmax)) {
-		//result = false;
 		return false;
 	}
 
@@ -436,7 +425,6 @@ bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
 		tzmax = (box.lowest.z - O.z) * invDir.z;
 	}
 	if ((tmin > tzmax) || (tmax < tzmin)) {
-		//result = false;
 		return false;
 	}
 	if (tzmin > tmin)tmin = tzmin;
@@ -444,28 +432,27 @@ bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
 	if (tmin < 0) {
 		return false;
 	}
-	//result = true;
 	return true;
 }
-internal std::pair<Object*, double> ClosestIntersection(Vector O, Vector D, double t_min, double t_max) {
-	double closest_t = infinity;
-	Object* closest_object = nullptr;
+internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, double tMin, double tMax) {
+	double closestT = infinity;
+	Object* closestObject = nullptr;
 	//Sphere intersection
 	for (Sphere& sphere : scene.spheres) {
-		double sphere_int = intersectRaySphere(O, D, sphere);
-		double T = sphere_int;
-		if (isIn(T, t_min, t_max) && T < closest_t) {
-			closest_t = T;
-			closest_object = &sphere;
+		double sphereInt = intersectRaySphere(O, D, sphere);
+		double T = sphereInt;
+		if (isIn(T, tMin, tMax) && T < closestT) {
+			closestT = T;
+			closestObject = &sphere;
 		}
 	}
 	//Triangle
 	for (Triangle& triangle : scene.triangles)
 	{
-		double triangle_int = intersectRayTriangle(O, D, triangle);
-		if (isIn(triangle_int, t_min, t_max) && triangle_int < closest_t) {
-			closest_t = triangle_int;
-			closest_object = &triangle;
+		double triangleInt = intersectRayTriangle(O, D, triangle);
+		if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
+			closestT = triangleInt;
+			closestObject = &triangle;
 		}
 	}
 	//Mesh
@@ -479,9 +466,9 @@ internal std::pair<Object*, double> ClosestIntersection(Vector O, Vector D, doub
 				continue;
 			}
 			else {
-				closest_object = &tempTri;
-				closest_t = 0;
-				return { closest_object,closest_t };
+				closestObject = &tempTri;
+				closestT = 0;
+				return { closestObject,closestT };
 			}
 		}
 		else {
@@ -495,14 +482,14 @@ internal std::pair<Object*, double> ClosestIntersection(Vector O, Vector D, doub
 			if (dot(triangle.normal, D) > 0) {
 				continue;
 			}
-			double triangle_int = intersectRayTriangle(O, D, triangle);
-			if (isIn(triangle_int, t_min, t_max) && triangle_int < closest_t) {
-				closest_t = triangle_int;
-				closest_object = &triangle;
+			double triangleInt = intersectRayTriangle(O, D, triangle);
+			if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
+				closestT = triangleInt;
+				closestObject = &triangle;
 			}
 		}
 	}
-	return { closest_object,closest_t };
+	return { closestObject,closestT };
 }
 internal Vector reflectRay(Vector R, Vector N) {
 	return (2 * (N * dot(R, N)) - R);
@@ -512,34 +499,34 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 	for (Light light : scene.lights) {
 		//L = direction of the light
 		Vector L = {};
-		double t_max=0;
+		double tMax=0;
 		if (light.type == LT_AMBIENT) {
 			i += light.intensity;
 		}
 		else {
 			if (light.type == LT_DIRECTIONAL) {
 				L = light.direction;
-				t_max = infinity;
+				tMax = infinity;
 			}
 			else if (light.type == LT_POINT) {
 				L = light.pos - P;
-				t_max = 1;
+				tMax = 1;
 			}
-			double shadow_t = ClosestIntersection(P, L, 0.0001, t_max).second;
-			if (shadow_t != infinity) {
+			double shadowT = closestIntersection(P, L, 0.0001, tMax).second;
+			if (shadowT != infinity) {
 				continue;
 			}
 			//Diffuse reflection
-			double n_dot_l = dot(N, L);
-			if (n_dot_l > 0) { 
-				i += (light.intensity * n_dot_l / (length(N) * length(L)));
+			double nDotL = dot(N, L);
+			if (nDotL > 0) { 
+				i += (light.intensity * nDotL / (length(N) * length(L)));
 			}
 			//specular reflection
 			if (s != -1) {
 				Vector R = reflectRay(L,N);
-				double v_dot_r = dot(V, R);
-				if (v_dot_r > 0) {
-					i += light.intensity * pow((v_dot_r / (length(R) * length(V))), s);
+				double vDotR = dot(V, R);
+				if (vDotR > 0) {
+					i += light.intensity * pow((vDotR / (length(R) * length(V))), s);
 				}
 			}
 		}
@@ -561,7 +548,7 @@ void renderObject(Mesh& mesh) {
 		newTri.p[1] = projected[1];
 		newTri.p[2] = projected[2];
 		//Backface culling
-		Vector normal = triangle.get_normal();
+		Vector normal = triangle.getNormal();
 		normal = normal / length(normal);
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
@@ -574,7 +561,7 @@ void renderObject(Mesh& mesh) {
 				return;
 			}
 			if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
-			draw_triangle(newTri, drawWireframe);
+			drawTriangle(newTri, drawWireframe);
 		}
 	}
 }
@@ -585,70 +572,70 @@ void rasterize() {
 			tri.p[0] = (tri.p[0] - O);
 			tri.p[1] = (tri.p[1] - O);
 			tri.p[2] = (tri.p[2] - O);
-			draw_triangle(tri);
+			drawTriangle(tri);
 		}
 	}
 }
-internal Colour TraceRay(Vector O,Vector D,double t_min,double t_max,int recursion_limit){
-	std::pair<Object*, double> intersection = ClosestIntersection(O , D, t_min, t_max);
-	Object* closest_object = intersection.first;
-	double closest_t = intersection.second;
-	Colour bg_colour = { 100,100,100 };
-	if (closest_t == infinity) {
-		return bg_colour;
+internal Colour traceRay(Vector O,Vector D,double tMin,double tMax,int recursionLimit){
+	std::pair<Object*, double> intersection = closestIntersection(O , D, tMin, tMax);
+	Object* closestObject = intersection.first;
+	double closestT = intersection.second;
+	Colour bgColor = { 100,100,100 };
+	if (closestT == infinity) {
+		return bgColor;
 	}
 	//P = point of the intersection
-	Vector P = O + (D * closest_t);
+	Vector P = O + (D * closestT);
 	//N = normal at the point
 	Vector N = {};
-	if (closest_object->GetType() == Type::ST_SPHERE)
+	if (closestObject->getType() == Type::ST_SPHERE)
 	{
-		N = P - ((Sphere*)(closest_object))->center;
+		N = P - ((Sphere*)(closestObject))->center;
 	}
-	else if (closest_object->GetType() == Type::ST_TRIANGLE)
+	else if (closestObject->getType() == Type::ST_TRIANGLE)
 	{
-		N = ((Triangle*)(closest_object))->get_normal();
+		N = ((Triangle*)(closestObject))->getNormal();
 	}
 	//Normalizing the normal
 	N = N / length(N);
-	double light = computeLight(P, N, -D, closest_object->specular);
-	Colour local_color = (closest_object->color * light);
-	double r = closest_object->reflectiveness;
-	if (recursion_limit <= 0 || r <= 0.f) {
-		return local_color;
+	double light = computeLight(P, N, -D, closestObject->specular);
+	Colour localColor = (closestObject->color * light);
+	double r = closestObject->reflectiveness;
+	if (recursionLimit <= 0 || r <= 0.f) {
+		return localColor;
 	}
 
 	Vector R = reflectRay(-D, N);
-	Colour reflected_color = TraceRay(P, R, 0.001, infinity, recursion_limit - 1);
+	Colour reflectedColor = traceRay(P, R, 0.001, infinity, recursionLimit - 1);
 
-	return (local_color * (1.f - r)) + (reflected_color * r);
+	return (localColor * (1.f - r)) + (reflectedColor * r);
 }
-void RayTraceThr(int thread_num,int thread_count)
+void rayTraceThr(int threadNum,int threadCount)
 {
-	float ycount = (canvas.y / thread_count);
-	float ymin = ycount * thread_num;
+	float ycount = (canvas.y / threadCount);
+	float ymin = ycount * threadNum;
 	float ymax = ymin + ycount;
 	ymin -= canvas.y / 2.0f;
 	ymax -= canvas.y / 2.0f;
 	for (float y =ymin; y < ymax; y++) {
-		int scanline_done = ( canvas.y - (y + ((canvas.y) / 2.0f)));
+		int scanlineDone = ( canvas.y - (y + ((canvas.y) / 2.0f)));
 		for (float x = (-canvas.x / 2); x < (canvas.x / 2); x++) {
 			D = canvasToViewport(x, y);
 			D = D / length(D);
-			Colour result = TraceRay(O, D, 1, infinity, 3);
+			Colour result = traceRay(O, D, 1, infinity, 3);
 			putPixel(x, y, result);
 		}
 	}
 }	
-void RayTrace() {
+void rayTrace() {
 	clearScreen(0x000000);
 	for (float y = (canvas.y / 2); y > -(canvas.y / 2); y--) {
-		int scanline_done = ( canvas.y - (y + ((canvas.y) / 2.0f)));
-		std::cout << "\rScanlines Done:" << scanline_done << '/' << (canvas.y - 1) << ':' << int((scanline_done / (canvas.y - 1)) * 100) << "%" << std::flush;
+		int scanlineDone = ( canvas.y - (y + ((canvas.y) / 2.0f)));
+		std::cout << "\rScanlines Done:" << scanlineDone << '/' << (canvas.y - 1) << ':' << int((scanlineDone / (canvas.y - 1)) * 100) << "%" << std::flush;
 		for (float x = (-canvas.x / 2); x < (canvas.x / 2); x++) {
 			D = canvasToViewport(x, y);
 			D = D / length(D);
-			Colour result = TraceRay(O, D, 1, infinity, 3);
+			Colour result = traceRay(O, D, 1, infinity, 3);
 			putPixel(x, y, result);
 		}
 	}
