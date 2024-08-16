@@ -119,9 +119,9 @@ public:
 };
 internal Colour hexToRGB(u32 hex) {
 	Colour color;
-	color.R = ((hex >> 16) & 0xff);
-	color.G = ((hex >> 8) & 0xff);
-	color.B = (hex & 0xff);
+	color.R = u8((hex >> 16) & 0xff);
+	color.G = u8((hex >> 8) & 0xff);
+	color.B = u8(hex & 0xff);
 	return color;
 }
 u32 rgbtoHex(Colour RGB) {

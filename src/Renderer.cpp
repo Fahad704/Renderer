@@ -9,15 +9,18 @@ internal void clearScreen(u32 color) {
 		}
 	}
 }
-internal void exportToPPM() {
-	//TODO : implement ppm image rendering
-}
+
 internal void putPixel(int x, int y,Colour color) {
 	u32 hexColor = rgbtoHex(color);
 	x += renderState.width / 2; 
 	y = (renderState.height / 2) - y;
 	u32* pixel = (u32*)renderState.memory + x + (y*renderState.width);
 	*pixel = hexColor;
+}
+internal Colour getPixel(int x, int y){
+	u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
+	Colour result = hexToRGB(*pixel);
+	return result;
 }
 internal void drawSquare(double x,double y,int size, Colour color) {
 	x -= size * 0.5f;
@@ -27,6 +30,24 @@ internal void drawSquare(double x,double y,int size, Colour color) {
 			putPixel(j, i, color);
 		}
 	}
+}
+internal void exportToPPM(std::string filename) {
+	//TODO : implement ppm image rendering
+	std::ofstream ofs;
+	ofs.open(filename);
+	if (!ofs.is_open()) {
+		std::cout << "Failed to open file : " << filename << "\n";
+		return;
+	}
+	ofs << "P3\n"<< renderState.width << ' ' << renderState.height << "\n255\n";
+	for (int y = 0; y < renderState.height; y++) {
+		for (int x = 0; x < renderState.width; x++) {
+			Colour color = getPixel(x, y);
+			ofs << (u32)color.R << ' ' << (u32)color.G << ' ' << (u32)color.B << '\n';
+		}
+	}
+	std::cout << "Exported to PPM successfully : " << filename << "\n";
+	ofs.close();
 }
 internal void drawLine(Vector a, Vector b, Colour color) {
 	double dy = b.y - a.y;
@@ -42,10 +63,12 @@ internal void drawLine(Vector a, Vector b, Colour color) {
 		for (int x = a.x; x <= b.x; x++) {
 			if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
 				y += aspectRatio;
-				continue;
+				//continue;
 			}
-			putPixel(x, y, color);
-			y += aspectRatio;
+			else {
+				putPixel(x, y, color);
+				y += aspectRatio;
+			}
 		}
 	}
 	else {
@@ -59,10 +82,11 @@ internal void drawLine(Vector a, Vector b, Colour color) {
 		for (int y = a.y; y <= b.y; y++) {
 			if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
 				x += aspectRatio;
-				continue;
 			}
-			putPixel(x, y, color);
-			x += aspectRatio;
+			else {
+				putPixel(x, y, color);
+				x += aspectRatio;
+			}
 		}
 	}
 }
@@ -220,7 +244,7 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 
 	if (wireframe) {
 		//Skipping pixels outside of screen
-		if (p1.x > (canvas.x / 2.f) || p1.y >= (canvas.y / 2.f) || p1.x <= -(canvas.x / 2.f) || p1.y <= -(canvas.y / 2.f)) {
+		/*if (p1.x > (canvas.x / 2.f) || p1.y >= (canvas.y / 2.f) || p1.x <= -(canvas.x / 2.f) || p1.y <= -(canvas.y / 2.f)) {
 			return;
 		}
 		else if (p2.x > (canvas.x / 2.f) || p2.y >= (canvas.y / 2.f) || p2.x <= -(canvas.x / 2.f) || p2.y <= -(canvas.y / 2.f)) {
@@ -228,7 +252,7 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 		}
 		else if (p3.x > (canvas.x / 2.f) || p3.y >= (canvas.y / 2.f) || p3.x <= -(canvas.x / 2.f) || p3.y <= -(canvas.y / 2.f)) {
 			return;
-		}
+		}*/
 		//Drawing wireframe
 		drawLine(p1, p2, color);
 		drawLine(p2, p3, color);
@@ -533,7 +557,7 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 	}
 	return i;
 }
-void renderObject(Mesh& mesh) {
+void renderObject(Mesh& mesh,bool bfc) {
 	std::vector<Triangle> triangles = mesh.triangles;
 	for (Triangle& triangle : triangles) {
 		Vector projected[3];
@@ -548,13 +572,14 @@ void renderObject(Mesh& mesh) {
 		newTri.p[1] = projected[1];
 		newTri.p[2] = projected[2];
 		//Backface culling
+		const bool backFaceCulling = bfc;
 		Vector normal = triangle.getNormal();
 		normal = normal / length(normal);
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
 		newTri.color = normalCol * computeLight((triangle.p[0] - O), normal, -D, mesh.specular);
 		Vector PO = O - triangle.p[0];
-		if (dot(normal, PO) > 0) {
+		if ((dot(normal, PO) > 0) || !backFaceCulling) {
 			bool drawWireframe = false;
 			if (debugState == DebugState::DS_BOUNDING_BOX) {
 				drawBox(mesh.boundingBox);
@@ -562,17 +587,6 @@ void renderObject(Mesh& mesh) {
 			}
 			if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
 			drawTriangle(newTri, drawWireframe);
-		}
-	}
-}
-void rasterize() {
-	for (Mesh& mesh : scene.meshes) {
-		std::vector<Triangle> tris = mesh.triangles;
-		for (Triangle& tri : tris) {
-			tri.p[0] = (tri.p[0] - O);
-			tri.p[1] = (tri.p[1] - O);
-			tri.p[2] = (tri.p[2] - O);
-			drawTriangle(tri);
 		}
 	}
 }

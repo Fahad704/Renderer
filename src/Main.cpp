@@ -4,6 +4,8 @@
 #define pressed(b) (input->buttons[b].isDown && input->buttons[b].changed)
 #define released(b) (!input->buttons[b].isDown && input->buttons[b].changed)
 bool rendMode=false;
+//Back face culling
+bool bfc = true;
 //frame delta time
 double fdt=0.06;
 void init() {
@@ -82,7 +84,7 @@ void update(Input* input) {
 		rendMode = !rendMode;
 	//Render image(TODO)
 	if (pressed(BUTTON_P)) 
-		exportToPPM();
+		exportToPPM("Image.ppm");
 	
 	//Ray trace
 	clearScreen(0x000000);
@@ -106,7 +108,7 @@ void update(Input* input) {
 
 
 	//Rasterize
-	renderObject(scene.meshes[0]);
+	renderObject(scene.meshes[0],bfc);
 	std::time_t endTime;
 	//Limit frame rate to reduce power consumption
 	double overhead = (frameLimit * 100) - (fdt);
