@@ -32,7 +32,6 @@ internal void drawSquare(double x,double y,int size, Colour color) {
 	}
 }
 internal void exportToPPM(std::string filename) {
-	//TODO : implement ppm image rendering
 	std::ofstream ofs;
 	ofs.open(filename);
 	if (!ofs.is_open()) {
@@ -557,13 +556,16 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 	}
 	return i;
 }
-void renderObject(Mesh& mesh,bool bfc) {
+void renderObject(Mesh& mesh,bool bfc = true) {
 	std::vector<Triangle> triangles = mesh.triangles;
 	for (Triangle& triangle : triangles) {
 		Vector projected[3];
-		projected[0] = projectVertex(triangle.p[0] - O);
-		projected[1] = projectVertex(triangle.p[1] - O);
-		projected[2] = projectVertex(triangle.p[2] - O);
+		if ((length(triangle.p[0] - O) <= 0) || (length(triangle.p[1] - O) <= 0) || (length(triangle.p[2] - O) <= 0)) {
+			continue;
+		}
+		projected[0] = projectVertex(triangle.p[0]);
+		projected[1] = projectVertex(triangle.p[1]);
+		projected[2] = projectVertex(triangle.p[2]);
 		projected[0] = canvasToViewport(projected[0].x, projected[0].y);
 		projected[1] = canvasToViewport(projected[1].x, projected[1].y);
 		projected[2] = canvasToViewport(projected[2].x, projected[2].y);
@@ -577,7 +579,7 @@ void renderObject(Mesh& mesh,bool bfc) {
 		normal = normal / length(normal);
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
-		newTri.color = normalCol * computeLight((triangle.p[0] - O), normal, -D, mesh.specular);
+		newTri.color = normalCol * computeLight(((triangle.p[0] - O) - O), normal, -D, mesh.specular);
 		Vector PO = O - triangle.p[0];
 		if ((dot(normal, PO) > 0) || !backFaceCulling) {
 			bool drawWireframe = false;

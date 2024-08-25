@@ -191,6 +191,9 @@ struct Triangle : Object {
 		}
 		return normal;
 	}
+	Vector getCentroid() {
+		return ((p[0] + p[1] + p[2])/3);
+	}
 };
 struct Texture
 {
@@ -253,39 +256,38 @@ struct Mesh {
 	{
 		Vector lowest, highest;
 		int count=0;
-		//if (!triangles.size()) {
-			for (const Face& face : faces) {
-				Triangle triangle;
-				Vector v1, v2, v3;
-				v1 = vertexes.at(face.index[0].vert-1);
-				v2 = vertexes.at(face.index[1].vert-1);
-				v3 = vertexes.at(face.index[2].vert-1);
-				triangle.reflectiveness = reflectiveness;
-				triangle.specular = specular;
-				triangle.p[0] = v1 + m_pos;
-				triangle.p[1] = v2 + m_pos;
-				triangle.p[2] = v3 + m_pos;
-				triangle.color = color;
-				triangle.normal = face.index[0].norm;
-				triangles.push_back(triangle);
+		if (triangles.size()) {
+			triangles.clear();
+		}
+		for (const Face& face : faces) {
+			Triangle triangle;
+			Vector v1, v2, v3;
+			v1 = vertexes.at(face.index[0].vert-1);
+			v2 = vertexes.at(face.index[1].vert-1);
+			v3 = vertexes.at(face.index[2].vert-1);
+			triangle.reflectiveness = reflectiveness;
+			triangle.specular = specular;
+			triangle.p[0] = v1 + m_pos;
+			triangle.p[1] = v2 + m_pos;
+			triangle.p[2] = v3 + m_pos;
+			triangle.color = color;
+			triangle.normal = face.index[0].norm;
+			triangles.push_back(triangle);
+		}
+		for (const Vector& vertex : vertexes) {
+			if (count == 0) {
+				lowest = vertex;
+				highest = vertex;
 			}
-			for (const Vector& vertex : vertexes) {
-				if (count == 0) {
-					lowest = vertex;
-					highest = vertex;
-				}
-				if (vertex.x < lowest.x)lowest.x = vertex.x;
-				if (vertex.y < lowest.y)lowest.y = vertex.y;
-				if (vertex.z < lowest.z)lowest.z = vertex.z;
-				if (vertex.x > highest.x)highest.x = vertex.x;
-				if (vertex.y > highest.y)highest.y = vertex.y;
-				if (vertex.z > highest.z)highest.z = vertex.z;
-				count++;
-			}
-		//}
-		 //else{
-			//return triangles;
-		//}
+			if (vertex.x < lowest.x)lowest.x = vertex.x;
+			if (vertex.y < lowest.y)lowest.y = vertex.y;
+			if (vertex.z < lowest.z)lowest.z = vertex.z;
+			if (vertex.x > highest.x)highest.x = vertex.x;
+			if (vertex.y > highest.y)highest.y = vertex.y;
+			if (vertex.z > highest.z)highest.z = vertex.z;
+			count++;
+		}
+		
 		boundingBox.lowest = lowest + m_pos;
 		boundingBox.highest = highest + m_pos;
 		return triangles;
@@ -293,6 +295,9 @@ struct Mesh {
 	void setPos(Vector pos,Colour color = {}) {
 		m_pos = pos;
 		initTriangles(color);
+	}
+	Vector getPos() {
+		return m_pos;
 	}
 private:
 	Vector m_pos;

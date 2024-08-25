@@ -9,7 +9,7 @@ bool bfc = true;
 //frame delta time
 double fdt=0.06;
 void init() {
-	debugState = DebugState::DS_OFF;
+	debugState = DebugState::DS_TRIANGLE;
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {}; 
 	//Sphere spherestem[] = {
@@ -35,7 +35,7 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Mesh> meshes = {};
 
-	Mesh King = loadOBJ("../Models/king.obj", { 0,-0.8f,3 }, { 255,255,255 }, 0.9f,1000);
+	Mesh King = loadOBJ("../Models/King.obj", { 0,-0.8f,3 }, { 255,255,255 }, 0.9f,1000);
 	meshes.push_back(King);
 
 	scene = { spheres,triangles,meshes,lights };
@@ -67,7 +67,8 @@ void update(Input* input) {
 
 		move = move / length(move);
 		move = move * speed;
-		O = O + move * fdt;
+		//O = O + move * fdt;
+		scene.meshes[0].setPos((scene.meshes[0].getPos() + move * fdt));
 	}
 	//Show triangles of the mesh
 	if (isDown(BUTTON_T)) 
@@ -80,10 +81,9 @@ void update(Input* input) {
 	if (isDown(BUTTON_V)) 
 		debugState = DebugState::DS_OFF;
 	//Change ray tracing to rasterization and vise versa
-	if (pressed(BUTTON_R)) 
+	if (pressed(BUTTON_R))
 		rendMode = !rendMode;
-	//Render image(TODO)
-	if (pressed(BUTTON_P)) 
+	if (pressed(BUTTON_P))
 		exportToPPM("Image.ppm");
 	
 	//Ray trace
@@ -118,5 +118,5 @@ void update(Input* input) {
 	timer::Duration deltaTime = timer_end(start,endTime);
 	fdt = deltaTime.count();
 	//Display fps on console
-	//std::cout <<std::fixed<<"\r" <<1.f/(deltaTime.count()) << " FPS" << std::flush;
+	std::cout <<std::fixed<<"\r" <<1.f/(deltaTime.count()) << " FPS" << std::flush;
 }
