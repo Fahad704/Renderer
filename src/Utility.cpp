@@ -225,6 +225,7 @@ struct Mesh {
 	std::vector<Face> faces;
 	std::vector<Triangle> triangles;
 	Box boundingBox;
+	Colour color;
 	double reflectiveness;
 	double specular;
 	Mesh() {
@@ -238,7 +239,7 @@ struct Mesh {
 		reflectiveness = 0;
 		specular = -1;
 	}
-	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {},Vector pos = {0,0,0},double reflectiveness = 0.f, double specular = -1)
+	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Vector pos = { 0,0,0 }, Colour color = {0,0,0}, double reflectiveness = 0.f, double specular = -1)
 	{
 		vertexes = vertex;
 		normals = normal;
@@ -246,18 +247,20 @@ struct Mesh {
 		faces = face;
 		triangles = triangle;
 		m_pos = pos;
+
 		if (pos != Vector{0, 0, 0}) {
 			setPos(pos);
 		}
+		this->color = color;
 		this->reflectiveness = reflectiveness;
 		this->specular = specular;
 	}
-	std::vector<Triangle> initTriangles(Colour color)
+	void initTriangles()
 	{
 		Vector lowest, highest;
 		int count=0;
 		if (triangles.size()) {
-			triangles.clear();
+			return;
 		}
 		for (const Face& face : faces) {
 			Triangle triangle;
@@ -267,10 +270,10 @@ struct Mesh {
 			v3 = vertexes.at(face.index[2].vert-1);
 			triangle.reflectiveness = reflectiveness;
 			triangle.specular = specular;
-			triangle.p[0] = v1 + m_pos;
-			triangle.p[1] = v2 + m_pos;
-			triangle.p[2] = v3 + m_pos;
-			triangle.color = color;
+			triangle.p[0] = v1;
+			triangle.p[1] = v2;
+			triangle.p[2] = v3;
+			triangle.color = { 0,0,0 };
 			triangle.normal = face.index[0].norm;
 			triangles.push_back(triangle);
 		}
@@ -288,13 +291,11 @@ struct Mesh {
 			count++;
 		}
 		
-		boundingBox.lowest = lowest + m_pos;
-		boundingBox.highest = highest + m_pos;
-		return triangles;
+		boundingBox.lowest = lowest;
+		boundingBox.highest = highest;
 	}
-	void setPos(Vector pos,Colour color = {}) {
+	void setPos(Vector pos) {
 		m_pos = pos;
-		initTriangles(color);
 	}
 	Vector getPos() {
 		return m_pos;

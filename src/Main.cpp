@@ -36,6 +36,8 @@ void init() {
 	std::vector<Mesh> meshes = {};
 
 	Mesh King = loadOBJ("../Models/King.obj", { 0,-0.8f,3 }, { 255,255,255 }, 0.9f,1000);
+	Mesh Cube = loadOBJ("../Models/cube.obj", { 3,1,3 }, { 255,255,255 }, 0.9f,1000);
+	meshes.push_back(Cube);
 	meshes.push_back(King);
 
 	scene = { spheres,triangles,meshes,lights };
@@ -67,8 +69,8 @@ void update(Input* input) {
 
 		move = move / length(move);
 		move = move * speed;
-		//O = O + move * fdt;
-		scene.meshes[0].setPos((scene.meshes[0].getPos() + move * fdt));
+		O = O + move * fdt;
+		//scene.meshes[0].setPos((scene.meshes[0].getPos() + move * fdt));
 	}
 	//Show triangles of the mesh
 	if (isDown(BUTTON_T)) 
@@ -110,6 +112,7 @@ void update(Input* input) {
 
 	//Rasterize
 	renderObject(scene.meshes[0],bfc);
+	renderObject(scene.meshes[1],bfc);
 	std::time_t endTime;
 	//Limit frame rate to reduce power consumption
 	double overhead = (frameLimit * 100) - (fdt);
