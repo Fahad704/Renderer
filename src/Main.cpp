@@ -74,7 +74,6 @@ void update(Input* input) {
 	if (isDown(BUTTON_T)) 
 		debugState = DebugState::DS_TRIANGLE;
 	//Show bounding box of the mesh
-	//TODO : Find out why the bounding box is weird
 	if (isDown(BUTTON_B)) 
 		debugState = DebugState::DS_BOUNDING_BOX;
 	//Turn off Debug view
@@ -85,6 +84,8 @@ void update(Input* input) {
 		rendMode = !rendMode;
 	if (pressed(BUTTON_P))
 		exportToPPM("Image.ppm");
+	if (pressed(BUTTON_C))
+		bfc = !bfc;
 	
 	//Ray trace
 	clearScreen(0x000000);

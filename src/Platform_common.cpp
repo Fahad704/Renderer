@@ -11,6 +11,7 @@ enum Buttons {
 	BUTTON_A,
 	BUTTON_S,
 	BUTTON_D,
+	BUTTON_C,
 	BUTTON_V,
 	BUTTON_T,
 	BUTTON_P,

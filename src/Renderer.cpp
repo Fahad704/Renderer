@@ -227,14 +227,14 @@ void interpolate(double x0, int y0, double x1, double y1,std::vector<double>& ar
 	}
 }
 internal void drawTriangle(Triangle t,bool wireframe = false) {
-	for (int i = 0; i < 3; i++) {
-		if (t.p[i].x <= -(canvas.x / 2.f) || t.p[i].x >= (canvas.x / 2.f) || t.p[i].y <= -(canvas.y / 2.f) || t.p[i].y >= (canvas.x / 2.f)) {
-			return;
-		}
-	}
-	Vector p1 = t.p[0] * Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
-	Vector p2 = t.p[1] * Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
-	Vector p3 = t.p[2] * Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
+	//for (int i = 0; i < 3; i++) {
+	//	if (t.p[i].x <= -(canvas.x / 2.f) || t.p[i].x >= (canvas.x / 2.f) || t.p[i].y <= -(canvas.y / 2.f) || t.p[i].y >= (canvas.x / 2.f)) {
+	//		return;
+	//	}
+	//}
+	Vector p1 = t.p[0];// *Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
+	Vector p2 = t.p[1];// *Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
+	Vector p3 = t.p[2];// *Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
 	Colour color = t.color;
 	
 	if (p1.y > p2.y)swap(p1,p2);
@@ -561,14 +561,15 @@ void renderObject(Mesh& mesh,bool bfc = true) {
 	for (Triangle& triangle : triangles) {
 		Vector projected[3];
 		if ((length(triangle.p[0] - O) <= 0) || (length(triangle.p[1] - O) <= 0) || (length(triangle.p[2] - O) <= 0)) {
+			std::cout << "It is behind\n";
 			continue;
 		}
 		projected[0] = projectVertex(triangle.p[0]);
 		projected[1] = projectVertex(triangle.p[1]);
 		projected[2] = projectVertex(triangle.p[2]);
-		projected[0] = canvasToViewport(projected[0].x, projected[0].y);
-		projected[1] = canvasToViewport(projected[1].x, projected[1].y);
-		projected[2] = canvasToViewport(projected[2].x, projected[2].y);
+		//projected[0] = canvasToViewport(projected[0].x, projected[0].y);
+		//projected[1] = canvasToViewport(projected[1].x, projected[1].y);
+		//projected[2] = canvasToViewport(projected[2].x, projected[2].y);
 		Triangle newTri;
 		newTri.p[0] = projected[0];
 		newTri.p[1] = projected[1];

@@ -115,6 +115,7 @@ input.buttons[b].isDown = isDown;\
 					process_messages(BUTTON_S, 'S');
 					process_messages(BUTTON_P, 'P');
 					process_messages(BUTTON_D, 'D');
+					process_messages(BUTTON_C, 'C');
 				}
 			}break;
 			default: {
