@@ -8,7 +8,7 @@ struct RenderState {
 	void* memory;
 	BITMAPINFO bitmapinfo;
 };
- 
+void* depth;
 static RenderState renderState;
 static HWND window = {};
 
@@ -25,6 +25,7 @@ LRESULT window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	case WM_DESTROY: {
 		running = false;
 		if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
+		if (depth)VirtualFree(depth, 0, MEM_RELEASE);
 		FreeConsole();
 		std::fclose(stdout);
 		DestroyWindow(hWnd);
@@ -36,10 +37,12 @@ LRESULT window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		renderState.height = rect.bottom - rect.top;
 
 		int buffer_size = renderState.width * renderState.height * sizeof(unsigned int);
-
+		//Screen backbuffer
 		if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
 		renderState.memory = VirtualAlloc(0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-
+		//Depth buffer
+		if (depth)VirtualFree(depth, 0, MEM_RELEASE);
+		depth = VirtualAlloc(0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 		renderState.bitmapinfo.bmiHeader.biSize = sizeof(renderState.bitmapinfo.bmiHeader);
 		renderState.bitmapinfo.bmiHeader.biWidth = renderState.width;
 		renderState.bitmapinfo.bmiHeader.biHeight = renderState.height;
@@ -59,8 +62,10 @@ LRESULT window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	return result;
 }
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
-	//random seed
+
+	//Random seed
 	srand(time(NULL));
+
 	//Create Window Class
 	WNDCLASS window_class = {};
 	window_class.lpfnWndProc = window_callback;

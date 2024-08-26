@@ -3,6 +3,19 @@
 #define isDown(b) input->buttons[b].isDown
 #define pressed(b) (input->buttons[b].isDown && input->buttons[b].changed)
 #define released(b) (!input->buttons[b].isDown && input->buttons[b].changed)
+
+//TODO(Fahad):
+/*
+		Add instancing(Rasterizer)
+		Fix Point light bug(Rasterizer)
+		Fix black bug(Ray tracer)
+		read and display textures(Rasterizer)
+		render according to material(Rasterizer)
+		Add some ui
+*/
+
+
+
 bool rendMode=false;
 //Back face culling
 bool bfc = true;
@@ -18,7 +31,7 @@ void init() {
 			//{ { 2 ,  0  , 4}, 1  ,{0, 0, 255}	,500,  0.4f },
 			//{ { -2, 0   , 4}, 1  ,{0, 255, 0}	,10,   0.3f},
 		   // {{ 1, 1   , 0}, 0.5f  ,{0, 255, 0}	,10,   0.3f},
-			//{ { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
+			// { { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
 	//};
 	//int spherecount = sizeof(spherestem) / sizeof(Sphere);
 	//for (int i = 0; i < spherecount; i++) {
@@ -35,10 +48,9 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Mesh> meshes = {};
 
-	Mesh King = loadOBJ("../Models/King.obj", { 0,-0.8f,3 }, { 255,255,255 }, 0.9f,1000);
-	Mesh Cube = loadOBJ("../Models/cube.obj", { 3,1,3 }, { 255,255,255 }, 0.9f,1000);
-	meshes.push_back(Cube);
+	Mesh King = loadOBJ("../Models/Yhouse.obj", { 0,-2,10 }, { 255,255,255 }, 0,1000);
 	meshes.push_back(King);
+	//meshes.push_back(King);
 
 	scene = { spheres,triangles,meshes,lights };
 }
@@ -112,7 +124,6 @@ void update(Input* input) {
 
 	//Rasterize
 	renderObject(scene.meshes[0],bfc);
-	renderObject(scene.meshes[1],bfc);
 	std::time_t endTime;
 	//Limit frame rate to reduce power consumption
 	double overhead = (frameLimit * 100) - (fdt);

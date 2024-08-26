@@ -484,9 +484,11 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 	for (Mesh& mesh : scene.meshes)
 	{
 		std::vector<Triangle>& triangles = mesh.triangles;
+		//World space transformation
+		Box mbb = { mesh.boundingBox.highest + mesh.getPos(),mesh.boundingBox.lowest + mesh.getPos() };
 		if (debugState == DebugState::DS_BOUNDING_BOX)
 		{
-			if (!RayIntersectsBox(O, D, mesh.boundingBox))
+			if (!RayIntersectsBox(O, D, mbb))
 			{
 				continue;
 			}
@@ -497,7 +499,7 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 			}
 		}
 		else {
-			if (!RayIntersectsBox(O, D, mesh.boundingBox))
+			if (!RayIntersectsBox(O, D, mbb))
 			{
 				continue;
 			}
@@ -525,7 +527,7 @@ internal Vector reflectRay(Vector R, Vector N) {
 }
 internal double computeLight(Vector P,Vector N,Vector V,double s) {
 	double i = 0.f;
-	for (Light light : scene.lights) {
+	for (const Light& light : scene.lights) {
 		//L = direction of the light
 		Vector L = {};
 		double tMax=0;
@@ -566,9 +568,14 @@ void renderObject(Mesh& mesh,bool bfc = true) {
 	std::vector<Triangle> triangles = mesh.triangles;
 	for (Triangle& triangle : triangles) {
 		Vector projected[3];
-		if ((length(triangle.p[0] - O) <= 0) || (length(triangle.p[1] - O) <= 0) || (length(triangle.p[2] - O) <= 0)) {
-			std::cout << "It is behind\n";
-			continue;
+		{
+			int zdist1 = triangle.p[0].z + mesh.getPos().z - O.z;
+			int zdist2 = triangle.p[1].z + mesh.getPos().z - O.z;
+			int zdist3 = triangle.p[2].z + mesh.getPos().z - O.z;
+			if (zdist1 <= 0 || zdist2 <= 0 || zdist3 <= 0) {
+				//Triangle is behind camera
+				continue;
+			}
 		}
 		projected[0] = projectVertex(triangle.p[0] + mesh.getPos() - O);
 		projected[1] = projectVertex(triangle.p[1] + mesh.getPos() - O);
@@ -583,7 +590,7 @@ void renderObject(Mesh& mesh,bool bfc = true) {
 		normal = normal / length(normal);
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
-		newTri.color = normalCol * computeLight((((triangle.p[0] + mesh.getPos()) - O) - O), normal, -D, mesh.specular);
+		newTri.color = normalCol;// *computeLight((((triangle.p[0] + mesh.getPos()) - O) - O), normal, -D, mesh.specular);
 		Vector PO = O - (triangle.p[0] + mesh.getPos());
 		if ((dot(normal, PO) > 0) || !backFaceCulling) {
 			bool drawWireframe = false;
