@@ -6,9 +6,10 @@
 
 //TODO(Fahad):
 /*
-		Add instancing(Rasterizer)
-		Fix Point light bug(Rasterizer)
+	Fixing:
 		Fix black bug(Ray tracer)
+
+	Adding:
 		read and display textures(Rasterizer)
 		render according to material(Rasterizer)
 		Add some ui
@@ -24,7 +25,7 @@ double fdt=0.06;
 void init() {
 	debugState = DebugState::DS_TRIANGLE;
 	//Spheres (currently only rendered in ray tracing)
-	std::vector<Sphere> spheres = {}; 
+	std::vector<Sphere> spheres = {};
 	//Sphere spherestem[] = {
 		//	//Position-----Radius---Colour----specular-reflect//
 			//{ { 0 , 0  , 3}, 1  ,{255,0 , 0}	,500,  0.2f},
@@ -46,13 +47,15 @@ void init() {
 	};
 
 	std::vector<Triangle> triangles = {};
-	std::vector<Mesh> meshes = {};
+	std::vector<Instance> instances = {};
 
-	Mesh King = loadOBJ("../Models/Yhouse.obj", { 0,-2,10 }, { 255,255,255 }, 0,1000);
-	meshes.push_back(King);
-	//meshes.push_back(King);
+	static Mesh King = loadOBJ("../Models/cube.obj", { 255,255,255 }, 0, 1000);
+	Instance ins  = {King, { 0,-0.8,3 }};
+	Instance ins2 = {King, { 3,-0.8,4 }};
+	instances.push_back(ins);
+	instances.push_back(ins2);
 
-	scene = { spheres,triangles,meshes,lights };
+	scene = { spheres,triangles,instances,lights };
 }
 void update(Input* input) {
 	timer::Timer start = timerStart();
@@ -123,7 +126,8 @@ void update(Input* input) {
 
 
 	//Rasterize
-	renderObject(scene.meshes[0],bfc);
+	renderObject(scene.instances[0],bfc);
+	renderObject(scene.instances[1],bfc);
 	std::time_t endTime;
 	//Limit frame rate to reduce power consumption
 	double overhead = (frameLimit * 100) - (fdt);

@@ -235,22 +235,16 @@ struct Mesh {
 		faces = {};
 		triangles = {};
 		boundingBox = {};
-		m_pos = {};
 		reflectiveness = 0;
 		specular = -1;
 	}
-	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Vector pos = { 0,0,0 }, Colour color = {0,0,0}, double reflectiveness = 0.f, double specular = -1)
+	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Colour color = {0,0,0}, double reflectiveness = 0.f, double specular = -1)
 	{
 		vertexes = vertex;
 		normals = normal;
 		texture = text;
 		faces = face;
 		triangles = triangle;
-		m_pos = pos;
-
-		if (pos != Vector{0, 0, 0}) {
-			setPos(pos);
-		}
 		this->color = color;
 		this->reflectiveness = reflectiveness;
 		this->specular = specular;
@@ -294,14 +288,17 @@ struct Mesh {
 		boundingBox.lowest = lowest;
 		boundingBox.highest = highest;
 	}
-	void setPos(Vector pos) {
-		m_pos = pos;
+};
+struct Instance {
+	Mesh* mesh;
+	Vector position;
+	Instance(Mesh& mesh , Vector position = { 0,0,0 }) {
+		this->mesh = &mesh;
+		this->position = position;
 	}
-	Vector getPos() {
-		return m_pos;
+	Box getBoundingBox() {
+		return { mesh->boundingBox.highest + position, mesh->boundingBox.lowest + position };
 	}
-private:
-	Vector m_pos;
 };
 struct Light {
 	LightType type;
@@ -324,6 +321,6 @@ internal bool isIn(T value,T lower, T higher) {
 struct Scene {
 	std::vector<Sphere> spheres;
 	std::vector<Triangle> triangles;
-	std::vector<Mesh> meshes;
+	std::vector<Instance> instances;
 	std::vector<Light> lights;
 };

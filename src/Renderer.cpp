@@ -89,7 +89,7 @@ internal void drawLine(Vector a, Vector b, Colour color) {
 		}
 	}
 }
-Mesh loadOBJ(std::string filename, Vector pos = { 0,0,0 }, Colour color = { 0,0,0 }, double reflectiveness = 0,double specular = -1)
+Mesh loadOBJ(std::string filename, Colour color = { 0,0,0 }, double reflectiveness = 0,double specular = -1)
 {
 	std::vector<Vector> vertexes = {};
 	std::vector<Vector> normals = {};
@@ -195,10 +195,6 @@ Mesh loadOBJ(std::string filename, Vector pos = { 0,0,0 }, Colour color = { 0,0,
 	}
 	OBJFile.close();
 	Mesh mesh = { vertexes,normals,texture,faces};
-	if (pos == Vector{0, 0, 0}) {
-		return mesh;
-	}
-	mesh.setPos(pos);
 	mesh.color = color;
 	mesh.specular = specular;
 	mesh.reflectiveness = reflectiveness;
@@ -481,11 +477,10 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 		}
 	}
 	//Mesh
-	for (Mesh& mesh : scene.meshes)
+	for (Instance& instance : scene.instances)
 	{
-		std::vector<Triangle>& triangles = mesh.triangles;
-		//World space transformation
-		Box mbb = { mesh.boundingBox.highest + mesh.getPos(),mesh.boundingBox.lowest + mesh.getPos() };
+		std::vector<Triangle>& triangles = instance.mesh->triangles;
+		Box mbb = instance.getBoundingBox();
 		if (debugState == DebugState::DS_BOUNDING_BOX)
 		{
 			if (!RayIntersectsBox(O, D, mbb))
@@ -510,9 +505,9 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 				continue;
 			}
 			Triangle ttri;
-			ttri.p[0] = triangle.p[0] + mesh.getPos();
-			ttri.p[1] = triangle.p[1] + mesh.getPos();
-			ttri.p[2] = triangle.p[2] + mesh.getPos();
+			ttri.p[0] = triangle.p[0] + instance.position;
+			ttri.p[1] = triangle.p[1] + instance.position;
+			ttri.p[2] = triangle.p[2] + instance.position;
 			double triangleInt = intersectRayTriangle(O, D, ttri);
 			if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
 				closestT = triangleInt;
@@ -541,7 +536,7 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 			}
 			else if (light.type == LT_POINT) {
 				L = light.pos - P;
-				tMax = 1;
+				tMax = 2;
 			}
 			double shadowT = closestIntersection(P, L, 0.0001, tMax).second;
 			if (shadowT != infinity) {
@@ -564,22 +559,22 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 	}
 	return i;
 }
-void renderObject(Mesh& mesh,bool bfc = true) {
-	std::vector<Triangle> triangles = mesh.triangles;
+void renderObject(Instance& instance,bool bfc = true) {
+	std::vector<Triangle> triangles = instance.mesh->triangles;
 	for (Triangle& triangle : triangles) {
 		Vector projected[3];
 		{
-			int zdist1 = triangle.p[0].z + mesh.getPos().z - O.z;
-			int zdist2 = triangle.p[1].z + mesh.getPos().z - O.z;
-			int zdist3 = triangle.p[2].z + mesh.getPos().z - O.z;
+			int zdist1 = triangle.p[0].z + instance.position.z - O.z;
+			int zdist2 = triangle.p[1].z + instance.position.z - O.z;
+			int zdist3 = triangle.p[2].z + instance.position.z - O.z;
 			if (zdist1 <= 0 || zdist2 <= 0 || zdist3 <= 0) {
 				//Triangle is behind camera
 				continue;
 			}
 		}
-		projected[0] = projectVertex(triangle.p[0] + mesh.getPos() - O);
-		projected[1] = projectVertex(triangle.p[1] + mesh.getPos() - O);
-		projected[2] = projectVertex(triangle.p[2] + mesh.getPos() - O);
+		projected[0] = projectVertex(triangle.p[0] + instance.position - O);
+		projected[1] = projectVertex(triangle.p[1] + instance.position - O);
+		projected[2] = projectVertex(triangle.p[2] + instance.position - O);
 		Triangle newTri;
 		newTri.p[0] = projected[0];
 		newTri.p[1] = projected[1];
@@ -591,12 +586,11 @@ void renderObject(Mesh& mesh,bool bfc = true) {
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
 		newTri.color = normalCol;// *computeLight((((triangle.p[0] + mesh.getPos()) - O) - O), normal, -D, mesh.specular);
-		Vector PO = O - (triangle.p[0] + mesh.getPos());
+		Vector PO = O - (triangle.p[0] + instance.position);
 		if ((dot(normal, PO) > 0) || !backFaceCulling) {
 			bool drawWireframe = false;
 			if (debugState == DebugState::DS_BOUNDING_BOX) {
-				Box bb = { mesh.boundingBox.highest + mesh.getPos(),mesh.boundingBox.lowest + mesh.getPos() };
-				drawBox(bb);
+				drawBox(instance.getBoundingBox());
 				return;
 			}
 			if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
