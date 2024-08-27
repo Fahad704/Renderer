@@ -585,7 +585,7 @@ void renderObject(Instance& instance,bool bfc = true) {
 		normal = normal / length(normal);
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
-		newTri.color = normalCol *computeLight((((triangle.p[0] + instance.position) - O) - O), normal, -D, instance.mesh->specular);
+		newTri.color = normalCol;// *computeLight((((triangle.p[0] + instance.position) - O) - O), normal, -D, instance.mesh->specular);
 		Vector PO = O - (triangle.p[0] + instance.position);
 		if ((dot(normal, PO) > 0) || !backFaceCulling) {
 			bool drawWireframe = false;

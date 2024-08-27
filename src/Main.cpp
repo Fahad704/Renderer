@@ -47,8 +47,8 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh King = loadOBJ("../Models/King.obj", { 255,255,255 }, 0, 1000);
-	Instance ins  = {King, { 0,-0.8,3 }};
+	static Mesh King = loadOBJ("../Models/sponza.obj", { 0,255,255 }, 0, 1000);
+	Instance ins  = {King, { 0,-0.8,1000 }};
 	//Instance ins2 = {King, { 3,-0.8,4 }};
 	instances.push_back(ins);
 	//instances.push_back(ins2);
@@ -61,22 +61,25 @@ void update(Input* input) {
 	Vector move = { 0,0,0 };
 	//Movement events
 	if (isDown(BUTTON_RIGHT)) 
-		move = Vector{ 1.f, 0, 0 };
+		move = Vector{ 10.f, 0, 0 };
 	
 	if (isDown(BUTTON_LEFT)) 
-		move = move + Vector{ -1.f, 0, 0 };
+		move = move + Vector{ -10.f, 0, 0 };
 	
 	if (isDown(BUTTON_UP)) 
-		move = move + Vector{ 0, 0, 1.f };
+		move = move + Vector{ 0, 0, 10.f };
 	
 	if (isDown(BUTTON_DOWN)) 
-		move = move + Vector{ 0, 0, -1.f };
+		move = move + Vector{ 0, 0, -10.f };
 	
 	if (isDown(BUTTON_W)) 
-		move = move + Vector{ 0,1.f,0 };
+		move = move + Vector{ 0,10.f,0 };
 	
 	if (isDown(BUTTON_S)) 
-		move = move + Vector{ 0,-1.f,0 };
+		move = move + Vector{ 0,-10.f,0 };
+	if (isDown(BUTTON_SPACE)) {
+		std::cout << "\nPosition : " << O.x << " " << O.y << " " << O.z << "\n";
+	}
 	//Normalize move vector and move the Camera
 	if (!(move == Vector{ 0,0,0 })) {
 

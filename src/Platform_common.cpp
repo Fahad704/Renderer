@@ -15,6 +15,7 @@ enum Buttons {
 	BUTTON_V,
 	BUTTON_T,
 	BUTTON_P,
+	BUTTON_SPACE,
 	BUTTON_COUNT
 };
 

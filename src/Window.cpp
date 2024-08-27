@@ -111,6 +111,7 @@ input.buttons[b].isDown = isDown;\
 					process_messages(BUTTON_DOWN, VK_DOWN);
 					process_messages(BUTTON_LEFT, VK_LEFT);
 					process_messages(BUTTON_RIGHT, VK_RIGHT);
+					process_messages(BUTTON_SPACE, VK_SPACE);
 					process_messages(BUTTON_R, 'R');
 					process_messages(BUTTON_W, 'W');
 					process_messages(BUTTON_A, 'A');

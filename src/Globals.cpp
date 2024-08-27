@@ -7,7 +7,7 @@ float vpWidth = 1;
 float vpHeight = 1.778;
 //100fps
 double frameLimit = 0.0125f;
-Vector O(0, 0, 0);
+Vector O = { -47.970534, 508.716079, -2000};
 Scene scene = {};
 //temp
 Triangle tempTri;
