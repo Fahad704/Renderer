@@ -6,10 +6,8 @@
 
 //TODO(Fahad):
 /*
-	Fixing:
-		Fix black bug(Ray tracer)
-
 	Adding:
+		Transform(rotation,scale,position) to an instance
 		read and display textures(Rasterizer)
 		render according to material(Rasterizer)
 		Add some ui
@@ -49,11 +47,11 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh King = loadOBJ("../Models/cube.obj", { 255,255,255 }, 0, 1000);
+	static Mesh King = loadOBJ("../Models/King.obj", { 255,255,255 }, 0, 1000);
 	Instance ins  = {King, { 0,-0.8,3 }};
-	Instance ins2 = {King, { 3,-0.8,4 }};
+	//Instance ins2 = {King, { 3,-0.8,4 }};
 	instances.push_back(ins);
-	instances.push_back(ins2);
+	//instances.push_back(ins2);
 
 	scene = { spheres,triangles,instances,lights };
 }
@@ -99,8 +97,10 @@ void update(Input* input) {
 	//Change ray tracing to rasterization and vise versa
 	if (pressed(BUTTON_R))
 		rendMode = !rendMode;
+	//Exporting an image
 	if (pressed(BUTTON_P))
 		exportToPPM("Image.ppm");
+	//Backface culling toggle
 	if (pressed(BUTTON_C))
 		bfc = !bfc;
 	
@@ -127,7 +127,6 @@ void update(Input* input) {
 
 	//Rasterize
 	renderObject(scene.instances[0],bfc);
-	renderObject(scene.instances[1],bfc);
 	std::time_t endTime;
 	//Limit frame rate to reduce power consumption
 	double overhead = (frameLimit * 100) - (fdt);

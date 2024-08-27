@@ -267,7 +267,7 @@ struct Mesh {
 			triangle.p[0] = v1;
 			triangle.p[1] = v2;
 			triangle.p[2] = v3;
-			triangle.color = { 0,0,0 };
+			triangle.color = this->color;
 			triangle.normal = face.index[0].norm;
 			triangles.push_back(triangle);
 		}
