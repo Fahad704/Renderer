@@ -7,6 +7,7 @@
 ![RayTracerReflection](https://github.com/user-attachments/assets/7bfc2390-8e0e-4a74-9dea-2c2b927a367c)<br>
 ### Rasterizer
 #### King rendered with light, coloured according to its surface normal<br>
-![Screenshot (124)](https://github.com/user-attachments/assets/3a02e8bf-d8d6-44aa-988e-007f26b677cb)<br>
+![KingColorNorm](https://github.com/user-attachments/assets/39916a7d-256b-4a05-9f69-a9e6daded15a)<br>
 #### Same king rendered as triangle wireframe
-![Screenshot (125)](https://github.com/user-attachments/assets/1134436b-389f-439e-adce-e908a395ab8a)<br>
+![KingTrisNorm](https://github.com/user-attachments/assets/32c47d44-8504-477a-a5ba-feb240a973cd)<br>
+
