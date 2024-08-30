@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PLATFORM_COMMON_CPP
+#define PLATFORM_COMMON_CPP
 enum Buttons {
 	BUTTON_UP,
 	BUTTON_DOWN,
@@ -26,3 +27,4 @@ struct Button_state {
 struct Input {
 	Button_state buttons[BUTTON_COUNT];
 };
+#endif

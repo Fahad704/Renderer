@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTILITY_CPP
+#define UTILITY_CPP
 #define _CRT_SECURE_NO_WARNINGS
 #include <fstream>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <unordered_map>
 #include <typeinfo>
 #include <glad/glad.h>
+#include <gl/GL.h>
 #include <iomanip>
 #include <thread> 
 #include <time.h>
@@ -289,15 +291,22 @@ struct Mesh {
 		boundingBox.highest = highest;
 	}
 };
+struct Transform {
+	Vector position;
+	double scale;
+	Vector rotation;
+};
 struct Instance {
 	Mesh* mesh;
-	Vector position;
-	Instance(Mesh& mesh , Vector position = { 0,0,0 }) {
+	Transform transform;
+	Instance(Mesh& mesh , Vector position = { 0,0,0 },double scale = 1,Vector rotation = {0,0,0}) {
 		this->mesh = &mesh;
-		this->position = position;
+		transform.position = position;
+		transform.scale = scale;
+		transform.rotation = rotation;
 	}
 	Box getBoundingBox() {
-		return { mesh->boundingBox.highest + position, mesh->boundingBox.lowest + position };
+		return { mesh->boundingBox.highest + transform.position, mesh->boundingBox.lowest + transform.position };
 	}
 };
 struct Light {
@@ -324,3 +333,4 @@ struct Scene {
 	std::vector<Instance> instances;
 	std::vector<Light> lights;
 };
+#endif

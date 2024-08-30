@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RENDERER_CPP
+#define RENDERER_CPP
 #include "Window.cpp"
 #define WHITE {255,255,255}
 internal void clearScreen(u32 color) {
@@ -505,9 +506,9 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 				continue;
 			}
 			Triangle ttri;
-			ttri.p[0] = triangle.p[0] + instance.position;
-			ttri.p[1] = triangle.p[1] + instance.position;
-			ttri.p[2] = triangle.p[2] + instance.position;
+			ttri.p[0] = triangle.p[0] + instance.transform.position;
+			ttri.p[1] = triangle.p[1] + instance.transform.position;
+			ttri.p[2] = triangle.p[2] + instance.transform.position;
 			double triangleInt = intersectRayTriangle(O, D, ttri);
 			if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
 				closestT = triangleInt;
@@ -559,34 +560,72 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 	}
 	return i;
 }
+Vector rotate(Vector& vec,const Vector& rotation) {
+	
+	//rotation aruond x axis
+	Vector xrotated;
+
+	xrotated.x = vec.x;
+	xrotated.y = (vec.y * cos(rotation.x)) + (vec.z * -sin(rotation.x));
+	xrotated.z = (vec.y * (sin(rotation.x))) + (vec.z * cos(rotation.x));
+
+	Vector yrotated;
+
+	yrotated.y = xrotated.y;
+	
+	yrotated.x = xrotated.x * cos(rotation.y) + xrotated.z * (-sin(rotation.y));
+	yrotated.z = xrotated.x * sin(rotation.y) + xrotated.z * cos(rotation.y);
+
+	Vector zrotated;
+	zrotated.z = yrotated.z;
+
+	zrotated.x = yrotated.x * cos(rotation.z) + yrotated.y * (-sin(rotation.z));
+	zrotated.y = yrotated.x * sin(rotation.z) + yrotated.y * cos(rotation.z);
+
+	return zrotated;
+}
+Vector transform(Vector vec,const Transform& tf) {
+	Vector rotated = rotate(vec, tf.rotation);
+	Vector translated = (rotated * tf.scale) + tf.position;
+	return translated;
+}
 void renderObject(Instance& instance,bool bfc = true) {
 	std::vector<Triangle> triangles = instance.mesh->triangles;
 	for (Triangle& triangle : triangles) {
-		Vector projected[3];
+		Vector transformed[3];
+		transformed[0] = transform(triangle.p[0],instance.transform);
+		transformed[1] = transform(triangle.p[1],instance.transform);
+		transformed[2] = transform(triangle.p[2],instance.transform);
 		{
-			int zdist1 = triangle.p[0].z + instance.position.z - O.z;
-			int zdist2 = triangle.p[1].z + instance.position.z - O.z;
-			int zdist3 = triangle.p[2].z + instance.position.z - O.z;
+			int zdist1 = transformed[0].z - O.z;
+			int zdist2 = transformed[1].z - O.z;
+			int zdist3 = transformed[2].z - O.z;
 			if (zdist1 <= 0 || zdist2 <= 0 || zdist3 <= 0) {
 				//Triangle is behind camera
 				continue;
 			}
 		}
-		projected[0] = projectVertex(triangle.p[0] + instance.position - O);
-		projected[1] = projectVertex(triangle.p[1] + instance.position - O);
-		projected[2] = projectVertex(triangle.p[2] + instance.position - O);
+		Vector projected[3];
+		projected[0] = projectVertex(transformed[0] - O);
+		projected[1] = projectVertex(transformed[1] - O);
+		projected[2] = projectVertex(transformed[2] - O);
 		Triangle newTri;
 		newTri.p[0] = projected[0];
 		newTri.p[1] = projected[1];
 		newTri.p[2] = projected[2];
 		//Backface culling
 		const bool backFaceCulling = bfc;
-		Vector normal = triangle.getNormal();
+		Triangle transformedTri;
+		transformedTri.p[0] = transformed[0];
+		transformedTri.p[1] = transformed[1];
+		transformedTri.p[2] = transformed[2];
+		Vector normal = transformedTri.getNormal();
+		
 		normal = normal / length(normal);
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
 		newTri.color = normalCol;// *computeLight((((triangle.p[0] + instance.position) - O) - O), normal, -D, instance.mesh->specular);
-		Vector PO = O - (triangle.p[0] + instance.position);
+		Vector PO = O - (transform(triangle.p[0] , instance.transform));
 		if ((dot(normal, PO) > 0) || !backFaceCulling) {
 			bool drawWireframe = false;
 			if (debugState == DebugState::DS_BOUNDING_BOX) {
@@ -662,3 +701,4 @@ void rayTrace() {
 		}
 	}
 }
+#endif

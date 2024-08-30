@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WINDOW_CPP
+#define WINDOW_CPP
 #include "Utility.cpp"
 #include <Windows.h>
 global_variable bool running = true;
@@ -18,7 +19,7 @@ static HWND window = {};
 #include "Resource.h"
 #include "Main.cpp"
 void clearScreen(u32);
-LRESULT window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	LRESULT result = 0;
 	switch (uMsg) {
 	case WM_CLOSE:
@@ -65,7 +66,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 	//Random seed
 	srand(time(NULL));
-
 	//Create Window Class
 	WNDCLASS window_class = {};
 	window_class.lpfnWndProc = window_callback;
@@ -82,12 +82,12 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	window = CreateWindow(window_class.lpszClassName, L"Renderer!", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, hInstance, 0);
 	HDC hdc = GetDC(window);
 	HGLRC hglrc = wglCreateContext(hdc);
+	wglMakeCurrent(hdc, hglrc);
 	AllocConsole();
 	std::freopen("CONOUT$", "w", stdout);
 	
 	Input input = {};
 	init();
-	clearScreen(0x000000);
 	while (running) {
 
 		//Message loop
@@ -139,3 +139,4 @@ input.buttons[b].isDown = isDown;\
 		StretchDIBits(hdc, 0, renderState.height-1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 	}
 }
+#endif

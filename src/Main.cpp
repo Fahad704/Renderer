@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MAIN_CPP
+#define MAIN_CPP
 #include "Window.cpp"
 #define isDown(b) input->buttons[b].isDown
 #define pressed(b) (input->buttons[b].isDown && input->buttons[b].changed)
@@ -47,11 +48,11 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh King = loadOBJ("../Models/sponza.obj", { 0,255,255 }, 0, 1000);
-	Instance ins  = {King, { 0,-0.8,1000 }};
-	//Instance ins2 = {King, { 3,-0.8,4 }};
+	static Mesh King = loadOBJ("../Models/King.obj", { 0,255,255 }, 0, 1000);
+	Instance ins = { King, { 0,-0.8,3 },1,{0,0,0} };
+	Instance ins2 = { King, { 3,-0.8,4 },1,{0,0,0} };
 	instances.push_back(ins);
-	//instances.push_back(ins2);
+	instances.push_back(ins2);
 
 	scene = { spheres,triangles,instances,lights };
 }
@@ -120,6 +121,7 @@ void update(Input* input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
+		//rayTrace();
 		std::time_t endTime;
 		timer::Duration deltaTime = timer_end(start, endTime);
 		fdt = deltaTime.count();
@@ -130,6 +132,7 @@ void update(Input* input) {
 
 	//Rasterize
 	renderObject(scene.instances[0],bfc);
+	renderObject(scene.instances[1],bfc);
 	std::time_t endTime;
 	//Limit frame rate to reduce power consumption
 	double overhead = (frameLimit * 100) - (fdt);
@@ -141,3 +144,4 @@ void update(Input* input) {
 	//Display fps on console
 	std::cout <<std::fixed<<"\r" <<1.f/(deltaTime.count()) << " FPS" << std::flush;
 }
+#endif
