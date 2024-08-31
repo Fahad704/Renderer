@@ -79,14 +79,16 @@ void update(Input* input) {
 	if (isDown(BUTTON_S)) 
 		move = move + Vector{ 0,-10.f,0 };
 	if (isDown(BUTTON_SPACE)) {
-		std::cout << "\nPosition : " << O.x << " " << O.y << " " << O.z << "\n";
+		std::cout << "\nPosition : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n";
+		std::cout << "Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n";
 	}
 	//Normalize move vector and move the Camera
 	if (!(move == Vector{ 0,0,0 })) {
 
 		move = move / length(move);
 		move = move * speed;
-		O = O + move * fdt;
+		move = rotate(move, camera.rotation);
+		camera.position = camera.position + move * fdt;
 		//scene.meshes[0].setPos((scene.meshes[0].getPos() + move * fdt));
 	}
 	//Show triangles of the mesh
@@ -107,6 +109,14 @@ void update(Input* input) {
 	//Backface culling toggle
 	if (pressed(BUTTON_C))
 		bfc = !bfc;
+	if (isDown(BUTTON_Z))
+		camera.rotation.y += 1.0 * fdt;
+	if (isDown(BUTTON_X)) {
+		camera.rotation.y -= 1.0 * fdt;
+	}
+	if (pressed(BUTTON_Q)) {
+		camera.rotation.y = 0;
+	}
 	
 	//Ray trace
 	clearScreen(0x000000);
@@ -131,6 +141,8 @@ void update(Input* input) {
 
 
 	//Rasterize
+	scene.instances[0].transform.rotation.y += 0.01;
+	scene.instances[1].transform.rotation.y -= 0.01;
 	renderObject(scene.instances[0],bfc);
 	renderObject(scene.instances[1],bfc);
 	std::time_t endTime;

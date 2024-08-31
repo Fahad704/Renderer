@@ -295,7 +295,19 @@ struct Transform {
 	Vector position;
 	double scale;
 	Vector rotation;
+	Transform() {
+		position = { 0,0,0 };
+		scale = 0;
+		rotation = 0;
+	}
+	Transform(Vector position, double scale, Vector rotation) {
+		this->position = position;
+		this->scale = scale;
+		this->rotation = rotation;
+	}
 };
+Vector transformVertex(Vector vec, const Transform& tf);
+Vector rotate(Vector& vec, const Vector& rotation);
 struct Instance {
 	Mesh* mesh;
 	Transform transform;
@@ -306,7 +318,8 @@ struct Instance {
 		transform.rotation = rotation;
 	}
 	Box getBoundingBox() {
-		return { mesh->boundingBox.highest + transform.position, mesh->boundingBox.lowest + transform.position };
+		Box boundingbox = { transformVertex(mesh->boundingBox.highest,transform), transformVertex(mesh->boundingBox.lowest,transform) };
+		return boundingbox;
 	}
 };
 struct Light {

@@ -8,7 +8,7 @@ float vpWidth = 1;
 float vpHeight = 1.778;
 //100fps
 double frameLimit = 0.0125f;
-Vector O = { 0, 0, 0};
+Transform camera(Vector{ 1.5,0,-3 }, 1, {0,0,0});
 Scene scene = {};
 //temp
 Triangle tempTri;

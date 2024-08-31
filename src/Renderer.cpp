@@ -331,7 +331,7 @@ void drawBox(Box box) {
 	};
 	int size = sizeof(p) / sizeof(p[0]);
 	for (int i = 0; i < size; i++) {
-		p[i] = projectVertex(p[i] -O);
+		p[i] = projectVertex(p[i]);
 	}
 	//Front lines
 	drawLine(p[0], p[1], red);
@@ -502,14 +502,15 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 		}
 		for (Triangle& triangle : triangles)
 		{
-			if (dot(triangle.normal, D) > 0) {
+			Triangle tri;
+			tri.p[0] = transformVertex(triangle.p[0], instance.transform);
+			tri.p[1] = transformVertex(triangle.p[1], instance.transform);
+			tri.p[2] = transformVertex(triangle.p[2], instance.transform);
+			Vector normal = tri.getNormal();
+			if (dot(normal, D) > 0) {
 				continue;
 			}
-			Triangle ttri;
-			ttri.p[0] = triangle.p[0] + instance.transform.position;
-			ttri.p[1] = triangle.p[1] + instance.transform.position;
-			ttri.p[2] = triangle.p[2] + instance.transform.position;
-			double triangleInt = intersectRayTriangle(O, D, ttri);
+			double triangleInt = intersectRayTriangle(O, D, tri);
 			if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
 				closestT = triangleInt;
 				closestObject = &triangle;
@@ -584,7 +585,7 @@ Vector rotate(Vector& vec,const Vector& rotation) {
 
 	return zrotated;
 }
-Vector transform(Vector vec,const Transform& tf) {
+Vector transformVertex(Vector vec,const Transform& tf) {
 	Vector rotated = rotate(vec, tf.rotation);
 	Vector translated = (rotated * tf.scale) + tf.position;
 	return translated;
@@ -593,22 +594,26 @@ void renderObject(Instance& instance,bool bfc = true) {
 	std::vector<Triangle> triangles = instance.mesh->triangles;
 	for (Triangle& triangle : triangles) {
 		Vector transformed[3];
-		transformed[0] = transform(triangle.p[0],instance.transform);
-		transformed[1] = transform(triangle.p[1],instance.transform);
-		transformed[2] = transform(triangle.p[2],instance.transform);
-		{
-			int zdist1 = transformed[0].z - O.z;
-			int zdist2 = transformed[1].z - O.z;
-			int zdist3 = transformed[2].z - O.z;
-			if (zdist1 <= 0 || zdist2 <= 0 || zdist3 <= 0) {
-				//Triangle is behind camera
-				continue;
-			}
+		Vector moved[3];
+		transformed[0] = transformVertex(triangle.p[0],instance.transform);
+		transformed[1] = transformVertex(triangle.p[1],instance.transform);
+		transformed[2] = transformVertex(triangle.p[2],instance.transform);
+		moved[0] = transformed[0] - camera.position;
+		moved[1] = transformed[1] - camera.position;
+		moved[2] = transformed[2] - camera.position;
+		moved[0] = rotate(moved[0], -camera.rotation);
+		moved[1] = rotate(moved[1], -camera.rotation);
+		moved[2] = rotate(moved[2], -camera.rotation);
+		
+		if (moved[0].z <= 0 || moved[1].z <= 0 || moved[2].z <= 0) {
+			//Triangle is behind camera
+			continue;
 		}
+		
 		Vector projected[3];
-		projected[0] = projectVertex(transformed[0] - O);
-		projected[1] = projectVertex(transformed[1] - O);
-		projected[2] = projectVertex(transformed[2] - O);
+		projected[0] = projectVertex(moved[0]);
+		projected[1] = projectVertex(moved[1]);
+		projected[2] = projectVertex(moved[2]);
 		Triangle newTri;
 		newTri.p[0] = projected[0];
 		newTri.p[1] = projected[1];
@@ -620,16 +625,22 @@ void renderObject(Instance& instance,bool bfc = true) {
 		transformedTri.p[1] = transformed[1];
 		transformedTri.p[2] = transformed[2];
 		Vector normal = transformedTri.getNormal();
-		
 		normal = normal / length(normal);
+		
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
-		newTri.color = normalCol;// *computeLight((((triangle.p[0] + instance.position) - O) - O), normal, -D, instance.mesh->specular);
-		Vector PO = O - (transform(triangle.p[0] , instance.transform));
+		newTri.color = normalCol;// *computeLight(moved[0], normal, -D, instance.mesh->specular);
+		Vector PO = -moved[0];
+		PO = rotate(PO, camera.rotation);
 		if ((dot(normal, PO) > 0) || !backFaceCulling) {
 			bool drawWireframe = false;
 			if (debugState == DebugState::DS_BOUNDING_BOX) {
-				drawBox(instance.getBoundingBox());
+				Box box = instance.getBoundingBox();
+				box.highest = box.highest - camera.position;
+				box.lowest = box.lowest - camera.position;
+				box.highest = rotate(box.highest, -camera.rotation);
+				box.lowest = rotate(box.lowest, -camera.rotation);
+				drawBox(box);
 				return;
 			}
 			if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
@@ -683,7 +694,8 @@ void rayTraceThr(int threadNum,int threadCount)
 		for (float x = (-canvas.x / 2); x < (canvas.x / 2); x++) {
 			D = canvasToViewport(x, y);
 			D = D / length(D);
-			Colour result = traceRay(O, D, 1, infinity, 3);
+			D = rotate(D, camera.rotation);
+			Colour result = traceRay(camera.position, D, 1, infinity, 3);
 			putPixel(x, y, result);
 		}
 	}
@@ -696,7 +708,8 @@ void rayTrace() {
 		for (float x = (-canvas.x / 2); x < (canvas.x / 2); x++) {
 			D = canvasToViewport(x, y);
 			D = D / length(D);
-			Colour result = traceRay(O, D, 1, infinity, 3);
+			D = rotate(D, camera.rotation);
+			Colour result = traceRay(camera.position, D, 1, infinity, 3);
 			putPixel(x, y, result);
 		}
 	}
