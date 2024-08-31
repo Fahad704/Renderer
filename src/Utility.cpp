@@ -311,15 +311,38 @@ Vector rotate(Vector& vec, const Vector& rotation);
 struct Instance {
 	Mesh* mesh;
 	Transform transform;
+	Box boundingBox;
 	Instance(Mesh& mesh , Vector position = { 0,0,0 },double scale = 1,Vector rotation = {0,0,0}) {
 		this->mesh = &mesh;
 		transform.position = position;
 		transform.scale = scale;
 		transform.rotation = rotation;
+		boundingBox.lowest = INFINITY;
+		boundingBox.highest = -INFINITY;
 	}
 	Box getBoundingBox() {
-		Box boundingbox = { transformVertex(mesh->boundingBox.highest,transform), transformVertex(mesh->boundingBox.lowest,transform) };
-		return boundingbox;
+		static bool calculated = false;
+		//if (calculated)return boundingBox;
+		Vector lowest = { INFINITY,INFINITY,INFINITY };
+		Vector highest = {-INFINITY,-INFINITY,-INFINITY};
+		for (const Triangle& triangle : mesh->triangles) {
+			Vector tv[3];
+			tv[0] = transformVertex(triangle.p[0], transform);
+			tv[1] = transformVertex(triangle.p[1], transform);
+			tv[2] = transformVertex(triangle.p[2], transform);
+			for (int i = 0; i < 3; i++) {
+				lowest.x = (tv[i].x < lowest.x ? tv[i].x : lowest.x);
+				lowest.y = (tv[i].y < lowest.y ? tv[i].y : lowest.y);
+				lowest.z = (tv[i].z < lowest.z ? tv[i].z : lowest.z);
+
+				highest.x = (tv[i].x > highest.x ? tv[i].x : highest.x);
+				highest.y = (tv[i].y > highest.y ? tv[i].y : highest.y);
+				highest.z = (tv[i].z > highest.z ? tv[i].z : highest.z);
+			}
+		}
+		
+		boundingBox = { highest, lowest};
+		return { highest,lowest };
 	}
 };
 struct Light {

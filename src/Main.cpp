@@ -8,7 +8,6 @@
 //TODO(Fahad):
 /*
 	Adding:
-		Transform(rotation,scale,position) to an instance
 		read and display textures(Rasterizer)
 		render according to material(Rasterizer)
 		Add some ui
@@ -88,7 +87,7 @@ void update(Input* input) {
 		move = move / length(move);
 		move = move * speed;
 		move = rotate(move, camera.rotation);
-		camera.position = camera.position + move * fdt;
+		camera.position = camera.position + (move * fdt);
 		//scene.meshes[0].setPos((scene.meshes[0].getPos() + move * fdt));
 	}
 	//Show triangles of the mesh
@@ -116,6 +115,13 @@ void update(Input* input) {
 	}
 	if (pressed(BUTTON_Q)) {
 		camera.rotation.y = 0;
+		camera.position = { 0,0,0 };
+	}
+	if (isDown(MOUSE_BUTTON_LEFT)) {
+		fdt = 0.0001;
+	}
+	if (isDown(MOUSE_BUTTON_RIGHT)) {
+
 	}
 	
 	//Ray trace
@@ -141,8 +147,8 @@ void update(Input* input) {
 
 
 	//Rasterize
-	scene.instances[0].transform.rotation.y += 0.01;
-	scene.instances[1].transform.rotation.y -= 0.01;
+	scene.instances[0].transform.rotation.y += 10*fdt;
+	scene.instances[1].transform.rotation.y -= 10*fdt;
 	renderObject(scene.instances[0],bfc);
 	renderObject(scene.instances[1],bfc);
 	std::time_t endTime;

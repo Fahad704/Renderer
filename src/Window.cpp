@@ -127,6 +127,26 @@ input.buttons[b].isDown = isDown;\
 					process_messages(BUTTON_X, 'X');
 				}
 			}break;
+			case WM_LBUTTONDOWN: {
+				input.buttons[MOUSE_BUTTON_LEFT].changed = !(input.buttons[MOUSE_BUTTON_LEFT].isDown);
+				input.buttons[MOUSE_BUTTON_LEFT].isDown = true;
+
+			}break;
+			case WM_LBUTTONUP: {
+				input.buttons[MOUSE_BUTTON_LEFT].changed = input.buttons[MOUSE_BUTTON_LEFT].isDown;
+				input.buttons[MOUSE_BUTTON_LEFT].isDown = false;
+
+			}break;
+			case WM_RBUTTONDOWN: {
+				input.buttons[MOUSE_BUTTON_RIGHT].changed = !(input.buttons[MOUSE_BUTTON_RIGHT].isDown);
+				input.buttons[MOUSE_BUTTON_RIGHT].isDown = true;
+
+			}break;
+			case WM_RBUTTONUP: {
+				input.buttons[MOUSE_BUTTON_RIGHT].changed = input.buttons[MOUSE_BUTTON_RIGHT].isDown;
+				input.buttons[MOUSE_BUTTON_RIGHT].isDown = false;
+
+			}break;
 			default: {
 				TranslateMessage(&message);
 				DispatchMessage(&message);

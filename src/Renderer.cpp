@@ -314,7 +314,7 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 		}
 	}
 }
-void drawBox(Box box) {
+void drawBox(Box box, Transform tf = {}) {
 	Colour red = { 255,0,0 };
 	//Front faces
 	Vector p[] = {
@@ -331,6 +331,7 @@ void drawBox(Box box) {
 	};
 	int size = sizeof(p) / sizeof(p[0]);
 	for (int i = 0; i < size; i++) {
+		p[i] = transformVertex(p[i], tf);
 		p[i] = projectVertex(p[i]);
 	}
 	//Front lines
@@ -638,9 +639,8 @@ void renderObject(Instance& instance,bool bfc = true) {
 				Box box = instance.getBoundingBox();
 				box.highest = box.highest - camera.position;
 				box.lowest = box.lowest - camera.position;
-				box.highest = rotate(box.highest, -camera.rotation);
-				box.lowest = rotate(box.lowest, -camera.rotation);
-				drawBox(box);
+				Transform ttf = { {0,0,0},1,-camera.rotation };
+				drawBox(box,ttf);
 				return;
 			}
 			if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
