@@ -562,8 +562,14 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 	}
 	return i;
 }
-Vector rotate(Vector& vec,const Vector& rotation) {
-	
+Vector rotate(Vector& vec,const Vector& rotationP) {
+	//double quotent = rotationP.x / 360.f;
+	double xrotation = rotationP.x;// -(quotent * 360);
+	//quotent = rotationP.y / 360.f;
+	double yrotation = rotationP.y;// -(quotent * 360);
+	//quotent = rotationP.z / 360.f;
+	double zrotation = rotationP.z;// -(quotent * 360);
+	Vector rotation = { (xrotation * (PI * 2)) / 360,(yrotation * (PI * 2)) / 360,(zrotation * (PI * 2)) / 360 };
 	//rotation aruond x axis
 	Vector xrotated;
 

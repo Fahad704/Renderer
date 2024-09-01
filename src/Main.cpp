@@ -109,9 +109,9 @@ void update(Input* input) {
 	if (pressed(BUTTON_C))
 		bfc = !bfc;
 	if (isDown(BUTTON_Z))
-		camera.rotation.y += 1.0 * fdt;
+		camera.rotation.y += 60.0 * fdt;
 	if (isDown(BUTTON_X)) {
-		camera.rotation.y -= 1.0 * fdt;
+		camera.rotation.y -= 60.0 * fdt;
 	}
 	if (pressed(BUTTON_Q)) {
 		camera.rotation.y = 0;
@@ -121,7 +121,7 @@ void update(Input* input) {
 		fdt = 0.0001;
 	}
 	if (isDown(MOUSE_BUTTON_RIGHT)) {
-
+		scene.instances[1].transform.rotation.z += 0.01;
 	}
 	
 	//Ray trace
@@ -147,8 +147,6 @@ void update(Input* input) {
 
 
 	//Rasterize
-	scene.instances[0].transform.rotation.y += 10*fdt;
-	scene.instances[1].transform.rotation.y -= 10*fdt;
 	renderObject(scene.instances[0],bfc);
 	renderObject(scene.instances[1],bfc);
 	std::time_t endTime;

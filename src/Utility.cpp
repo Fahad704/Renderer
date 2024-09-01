@@ -21,6 +21,7 @@ typedef unsigned int u32;
 typedef unsigned char u8;
 #define internal static
 #define global_variable static
+#define PI 3.14159265359
 namespace timer {
 	typedef std::chrono::duration<double> Duration;
 	typedef std::chrono::time_point<std::chrono::system_clock> Timer;
