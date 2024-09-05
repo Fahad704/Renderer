@@ -308,7 +308,7 @@ struct Transform {
 	}
 };
 Vector transformVertex(Vector vec, const Transform& tf);
-Vector rotate(Vector& vec, const Vector& rotation);
+Vector rotate(const Vector& vec, const Vector& rotation);
 struct Instance {
 	Mesh* mesh;
 	Transform transform;
@@ -322,7 +322,6 @@ struct Instance {
 		boundingBox.highest = -INFINITY;
 	}
 	Box getBoundingBox() {
-		static bool calculated = false;
 		//if (calculated)return boundingBox;
 		Vector lowest = { INFINITY,INFINITY,INFINITY };
 		Vector highest = {-INFINITY,-INFINITY,-INFINITY};

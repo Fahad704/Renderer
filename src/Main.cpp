@@ -15,7 +15,7 @@
 
 
 
-bool rendMode=false;
+bool rendMode=true;
 //Back face culling
 bool bfc = true;
 //frame delta time
@@ -24,18 +24,18 @@ void init() {
 	debugState = DebugState::DS_TRIANGLE;
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {};
-	//Sphere spherestem[] = {
+	Sphere spherestem[] = {
 		//	//Position-----Radius---Colour----specular-reflect//
 			//{ { 0 , 0  , 3}, 1  ,{255,0 , 0}	,500,  0.2f},
 			//{ { 2 ,  0  , 4}, 1  ,{0, 0, 255}	,500,  0.4f },
 			//{ { -2, 0   , 4}, 1  ,{0, 255, 0}	,10,   0.3f},
 		   // {{ 1, 1   , 0}, 0.5f  ,{0, 255, 0}	,10,   0.3f},
-			// { { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
-	//};
-	//int spherecount = sizeof(spherestem) / sizeof(Sphere);
-	//for (int i = 0; i < spherecount; i++) {
-	//	spheres.push_back(spherestem[i]);
-	//}
+			 { { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
+	};
+	int spherecount = sizeof(spherestem) / sizeof(Sphere);
+	for (int i = 0; i < spherecount; i++) {
+		spheres.push_back(spherestem[i]);
+	}
 
 	std::vector<Light> lights = {
 		//--Type----------Pos----Dir--intensity//
@@ -47,12 +47,9 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh King = loadOBJ("../Models/King.obj", { 0,255,255 }, 0, 1000);
-	Instance ins = { King, { 0,-0.8,3 },1,{0,0,0} };
-	Instance ins2 = { King, { 3,-0.8,4 },1,{0,0,0} };
+	static Mesh model = loadOBJ("../Models/cube.obj", { 0,255,255 }, 0, 1000);
+	Instance ins = { model, { -2,0,8 },1,{0,0,0} };
 	instances.push_back(ins);
-	instances.push_back(ins2);
-
 	scene = { spheres,triangles,instances,lights };
 }
 void update(Input* input) {
@@ -77,9 +74,10 @@ void update(Input* input) {
 	
 	if (isDown(BUTTON_S)) 
 		move = move + Vector{ 0,-10.f,0 };
-	if (isDown(BUTTON_SPACE)) {
+	if (pressed(BUTTON_SPACE)) {
 		std::cout << "\nPosition : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n";
 		std::cout << "Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n";
+		std::cout << "Triangle count : "<<scene.instances[0].mesh->triangles.size()<<"\n";
 	}
 	//Normalize move vector and move the Camera
 	if (!(move == Vector{ 0,0,0 })) {
@@ -147,8 +145,7 @@ void update(Input* input) {
 
 
 	//Rasterize
-	renderObject(scene.instances[0],bfc);
-	renderObject(scene.instances[1],bfc);
+	//renderObject(scene.instances[0],bfc);
 	std::time_t endTime;
 	//Limit frame rate to reduce power consumption
 	double overhead = (frameLimit * 100) - (fdt);

@@ -457,6 +457,9 @@ bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
 	}
 	return true;
 }
+internal std::vector<Triangle> getBVHTris(Instance& instance) {
+	return {};
+}
 internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, double tMin, double tMax) {
 	double closestT = infinity;
 	Object* closestObject = nullptr;
@@ -562,7 +565,10 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 	}
 	return i;
 }
-Vector rotate(Vector& vec,const Vector& rotationP) {
+Vector rotate(const Vector& vec,const Vector& rotationP) {
+	if (rotationP == Vector{ 0,0,0 }) {
+		return vec;
+	}
 	//double quotent = rotationP.x / 360.f;
 	double xrotation = rotationP.x;// -(quotent * 360);
 	//quotent = rotationP.y / 360.f;
@@ -698,10 +704,10 @@ void rayTraceThr(int threadNum,int threadCount)
 	for (float y =ymin; y < ymax; y++) {
 		int scanlineDone = ( canvas.y - (y + ((canvas.y) / 2.0f)));
 		for (float x = (-canvas.x / 2); x < (canvas.x / 2); x++) {
-			D = canvasToViewport(x, y);
-			D = D / length(D);
-			D = rotate(D, camera.rotation);
-			Colour result = traceRay(camera.position, D, 1, infinity, 3);
+			Vector direction = canvasToViewport(x, y);
+			direction = direction / length(D);
+			direction = rotate(direction, camera.rotation);
+			Colour result = traceRay(camera.position, direction, 1, infinity, 3);
 			putPixel(x, y, result);
 		}
 	}
