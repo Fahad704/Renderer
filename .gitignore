@@ -2,7 +2,6 @@ Debug/
 x64/
 bin/*.exe
 int/*.o
-*.rc
 *.vcxproj
 *.vcxproj.filters
 *.aps
