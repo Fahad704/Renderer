@@ -1,6 +1,7 @@
 Debug/
 x64/
-bin/*
+bin/*.exe
+int/*.o
 *.ico
 *.rc
 *.vcxproj

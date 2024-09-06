@@ -145,7 +145,7 @@ void update(Input* input) {
 
 
 	//Rasterize
-	//renderObject(scene.instances[0],bfc);
+	renderObject(scene.instances[0],bfc);
 	std::time_t endTime;
 	//Limit frame rate to reduce power consumption
 	double overhead = (frameLimit * 100) - (fdt);
