@@ -1,5 +1,10 @@
 #ifndef WINDOW_CPP
 #define WINDOW_CPP
+/*
+* ------------------------------------------------------------------
+* This file handles all the windowing and windows api specific tasks
+* ------------------------------------------------------------------
+*/
 #include "Utility.cpp"
 #include <Windows.h>
 global_variable bool running = true;
@@ -37,13 +42,14 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		renderState.width = rect.right - rect.left;
 		renderState.height = rect.bottom - rect.top;
 
-		int buffer_size = renderState.width * renderState.height * sizeof(unsigned int);
+		int bufferSize = renderState.width * renderState.height * sizeof(unsigned int);
+		int dbufSize = renderState.width * renderState.height * sizeof(double);
 		//Screen backbuffer
 		if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
-		renderState.memory = VirtualAlloc(0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+		renderState.memory = VirtualAlloc(0, bufferSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 		//Depth buffer
 		if (depth)VirtualFree(depth, 0, MEM_RELEASE);
-		depth = VirtualAlloc(0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+		depth = VirtualAlloc(0, dbufSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 		renderState.bitmapinfo.bmiHeader.biSize = sizeof(renderState.bitmapinfo.bmiHeader);
 		renderState.bitmapinfo.bmiHeader.biWidth = renderState.width;
 		renderState.bitmapinfo.bmiHeader.biHeight = renderState.height;
@@ -87,6 +93,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	std::freopen("CONOUT$", "w", stdout);
 	
 	Input input = {};
+	
+
 	init();
 	while (running) {
 
@@ -154,11 +162,11 @@ input.buttons[b].isDown = isDown;\
 			}
 		}
 
-		//Game Update Loop
-		update(&input);
+		//Update Loop
+		update(input);
 			
 
-		//Render
+		//Draw buffer
 		StretchDIBits(hdc, 0, renderState.height-1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 	}
 }

@@ -321,8 +321,8 @@ struct Instance {
 		boundingBox.lowest = INFINITY;
 		boundingBox.highest = -INFINITY;
 	}
+	//Returns Bounding Box in world space
 	Box getBoundingBox() {
-		//if (calculated)return boundingBox;
 		Vector lowest = { INFINITY,INFINITY,INFINITY };
 		Vector highest = {-INFINITY,-INFINITY,-INFINITY};
 		for (const Triangle& triangle : mesh->triangles) {

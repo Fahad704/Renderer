@@ -48,10 +48,10 @@ inline Vector cross(const Vector& vec1, const Vector& vec2){
 	cross.z = (vec1.x * vec2.y) - (vec1.y * vec2.x);
 	return cross;
 }
-inline double dot(Vector& first, Vector& second) {
+inline double dot(const Vector& first,const Vector& second) {
 	return ((first.x * second.x) + (first.y * second.y) + (first.z * second.z));
 }
-inline double length(const Vector vec) {
+inline double length(const Vector& vec) {
 	return sqrt((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z));
 }
 #endif

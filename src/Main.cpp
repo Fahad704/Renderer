@@ -1,25 +1,99 @@
 #ifndef MAIN_CPP
 #define MAIN_CPP
 #include "Window.cpp"
-#define isDown(b) input->buttons[b].isDown
-#define pressed(b) (input->buttons[b].isDown && input->buttons[b].changed)
-#define released(b) (!input->buttons[b].isDown && input->buttons[b].changed)
+#define isDown(b) input.buttons[b].isDown
+#define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
+#define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
 
 //TODO(Fahad):
 /*
-	Adding:
-		read and display textures(Rasterizer)
-		render according to material(Rasterizer)
-		Add some ui
+*	Optimizations:
+*		-Implement BVH ray tracing
+*		-Implement Frustum culling
+*		-Implement Occlusion culling
+*	Adding Features:
+*		-read and display textures(Rasterizer)
+*		-render according to material(Rasterizer)
+*		-Add some ui
 */
 
 
 
-bool rendMode=true;
+bool rendMode=false;
 //Back face culling
 bool bfc = true;
 //frame delta time
 double fdt=0.06;
+void handleInput(const Input& input) {
+	double speed = 5.f;
+	Vector move = { 0,0,0 };
+	//Movement events
+	if (isDown(BUTTON_RIGHT))
+		move = Vector{ 10.f, 0, 0 };
+
+	if (isDown(BUTTON_LEFT))
+		move = move + Vector{ -10.f, 0, 0 };
+
+	if (isDown(BUTTON_UP))
+		move = move + Vector{ 0, 0, 10.f };
+
+	if (isDown(BUTTON_DOWN))
+		move = move + Vector{ 0, 0, -10.f };
+
+	if (isDown(BUTTON_W))
+		move = move + Vector{ 0,10.f,0 };
+
+	if (isDown(BUTTON_S))
+		move = move + Vector{ 0,-10.f,0 };
+	if (pressed(BUTTON_SPACE)) {
+		std::cout << "\nPosition : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n";
+		std::cout << "Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n";
+		std::cout << "Triangle count : " << scene.instances[0].mesh->triangles.size() << "\n";
+	}
+	//Normalize move vector and move the Camera
+	if (!(move == Vector{ 0,0,0 })) {
+
+		move = move / length(move);
+		move = move * speed;
+		move = rotate(move, camera.rotation);
+		camera.position = camera.position + (move * fdt);
+		//scene.meshes[0].setPos((scene.meshes[0].getPos() + move * fdt));
+	}
+	//Show triangles of the mesh
+	if (isDown(BUTTON_T))
+		debugState = DebugState::DS_TRIANGLE;
+	//Show bounding box of the mesh
+	if (isDown(BUTTON_B))
+		debugState = DebugState::DS_BOUNDING_BOX;
+	//Turn off Debug view
+	if (isDown(BUTTON_V))
+		debugState = DebugState::DS_OFF;
+	//Change ray tracing to rasterization and vise versa
+	if (pressed(BUTTON_R))
+		rendMode = !rendMode;
+	//Exporting an image
+	if (pressed(BUTTON_P))
+		exportToPPM("Image.ppm");
+	//Backface culling toggle
+	if (pressed(BUTTON_C))
+		bfc = !bfc;
+	if (isDown(BUTTON_Z))
+		camera.rotation.y += 60.0 * fdt;
+	if (isDown(BUTTON_X)) {
+		camera.rotation.y -= 60.0 * fdt;
+	}
+	if (pressed(BUTTON_Q)) {
+		camera.rotation.y = 0;
+		camera.position = { 0,0,0 };
+	}
+	if (isDown(MOUSE_BUTTON_LEFT)) {
+		fdt = 0.0001;
+	}
+	if (isDown(MOUSE_BUTTON_RIGHT)) {
+		scene.instances[1].transform.rotation.z += 0.01;
+	}
+
+}
 void init() {
 	debugState = DebugState::DS_TRIANGLE;
 	//Spheres (currently only rendered in ray tracing)
@@ -47,81 +121,15 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/cube.obj", { 0,255,255 }, 0, 1000);
-	Instance ins = { model, { -2,0,8 },1,{0,0,0} };
+	static Mesh model = loadOBJ("../Models/King.obj", { 20,255,255 }, 0, 1000);
+	Instance ins = { model, { 0,-0.8,3 },1,{0,0,0} };
 	instances.push_back(ins);
 	scene = { spheres,triangles,instances,lights };
 }
-void update(Input* input) {
+void update(const Input& input) {
 	timer::Timer start = timerStart();
-	double speed = 5.f;
-	Vector move = { 0,0,0 };
-	//Movement events
-	if (isDown(BUTTON_RIGHT)) 
-		move = Vector{ 10.f, 0, 0 };
 	
-	if (isDown(BUTTON_LEFT)) 
-		move = move + Vector{ -10.f, 0, 0 };
-	
-	if (isDown(BUTTON_UP)) 
-		move = move + Vector{ 0, 0, 10.f };
-	
-	if (isDown(BUTTON_DOWN)) 
-		move = move + Vector{ 0, 0, -10.f };
-	
-	if (isDown(BUTTON_W)) 
-		move = move + Vector{ 0,10.f,0 };
-	
-	if (isDown(BUTTON_S)) 
-		move = move + Vector{ 0,-10.f,0 };
-	if (pressed(BUTTON_SPACE)) {
-		std::cout << "\nPosition : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n";
-		std::cout << "Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n";
-		std::cout << "Triangle count : "<<scene.instances[0].mesh->triangles.size()<<"\n";
-	}
-	//Normalize move vector and move the Camera
-	if (!(move == Vector{ 0,0,0 })) {
-
-		move = move / length(move);
-		move = move * speed;
-		move = rotate(move, camera.rotation);
-		camera.position = camera.position + (move * fdt);
-		//scene.meshes[0].setPos((scene.meshes[0].getPos() + move * fdt));
-	}
-	//Show triangles of the mesh
-	if (isDown(BUTTON_T)) 
-		debugState = DebugState::DS_TRIANGLE;
-	//Show bounding box of the mesh
-	if (isDown(BUTTON_B)) 
-		debugState = DebugState::DS_BOUNDING_BOX;
-	//Turn off Debug view
-	if (isDown(BUTTON_V)) 
-		debugState = DebugState::DS_OFF;
-	//Change ray tracing to rasterization and vise versa
-	if (pressed(BUTTON_R))
-		rendMode = !rendMode;
-	//Exporting an image
-	if (pressed(BUTTON_P))
-		exportToPPM("Image.ppm");
-	//Backface culling toggle
-	if (pressed(BUTTON_C))
-		bfc = !bfc;
-	if (isDown(BUTTON_Z))
-		camera.rotation.y += 60.0 * fdt;
-	if (isDown(BUTTON_X)) {
-		camera.rotation.y -= 60.0 * fdt;
-	}
-	if (pressed(BUTTON_Q)) {
-		camera.rotation.y = 0;
-		camera.position = { 0,0,0 };
-	}
-	if (isDown(MOUSE_BUTTON_LEFT)) {
-		fdt = 0.0001;
-	}
-	if (isDown(MOUSE_BUTTON_RIGHT)) {
-		scene.instances[1].transform.rotation.z += 0.01;
-	}
-	
+	handleInput(input);
 	//Ray trace
 	clearScreen(0x000000);
 	if (rendMode){
@@ -155,6 +163,6 @@ void update(Input* input) {
 	timer::Duration deltaTime = timer_end(start,endTime);
 	fdt = deltaTime.count();
 	//Display fps on console
-	std::cout <<std::fixed<<"\r" <<1.f/(deltaTime.count()) << " FPS" << std::flush;
+	//std::cout <<std::fixed<<"\r" <<1.f/(deltaTime.count()) << " FPS" << std::flush;
 }
 #endif

@@ -4,9 +4,11 @@
 #define WHITE {255,255,255}
 internal void clearScreen(u32 color) {
 	u32* pixel = (u32*)renderState.memory;
+	double* dep = (double*)depth;
 	for (int y = 0; y < renderState.height; y++) {
 		for (int x = 0; x < renderState.width; x++) {
  			*pixel++ = color;
+			*dep++ = INT_MAX;
 		}
 	}
 }
@@ -226,37 +228,26 @@ void interpolate(double x0, int y0, double x1, double y1,std::vector<double>& ar
 	}
 }
 internal void drawTriangle(Triangle t,bool wireframe = false) {
-	//for (int i = 0; i < 3; i++) {
-	//	if (t.p[i].x <= -(canvas.x / 2.f) || t.p[i].x >= (canvas.x / 2.f) || t.p[i].y <= -(canvas.y / 2.f) || t.p[i].y >= (canvas.x / 2.f)) {
-	//		return;
-	//	}
-	//}
-	Vector p1 = t.p[0];// *Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
-	Vector p2 = t.p[1];// *Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
-	Vector p3 = t.p[2];// *Vector{ (canvas.x / 2.f),(canvas.y / 2.f),0 };
-	Colour color = t.color;
 	
-	if (p1.y > p2.y)swap(p1,p2);
-	if (p1.y > p3.y)swap(p1, p3);
-	if (p2.y > p3.y)swap(p2, p3);
-
-	if (wireframe) {
-		//Skipping pixels outside of screen
-		/*if (p1.x > (canvas.x / 2.f) || p1.y >= (canvas.y / 2.f) || p1.x <= -(canvas.x / 2.f) || p1.y <= -(canvas.y / 2.f)) {
-			return;
-		}
-		else if (p2.x > (canvas.x / 2.f) || p2.y >= (canvas.y / 2.f) || p2.x <= -(canvas.x / 2.f) || p2.y <= -(canvas.y / 2.f)) {
-			return;
-		}
-		else if (p3.x > (canvas.x / 2.f) || p3.y >= (canvas.y / 2.f) || p3.x <= -(canvas.x / 2.f) || p3.y <= -(canvas.y / 2.f)) {
-			return;
-		}*/
-		//Drawing wireframe
-		drawLine(p1, p2, color);
-		drawLine(p2, p3, color);
-		drawLine(p3, p1, color);
-		return;
-	}
+	Vector p1 = projectVertex(t.p[0]);							
+	Vector p2 = projectVertex(t.p[1]);						
+	Vector p3 = projectVertex(t.p[2]);	
+	p1.z = t.p[0].z;
+	p2.z = t.p[1].z;
+	p3.z = t.p[2].z;
+	Colour color = t.color;						
+												
+	if (p1.y > p2.y)swap(p1,p2);				
+	if (p1.y > p3.y)swap(p1, p3);				
+	if (p2.y > p3.y)swap(p2, p3);				
+												
+	if (wireframe) {							
+		//Drawing wireframe						
+		drawLine(p1, p2, color);				
+		drawLine(p2, p3, color);				
+		drawLine(p3, p1, color);				
+		return;									
+	}											
 	std::vector<double> x01;
 	std::vector<double> x12;
 	std::vector<double> x02;
@@ -264,6 +255,10 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 	std::vector<double> h01;
 	std::vector<double> h12;
 	std::vector<double> h02;
+	
+	std::vector<double> z01;
+	std::vector<double> z12;
+	std::vector<double> z02;
 
 	interpolate(p1.x, p1.y, p2.x, p2.y, x01);
 	interpolate(p2.x, p2.y, p3.x, p3.y, x12);
@@ -273,6 +268,9 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 	interpolate(0, p2.y, 1, p3.y, h12);
 	interpolate(0, p1.y, 1, p3.y, h02);
 
+	interpolate(p1.z, p1.y, p2.z, p2.y, z01);
+	interpolate(p2.z, p2.y, p3.z, p3.y, z12);
+	interpolate(p1.z, p1.y, p3.z, p3.y, z02);
 	//concatenate short sides doubleo x01
 	for (const double& val : x12) {
 		x01.push_back(val);
@@ -280,11 +278,16 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 	for (const double& val : h12) {
 		h01.push_back(val);
 	}
-	double m = floor(x02.size() / 2);
+	for (const double& val : z12) {
+		z01.push_back(val);
+	}
+	double m = floor(x02.size() / (double)2);
 	std::vector<double> xLeft = {};
 	std::vector<double> xRight = {};
 	std::vector<double> hLeft = {};
 	std::vector<double> hRight = {};
+	std::vector<double> zLeft = {};
+	std::vector<double> zRight = {};
 	if (x02.size()) {
 		if (x02[m] < x01[m]) {
 			xLeft = x02;
@@ -292,6 +295,9 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 
 			hLeft = h02;
 			hRight = h01;
+
+			zLeft = z02;
+			zRight = z01;
 		}
 		else {
 			xLeft = x01;
@@ -299,6 +305,9 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 
 			hLeft = h01;
 			hRight = h02;
+
+			zLeft = z01;
+			zRight = z02;
 		}
 	}
 	for (int y = (p1.y); y < p3.y; y++) {
@@ -306,15 +315,26 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 		double xR = xRight[y - int(p1.y)];
 
 		std::vector<double> hSegment = {};
-		interpolate(hLeft[y - int(p1.y)], xL, hLeft[y - int(p1.y)], xR, hSegment);
+		std::vector<double> zSegment = {};
+		interpolate(zLeft[y - int(p1.y)], xL, zRight[y - int(p1.y)],xR, zSegment);
+		interpolate(hLeft[y - int(p1.y)], xL, hRight[y - int(p1.y)], xR, hSegment);
 		for (int x = int(xL); x < xR; x++) {
+			double z = zSegment[x - int(xL)] - camera.position.z;
 			if (isIn(double(x), double(-canvas.x / 2.f), double(canvas.x / 2.f)) && isIn(double(y), double(-canvas.y / 2.f), double(canvas.y / 2.f))) {
-				putPixel(x, y, color);
+				int nx = (x + (renderState.width / (double)2.f));
+				int ny = ((renderState.height / (double)2.f) - y);
+				double* dep = ((double*)(depth)) + (ny * renderState.width) + nx;
+				if (z < (*dep)) {
+					putPixel(x, y, color);
+					*dep = z;
+				}
 			}
 		}
 	}
 }
 void drawBox(Box box, Transform tf = {}) {
+	//The tf transform is inverse camera tranform to convert world space box into
+	//camera space box
 	Colour red = { 255,0,0 };
 	//Front faces
 	Vector p[] = {
@@ -576,6 +596,7 @@ Vector rotate(const Vector& vec,const Vector& rotationP) {
 	//quotent = rotationP.z / 360.f;
 	double zrotation = rotationP.z;// -(quotent * 360);
 	Vector rotation = { (xrotation * (PI * 2)) / 360,(yrotation * (PI * 2)) / 360,(zrotation * (PI * 2)) / 360 };
+
 	//rotation aruond x axis
 	Vector xrotated;
 
@@ -583,6 +604,7 @@ Vector rotate(const Vector& vec,const Vector& rotationP) {
 	xrotated.y = (vec.y * cos(rotation.x)) + (vec.z * -sin(rotation.x));
 	xrotated.z = (vec.y * (sin(rotation.x))) + (vec.z * cos(rotation.x));
 
+	//rotation aruond y axis
 	Vector yrotated;
 
 	yrotated.y = xrotated.y;
@@ -590,6 +612,7 @@ Vector rotate(const Vector& vec,const Vector& rotationP) {
 	yrotated.x = xrotated.x * cos(rotation.y) + xrotated.z * (-sin(rotation.y));
 	yrotated.z = xrotated.x * sin(rotation.y) + xrotated.z * cos(rotation.y);
 
+	//rotation aruond z axis
 	Vector zrotated;
 	zrotated.z = yrotated.z;
 
@@ -608,29 +631,29 @@ void renderObject(Instance& instance,bool bfc = true) {
 	for (Triangle& triangle : triangles) {
 		Vector transformed[3];
 		Vector moved[3];
+		//Model space to world space
 		transformed[0] = transformVertex(triangle.p[0],instance.transform);
 		transformed[1] = transformVertex(triangle.p[1],instance.transform);
 		transformed[2] = transformVertex(triangle.p[2],instance.transform);
+		//world space to camera space
 		moved[0] = transformed[0] - camera.position;
 		moved[1] = transformed[1] - camera.position;
 		moved[2] = transformed[2] - camera.position;
 		moved[0] = rotate(moved[0], -camera.rotation);
 		moved[1] = rotate(moved[1], -camera.rotation);
 		moved[2] = rotate(moved[2], -camera.rotation);
-		
+
+		//if triangle is behind camera
 		if (moved[0].z <= 0 || moved[1].z <= 0 || moved[2].z <= 0) {
-			//Triangle is behind camera
 			continue;
 		}
 		
-		Vector projected[3];
-		projected[0] = projectVertex(moved[0]);
-		projected[1] = projectVertex(moved[1]);
-		projected[2] = projectVertex(moved[2]);
 		Triangle newTri;
-		newTri.p[0] = projected[0];
-		newTri.p[1] = projected[1];
-		newTri.p[2] = projected[2];
+		//Camera space to canvas coords
+		newTri.p[0] = moved[0];
+		newTri.p[1] = moved[1];
+		newTri.p[2] = moved[2];
+
 		//Backface culling
 		const bool backFaceCulling = bfc;
 		Triangle transformedTri;
@@ -649,6 +672,7 @@ void renderObject(Instance& instance,bool bfc = true) {
 			bool drawWireframe = false;
 			if (debugState == DebugState::DS_BOUNDING_BOX) {
 				Box box = instance.getBoundingBox();
+
 				box.highest = box.highest - camera.position;
 				box.lowest = box.lowest - camera.position;
 				Transform ttf = { {0,0,0},1,-camera.rotation };
@@ -707,7 +731,7 @@ void rayTraceThr(int threadNum,int threadCount)
 			Vector direction = canvasToViewport(x, y);
 			direction = direction / length(D);
 			direction = rotate(direction, camera.rotation);
-			Colour result = traceRay(camera.position, direction, 1, infinity, 3);
+			Colour result = traceRay(camera.position, direction, 1, infinity, 1);
 			putPixel(x, y, result);
 		}
 	}

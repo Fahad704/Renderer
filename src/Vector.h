@@ -24,7 +24,7 @@ struct Vector {
 	friend Vector operator/(const double, const Vector&);
 	friend Vector operator-(const Vector&, const Vector&);
 	friend Vector cross(const Vector&, const Vector&);
-	friend double dot(Vector&, Vector&);
-	friend double length(const Vector);
+	friend double dot(const Vector&,const Vector&);
+	friend double length(const Vector&);
 };
 #endif
