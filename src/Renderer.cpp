@@ -2,6 +2,8 @@
 #define RENDERER_CPP
 #include "Window.cpp"
 #define WHITE {255,255,255}
+internal double computeLight(Vector&, Vector&,const Vector, double,bool);
+internal Vector reflectRay(const Vector, Vector&);
 internal void clearScreen(u32 color) {
 	u32* pixel = (u32*)renderState.memory;
 	double* dep = (double*)depth;
@@ -212,10 +214,10 @@ std::pair<double, double> viewportToCanvas(double x, double y) {
 }
 Vector projectVertex(Vector v) {
 	//Perspective Projection
-	std::pair<double, double> result = viewportToCanvas(double(v.x * d / v.z), double(v.y * d / v.z));
+	std::pair<double, double> result = viewportToCanvas(double((v.x * d) / v.z), double((v.y * d) / v.z));
 	return { result.first,result.second ,d};
 }
-void interpolate(double x0, int y0, double x1, double y1,std::vector<double>& arr) {
+void interpolate(double x0, double y0, double x1, double y1,std::vector<double>& arr) {
 	double dx = x1 - x0;
 	double dy = y1 - y0;
 	double aspectratio = 0;
@@ -227,14 +229,19 @@ void interpolate(double x0, int y0, double x1, double y1,std::vector<double>& ar
 		x += aspectratio;
 	}
 }
-internal void drawTriangle(Triangle t,bool wireframe = false) {
+internal void drawTriangle(Triangle& t,bool wireframe = false) {
 	
 	Vector p1 = projectVertex(t.p[0]);							
 	Vector p2 = projectVertex(t.p[1]);						
-	Vector p3 = projectVertex(t.p[2]);	
+	Vector p3 = projectVertex(t.p[2]);
 	p1.z = t.p[0].z;
 	p2.z = t.p[1].z;
 	p3.z = t.p[2].z;
+
+	Vector tp1 = t.p[0];
+	Vector tp2 = t.p[1];
+	Vector tp3 = t.p[2];
+
 	Colour color = t.color;						
 												
 	if (p1.y > p2.y)swap(p1,p2);				
@@ -247,10 +254,23 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 		drawLine(p2, p3, color);				
 		drawLine(p3, p1, color);				
 		return;									
-	}											
+	}	
+
+	if (tp1.y > tp2.y)swap(tp1, tp2);
+	if (tp1.y > tp3.y)swap(tp1, tp3);
+	if (tp2.y > tp3.y)swap(tp2, tp3);
+
 	std::vector<double> x01;
 	std::vector<double> x12;
 	std::vector<double> x02;
+
+	std::vector<double> tx01;
+	std::vector<double> tx12;
+	std::vector<double> tx02;
+
+	std::vector<double> ty01;
+	std::vector<double> ty12;
+	std::vector<double> ty02;
 
 	std::vector<double> h01;
 	std::vector<double> h12;
@@ -271,7 +291,15 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 	interpolate(p1.z, p1.y, p2.z, p2.y, z01);
 	interpolate(p2.z, p2.y, p3.z, p3.y, z12);
 	interpolate(p1.z, p1.y, p3.z, p3.y, z02);
-	//concatenate short sides doubleo x01
+
+	interpolate(tp1.x, p1.y, tp2.x, p2.y, tx01);
+	interpolate(tp2.x, p2.y, tp3.x, p3.y, tx12);
+	interpolate(tp1.x, p1.y, tp3.x, p3.y, tx02);
+
+	interpolate(tp1.y, p1.y, tp2.y, p2.y, ty01);
+	interpolate(tp2.y, p2.y, tp3.y, p3.y, ty12);
+	interpolate(tp1.y, p1.y, tp3.y, p3.y, ty02);
+	//concatenate short sides in 0-1
 	for (const double& val : x12) {
 		x01.push_back(val);
 	}
@@ -281,6 +309,12 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 	for (const double& val : z12) {
 		z01.push_back(val);
 	}
+	for (const double& val : tx12) {
+		tx01.push_back(val);
+	}
+	for (const double& val : ty12) {
+		ty01.push_back(val);
+	}
 	double m = floor(x02.size() / (double)2);
 	std::vector<double> xLeft = {};
 	std::vector<double> xRight = {};
@@ -288,6 +322,14 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 	std::vector<double> hRight = {};
 	std::vector<double> zLeft = {};
 	std::vector<double> zRight = {};
+	
+	std::vector<double> txLeft = {};
+	std::vector<double> txRight = {};
+
+	std::vector<double> tyLeft = {};
+	std::vector<double> tyRight = {};
+
+	//Finding left and right
 	if (x02.size()) {
 		if (x02[m] < x01[m]) {
 			xLeft = x02;
@@ -298,6 +340,12 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 
 			zLeft = z02;
 			zRight = z01;
+
+			txLeft = tx02;
+			txRight = tx01;
+
+			tyLeft  = ty02;
+			tyRight = ty01;
 		}
 		else {
 			xLeft = x01;
@@ -308,24 +356,43 @@ internal void drawTriangle(Triangle t,bool wireframe = false) {
 
 			zLeft = z01;
 			zRight = z02;
+
+			txLeft = tx01;
+			txRight = tx02;
+
+			tyLeft = ty01;
+			tyRight = ty02;
 		}
 	}
+	
 	for (int y = (p1.y); y < p3.y; y++) {
 		double xL = xLeft[y - int(p1.y)];
 		double xR = xRight[y - int(p1.y)];
 
 		std::vector<double> hSegment = {};
 		std::vector<double> zSegment = {};
+		std::vector<double> txSegment = {};
+		std::vector<double> tySegment = {};
 		interpolate(zLeft[y - int(p1.y)], xL, zRight[y - int(p1.y)],xR, zSegment);
-		interpolate(hLeft[y - int(p1.y)], xL, hRight[y - int(p1.y)], xR, hSegment);
+		interpolate(txLeft[y - int(p1.y)], xL, txRight[y - int(p1.y)],xR, txSegment);
+		interpolate(tyLeft[y - int(p1.y)], xL, tyRight[y - int(p1.y)],xR, tySegment);
+		//interpolate(hLeft[y - int(p1.y)], xL, hRight[y - int(p1.y)], xR, hSegment);
+		
+
 		for (int x = int(xL); x < xR; x++) {
+			double tx = txSegment[x - int(xL)];
+			double ty = tySegment[x - int(xL)];
 			double z = zSegment[x - int(xL)] - camera.position.z;
 			if (isIn(double(x), double(-canvas.x / 2.f), double(canvas.x / 2.f)) && isIn(double(y), double(-canvas.y / 2.f), double(canvas.y / 2.f))) {
 				int nx = (x + (renderState.width / (double)2.f));
 				int ny = ((renderState.height / (double)2.f) - y);
 				double* dep = ((double*)(depth)) + (ny * renderState.width) + nx;
 				if (z < (*dep)) {
-					putPixel(x, y, color);
+					Vector P = { tx,ty,(z + camera.position.z) };
+					Vector N = t.getNormal();
+					Vector V = reflectRay(-P, N);
+					double light = computeLight(P, N, V, t.specular,false);
+					putPixel(x, y, (color * light));
 					*dep = z;
 				}
 			}
@@ -392,7 +459,6 @@ internal double intersectRayTriangle(Vector O, Vector D, Triangle triangle)
 	double t = 0;
 	Vector N = triangle.getNormal();
 	double NdotRay = dot(N, D);
-
 	if (NdotRay > 0)
 		return infinity;
 	double d = -dot(N, triangle.p[0]);
@@ -543,10 +609,10 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 	}
 	return { closestObject,closestT };
 }
-internal Vector reflectRay(Vector R, Vector N) {
+internal Vector reflectRay(const Vector R, Vector& N) {
 	return (2 * (N * dot(R, N)) - R);
 }
-internal double computeLight(Vector P,Vector N,Vector V,double s) {
+internal double computeLight(Vector& P,Vector& N,const Vector V,double s,bool rt = true) {
 	double i = 0.f;
 	for (const Light& light : scene.lights) {
 		//L = direction of the light
@@ -557,14 +623,14 @@ internal double computeLight(Vector P,Vector N,Vector V,double s) {
 		}
 		else {
 			if (light.type == LT_DIRECTIONAL) {
-				L = light.direction;
+				L = rt?light.direction:rotate(light.direction,-camera.rotation);
 				tMax = infinity;
 			}
 			else if (light.type == LT_POINT) {
-				L = light.pos - P;
+				L = rt ? (light.pos - P) : ((rotate((light.pos - camera.position), -camera.rotation)) - P);
 				tMax = 2;
 			}
-			double shadowT = closestIntersection(P, L, 0.0001, tMax).second;
+			double shadowT = rt ? closestIntersection(P, L, 0.0001, tMax).second : infinity;
 			if (shadowT != infinity) {
 				continue;
 			}
@@ -627,8 +693,8 @@ Vector transformVertex(Vector vec,const Transform& tf) {
 	return translated;
 }
 void renderObject(Instance& instance,bool bfc = true) {
-	std::vector<Triangle> triangles = instance.mesh->triangles;
-	for (Triangle& triangle : triangles) {
+	const std::vector<Triangle> &triangles = instance.mesh->triangles;
+	for (const Triangle& triangle : triangles) {
 		Vector transformed[3];
 		Vector moved[3];
 		//Model space to world space
@@ -643,46 +709,46 @@ void renderObject(Instance& instance,bool bfc = true) {
 		moved[1] = rotate(moved[1], -camera.rotation);
 		moved[2] = rotate(moved[2], -camera.rotation);
 
+		const bool backFaceCulling = bfc;
+		Triangle transformedTri;
+		Vector PO = -moved[0];
+		transformedTri.p[0] = transformed[0];
+		transformedTri.p[1] = transformed[1];
+		transformedTri.p[2] = transformed[2];
+		Vector normal = transformedTri.getNormal();
+		normal = normal / length(normal);
+		PO = rotate(PO, camera.rotation);
+
+		//Backface culling
+		if (!(dot(normal, PO) > 0.0001) && backFaceCulling) {
+			continue;
+		}
 		//if triangle is behind camera
 		if (moved[0].z <= 0 || moved[1].z <= 0 || moved[2].z <= 0) {
 			continue;
 		}
 		
 		Triangle newTri;
-		//Camera space to canvas coords
 		newTri.p[0] = moved[0];
 		newTri.p[1] = moved[1];
 		newTri.p[2] = moved[2];
 
-		//Backface culling
-		const bool backFaceCulling = bfc;
-		Triangle transformedTri;
-		transformedTri.p[0] = transformed[0];
-		transformedTri.p[1] = transformed[1];
-		transformedTri.p[2] = transformed[2];
-		Vector normal = transformedTri.getNormal();
-		normal = normal / length(normal);
-		
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
-		newTri.color = normalCol;// *computeLight(moved[0], normal, -D, instance.mesh->specular);
-		Vector PO = -moved[0];
-		PO = rotate(PO, camera.rotation);
-		if ((dot(normal, PO) > 0) || !backFaceCulling) {
-			bool drawWireframe = false;
-			if (debugState == DebugState::DS_BOUNDING_BOX) {
-				Box box = instance.getBoundingBox();
-
-				box.highest = box.highest - camera.position;
-				box.lowest = box.lowest - camera.position;
-				Transform ttf = { {0,0,0},1,-camera.rotation };
-				drawBox(box,ttf);
-				return;
-			}
-			if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
-			drawTriangle(newTri, drawWireframe);
-		}
+		newTri.color = triangle.color;
+		bool drawWireframe = false;
+		if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
+		drawTriangle(newTri, drawWireframe);
+		
 	}
+	if (debugState == DebugState::DS_BOUNDING_BOX) {
+		Box box = instance.getBoundingBox();
+		box.highest = box.highest - camera.position;
+		box.lowest = box.lowest - camera.position;
+		Transform ttf = { {0,0,0},1,-camera.rotation };
+		drawBox(box, ttf);
+	}
+	
 }
 internal Colour traceRay(Vector O,Vector D,double tMin,double tMax,int recursionLimit){
 	std::pair<Object*, double> intersection = closestIntersection(O , D, tMin, tMax);
@@ -731,7 +797,7 @@ void rayTraceThr(int threadNum,int threadCount)
 			Vector direction = canvasToViewport(x, y);
 			direction = direction / length(D);
 			direction = rotate(direction, camera.rotation);
-			Colour result = traceRay(camera.position, direction, 1, infinity, 1);
+			Colour result = traceRay(camera.position, direction, 1, infinity, 0);
 			putPixel(x, y, result);
 		}
 	}
