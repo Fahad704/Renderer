@@ -110,7 +110,7 @@ void handleInput(const Input& input) {
 	}
 }
 void init() {
-	debugState = DebugState::DS_TRIANGLE;
+	debugState = DebugState::DS_OFF;
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {};
 	//Sphere spherestem[] = {
@@ -130,15 +130,15 @@ void init() {
 		//--Type----------Pos----Dir--intensity//
 		{LT_AMBIENT    ,{0,0,0},{0,0,0},0.2f},
 		{LT_POINT      ,{2,1,0},{0,0,0},0.6f},
-		//{LT_DIRECTIONAL,{0,0,0},{1,4,4},0.7f}
+		{LT_DIRECTIONAL,{0,0,0},{1,4,4},0.5f}
 	};
 
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
+	static Mesh model = loadOBJ("../Models/DemonSkull.obj", { 20,255,255 }, 0.5f, 1000);
 	Instance ins[] = { 
-		{model, {0,0,5},1,{0,0,0}},
+		{model, {0,-200,5},1,{0,0,0}},
 		//{model, {-2,1,5},1,{3,0,0}},
 		//{model, {1,-2,6},1,{0,8,0}},
 		//{model, {3,0,7},1,{0,0,0}}

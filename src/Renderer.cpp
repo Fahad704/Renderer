@@ -1,6 +1,7 @@
 #ifndef RENDERER_CPP
 #define RENDERER_CPP
 #include "Window.cpp"
+#include <cassert>
 #define WHITE {255,255,255}
 internal double computeLight(Vector&, Vector&,const Vector, double,bool);
 internal Vector reflectRay(const Vector, Vector&);
@@ -224,7 +225,7 @@ void interpolate(double x0, double y0, double x1, double y1,std::vector<double>&
 	double x = x0;
 	if (dy != 0) 
 		aspectratio = (dx / dy);
-	for (double y = y0; y <= y1; y++) {
+	for (double y = ceil(y0); y <= floor(y1); y++) {
 		arr.push_back(x);
 		x += aspectratio;
 	}
@@ -315,7 +316,7 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 	for (const double& val : ty12) {
 		ty01.push_back(val);
 	}
-	double m = floor(x02.size() / (double)2);
+	int m = int(x02.size() / (double)2);
 	std::vector<double> xLeft = {};
 	std::vector<double> xRight = {};
 	std::vector<double> hLeft = {};
@@ -365,7 +366,7 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 		}
 	}
 	
-	for (int y = (p1.y); y < p3.y; y++) {
+	for (int y = int(p1.y); y < int(p3.y); y++) {
 		double xL = xLeft[y - int(p1.y)];
 		double xR = xRight[y - int(p1.y)];
 
@@ -379,7 +380,7 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 		//interpolate(hLeft[y - int(p1.y)], xL, hRight[y - int(p1.y)], xR, hSegment);
 		
 
-		for (int x = int(xL); x < xR; x++) {
+		for (int x = int(xL); x < int(xR); x++) {
 			double tx = txSegment[x - int(xL)];
 			double ty = tySegment[x - int(xL)];
 			double z = zSegment[x - int(xL)] - camera.position.z;
