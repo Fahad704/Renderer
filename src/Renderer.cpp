@@ -3,7 +3,7 @@
 #include "Window.cpp"
 #include <cassert>
 #define WHITE {255,255,255}
-internal double computeLight(Vector&, Vector&,const Vector, double,bool);
+internal double computeLight(Vector&, Vector&,const Vector, double);
 internal Vector reflectRay(const Vector, Vector&);
 internal void clearScreen(u32 color) {
 	u32* pixel = (u32*)renderState.memory;
@@ -375,24 +375,36 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 		std::vector<double> txSegment = {};
 		std::vector<double> tySegment = {};
 		interpolate(zLeft[y - int(p1.y)], xL, zRight[y - int(p1.y)],xR, zSegment);
-		interpolate(txLeft[y - int(p1.y)], xL, txRight[y - int(p1.y)],xR, txSegment);
-		interpolate(tyLeft[y - int(p1.y)], xL, tyRight[y - int(p1.y)],xR, tySegment);
+		interpolate(txLeft[y - int(p1.y)],xL,txRight[y - int(p1.y)],xR, txSegment);
+		interpolate(tyLeft[y - int(p1.y)],xL,tyRight[y - int(p1.y)],xR, tySegment);
+
 		//interpolate(hLeft[y - int(p1.y)], xL, hRight[y - int(p1.y)], xR, hSegment);
 		
 
 		for (int x = int(xL); x < int(xR); x++) {
-			double tx = txSegment[x - int(xL)];
-			double ty = tySegment[x - int(xL)];
+			//Per Fragment
+			double tx = txSegment[x - int(xL)];// *zSegment[x - int(xL)];
+			double ty = tySegment[x - int(xL)];// *zSegment[x - int(xL)];
 			double z = zSegment[x - int(xL)] - camera.position.z;
 			if (isIn(double(x), double(-canvas.x / 2.f), double(canvas.x / 2.f)) && isIn(double(y), double(-canvas.y / 2.f), double(canvas.y / 2.f))) {
 				int nx = (x + (renderState.width / (double)2.f));
 				int ny = ((renderState.height / (double)2.f) - y);
+				//Pointer to depth buffer
 				double* dep = ((double*)(depth)) + (ny * renderState.width) + nx;
 				if (z < (*dep)) {
 					Vector P = { tx,ty,(z + camera.position.z) };
-					Vector N = t.getNormal();
-					Vector V = reflectRay(-P, N);
-					double light = computeLight(P, N, V, t.specular,false);
+					//Camera space to world space
+					P = transformVertex(P, camera);
+					Triangle newTri;
+					newTri.p[0] = transformVertex(t.p[0],camera);
+					newTri.p[1] = transformVertex(t.p[1],camera);
+					newTri.p[2] = transformVertex(t.p[2],camera);
+					Vector N = newTri.getNormal();
+					N = N / length(N);
+					Vector R = P - camera.position;
+					R = R / length(R);
+					Vector V = reflectRay(R, N);
+					double light = computeLight(P, N, V, t.specular);
 					putPixel(x, y, (color * light));
 					*dep = z;
 				}
@@ -613,7 +625,7 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 internal Vector reflectRay(const Vector R, Vector& N) {
 	return (2 * (N * dot(R, N)) - R);
 }
-internal double computeLight(Vector& P,Vector& N,const Vector V,double s,bool rt = true) {
+internal double computeLight(Vector& P,Vector& N,const Vector V,double s) {
 	double i = 0.f;
 	for (const Light& light : scene.lights) {
 		//L = direction of the light
@@ -624,14 +636,14 @@ internal double computeLight(Vector& P,Vector& N,const Vector V,double s,bool rt
 		}
 		else {
 			if (light.type == LT_DIRECTIONAL) {
-				L = rt?light.direction:rotate(light.direction,-camera.rotation);
+				L = light.direction;
 				tMax = infinity;
 			}
 			else if (light.type == LT_POINT) {
-				L = rt ? (light.pos - P) : ((rotate((light.pos - camera.position), -camera.rotation)) - P);
-				tMax = 2;
+				L = (light.pos - P);
+				tMax = length(L);
 			}
-			double shadowT = rt ? closestIntersection(P, L, 0.0001, tMax).second : infinity;
+			double shadowT =closestIntersection(P, L, 0.0001, tMax).second;
 			if (shadowT != infinity) {
 				continue;
 			}
@@ -721,7 +733,7 @@ void renderObject(Instance& instance,bool bfc = true) {
 		PO = rotate(PO, camera.rotation);
 
 		//Backface culling
-		if (!(dot(normal, PO) > 0.0001) && backFaceCulling) {
+		if (!(dot(normal, PO) > 0.f) && backFaceCulling) {
 			continue;
 		}
 		//if triangle is behind camera
@@ -736,7 +748,7 @@ void renderObject(Instance& instance,bool bfc = true) {
 
 		//Normal Colouring
 		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
-		newTri.color = triangle.color;
+		newTri.color = normalCol;
 		bool drawWireframe = false;
 		if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
 		drawTriangle(newTri, drawWireframe);

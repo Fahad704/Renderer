@@ -110,7 +110,7 @@ void handleInput(const Input& input) {
 	}
 }
 void init() {
-	debugState = DebugState::DS_OFF;
+	debugState = DebugState::DS_TRIANGLE;
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {};
 	//Sphere spherestem[] = {
@@ -136,12 +136,13 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/DemonSkull.obj", { 20,255,255 }, 0.5f, 1000);
+	static Mesh model = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
+	//static Mesh cube = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
 	Instance ins[] = { 
-		{model, {0,-200,5},1,{0,0,0}},
-		//{model, {-2,1,5},1,{3,0,0}},
-		//{model, {1,-2,6},1,{0,8,0}},
-		//{model, {3,0,7},1,{0,0,0}}
+		{model, {0,0,5},1,{0,0,0}},
+		{model, {-2,1,5},1,{3,0,0}},
+		{model, {1,-2,6},1,{0,8,0}},
+		{model, {3,0,7},1,{0,0,0}}
 	};
 	int insSize = sizeof(ins) / sizeof(Instance);
 	for(int i = 0;i<insSize;i++)
@@ -181,20 +182,21 @@ void update(const Input& input) {
 	if (!rendMode) {
 		clearScreen(0x646464);
 		renderObject(scene.instances[0], bfc);
-		//renderObject(scene.instances[1], bfc);
-		//renderObject(scene.instances[2], bfc);
-		//renderObject(scene.instances[3], bfc);
+		renderObject(scene.instances[1], bfc);
+		renderObject(scene.instances[2], bfc);
+		renderObject(scene.instances[3], bfc);
 		once = true;
+		std::time_t endTime;
+		//Limit frame rate to reduce power consumption
+		double overhead = (frameLimit * 100) - (fdt);
+		if (overhead > 0) {
+			Sleep(overhead);
+		}
+		timer::Duration deltaTime = timer_end(start, endTime);
+		fdt = deltaTime.count();
+		//Display fps on console
+		std::cout << std::fixed << "\r" << 1.f / (deltaTime.count()) << " FPS" << std::flush;
 	}
-	std::time_t endTime;
-	//Limit frame rate to reduce power consumption
-	double overhead = (frameLimit * 100) - (fdt);
-	if (overhead > 0) {
-		Sleep(overhead);
-	}
-	timer::Duration deltaTime = timer_end(start,endTime);
-	fdt = deltaTime.count();
-	//Display fps on console
-	//std::cout <<std::fixed<<"\r" <<1.f/(deltaTime.count()) << " FPS" << std::flush;
+	
 }
 #endif

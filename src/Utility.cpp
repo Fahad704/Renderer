@@ -12,6 +12,7 @@
 #include <gl/GL.h>
 #include <iomanip>
 #include <thread> 
+#include <algorithm>
 #include <time.h>
 #include "Window.cpp"
 #include "Vector.cpp"
