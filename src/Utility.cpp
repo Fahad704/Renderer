@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <time.h>
 #include "Window.cpp"
+#include "Vector.h"
 #include "Vector.cpp"
 #define infinity 2000000000
 

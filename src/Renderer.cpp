@@ -230,10 +230,10 @@ void interpolate(double x0, double y0, double x1, double y1,std::vector<double>&
 		x += aspectratio;
 	}
 }
-internal void drawTriangle(Triangle& t,bool wireframe = false) {
-	
-	Vector p1 = projectVertex(t.p[0]);							
-	Vector p2 = projectVertex(t.p[1]);						
+internal void drawTriangle(Triangle& t, bool wireframe = false) {
+
+	Vector p1 = projectVertex(t.p[0]);
+	Vector p2 = projectVertex(t.p[1]);
 	Vector p3 = projectVertex(t.p[2]);
 	p1.z = t.p[0].z;
 	p2.z = t.p[1].z;
@@ -243,11 +243,20 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 	Vector tp2 = t.p[1];
 	Vector tp3 = t.p[2];
 
-	Colour color = t.color;						
-												
-	if (p1.y > p2.y)swap(p1,p2);				
-	if (p1.y > p3.y)swap(p1, p3);				
-	if (p2.y > p3.y)swap(p2, p3);				
+	Colour color = t.color;
+
+	if (p1.y > p2.y) {
+		swap(p1, p2);
+		swap(tp1, tp2);
+	}
+	if (p1.y > p3.y){
+		swap(p1, p3);
+		swap(tp1, tp3);
+	}
+	if (p2.y > p3.y) {
+		swap(p2, p3); 
+		swap(tp2, tp3); 
+	}
 												
 	if (wireframe) {							
 		//Drawing wireframe						
@@ -256,10 +265,6 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 		drawLine(p3, p1, color);				
 		return;									
 	}	
-
-	if (tp1.y > tp2.y)swap(tp1, tp2);
-	if (tp1.y > tp3.y)swap(tp1, tp3);
-	if (tp2.y > tp3.y)swap(tp2, tp3);
 
 	std::vector<double> x01;
 	std::vector<double> x12;
@@ -285,9 +290,9 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 	interpolate(p2.x, p2.y, p3.x, p3.y, x12);
 	interpolate(p1.x, p1.y, p3.x, p3.y, x02);
 
-	interpolate(0, p1.y, 0, p2.y, h01);
-	interpolate(0, p2.y, 1, p3.y, h12);
-	interpolate(0, p1.y, 1, p3.y, h02);
+	//interpolate(0, p1.y, 0, p2.y, h01);
+	//interpolate(0, p2.y, 1, p3.y, h12);
+	//interpolate(0, p1.y, 1, p3.y, h02);
 
 	interpolate(p1.z, p1.y, p2.z, p2.y, z01);
 	interpolate(p2.z, p2.y, p3.z, p3.y, z12);
@@ -336,8 +341,8 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 			xLeft = x02;
 			xRight = x01;
 
-			hLeft = h02;
-			hRight = h01;
+			//hLeft = h02;
+			//hRight = h01;
 
 			zLeft = z02;
 			zRight = z01;
@@ -352,8 +357,8 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 			xLeft = x01;
 			xRight = x02;
 
-			hLeft = h01;
-			hRight = h02;
+			//hLeft = h01;
+			//hRight = h02;
 
 			zLeft = z01;
 			zRight = z02;
@@ -370,29 +375,28 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 		double xL = xLeft[y - int(p1.y)];
 		double xR = xRight[y - int(p1.y)];
 
-		std::vector<double> hSegment = {};
+		//std::vector<double> hSegment = {};
 		std::vector<double> zSegment = {};
 		std::vector<double> txSegment = {};
 		std::vector<double> tySegment = {};
 		interpolate(zLeft[y - int(p1.y)], xL, zRight[y - int(p1.y)],xR, zSegment);
 		interpolate(txLeft[y - int(p1.y)],xL,txRight[y - int(p1.y)],xR, txSegment);
 		interpolate(tyLeft[y - int(p1.y)],xL,tyRight[y - int(p1.y)],xR, tySegment);
-
-		//interpolate(hLeft[y - int(p1.y)], xL, hRight[y - int(p1.y)], xR, hSegment);
 		
 
 		for (int x = int(xL); x < int(xR); x++) {
 			//Per Fragment
-			double tx = txSegment[x - int(xL)];// *zSegment[x - int(xL)];
-			double ty = tySegment[x - int(xL)];// *zSegment[x - int(xL)];
-			double z = zSegment[x - int(xL)] - camera.position.z;
+			double tx = txSegment[x - int(xL)];
+			double ty = tySegment[x - int(xL)];
+			double z = zSegment[x - int(xL)];
 			if (isIn(double(x), double(-canvas.x / 2.f), double(canvas.x / 2.f)) && isIn(double(y), double(-canvas.y / 2.f), double(canvas.y / 2.f))) {
 				int nx = (x + (renderState.width / (double)2.f));
 				int ny = ((renderState.height / (double)2.f) - y);
 				//Pointer to depth buffer
 				double* dep = ((double*)(depth)) + (ny * renderState.width) + nx;
 				if (z < (*dep)) {
-					Vector P = { tx,ty,(z + camera.position.z) };
+					//Point in camera space
+					Vector P = { tx,ty,z};
 					//Camera space to world space
 					P = transformVertex(P, camera);
 					Triangle newTri;
@@ -403,8 +407,7 @@ internal void drawTriangle(Triangle& t,bool wireframe = false) {
 					N = N / length(N);
 					Vector R = P - camera.position;
 					R = R / length(R);
-					Vector V = reflectRay(R, N);
-					double light = computeLight(P, N, V, t.specular);
+					double light = computeLight(P, N, R, t.specular);
 					putPixel(x, y, (color * light));
 					*dep = z;
 				}
@@ -643,7 +646,7 @@ internal double computeLight(Vector& P,Vector& N,const Vector V,double s) {
 				L = (light.pos - P);
 				tMax = length(L);
 			}
-			double shadowT =closestIntersection(P, L, 0.0001, tMax).second;
+			double shadowT =closestIntersection(P, L, 0.000001, tMax).second;
 			if (shadowT != infinity) {
 				continue;
 			}
@@ -668,13 +671,7 @@ Vector rotate(const Vector& vec,const Vector& rotationP) {
 	if (rotationP == Vector{ 0,0,0 }) {
 		return vec;
 	}
-	//double quotent = rotationP.x / 360.f;
-	double xrotation = rotationP.x;// -(quotent * 360);
-	//quotent = rotationP.y / 360.f;
-	double yrotation = rotationP.y;// -(quotent * 360);
-	//quotent = rotationP.z / 360.f;
-	double zrotation = rotationP.z;// -(quotent * 360);
-	Vector rotation = { (xrotation * (PI * 2)) / 360,(yrotation * (PI * 2)) / 360,(zrotation * (PI * 2)) / 360 };
+	Vector rotation = { (rotationP.x * (PI * 2)) / 360,(rotationP.y * (PI * 2)) / 360,(rotationP.z * (PI * 2)) / 360 };
 
 	//rotation aruond x axis
 	Vector xrotated;
@@ -747,8 +744,8 @@ void renderObject(Instance& instance,bool bfc = true) {
 		newTri.p[2] = moved[2];
 
 		//Normal Colouring
-		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
-		newTri.color = normalCol;
+		//Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
+		newTri.color = triangle.color;
 		bool drawWireframe = false;
 		if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
 		drawTriangle(newTri, drawWireframe);

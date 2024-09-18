@@ -139,7 +139,7 @@ void init() {
 	static Mesh model = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
 	//static Mesh cube = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
 	Instance ins[] = { 
-		{model, {0,0,5},1,{0,0,0}},
+		{model, {0,-0.8,5},1,{0,0,0}},
 		{model, {-2,1,5},1,{3,0,0}},
 		{model, {1,-2,6},1,{0,8,0}},
 		{model, {3,0,7},1,{0,0,0}}
@@ -181,10 +181,9 @@ void update(const Input& input) {
 	//Rasterize
 	if (!rendMode) {
 		clearScreen(0x646464);
-		renderObject(scene.instances[0], bfc);
-		renderObject(scene.instances[1], bfc);
-		renderObject(scene.instances[2], bfc);
-		renderObject(scene.instances[3], bfc);
+		for (Instance& ins : scene.instances) {
+			renderObject(ins, bfc);
+		}
 		once = true;
 		std::time_t endTime;
 		//Limit frame rate to reduce power consumption
