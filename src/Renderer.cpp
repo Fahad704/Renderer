@@ -3,7 +3,7 @@
 #include "Window.cpp"
 #include <cassert>
 #define WHITE {255,255,255}
-internal double computeLight(Vector&, Vector&,const Vector, double);
+internal double computeLight(Vector&, Vector&,const Vector, double,bool);
 internal Vector reflectRay(const Vector, Vector&);
 internal void clearScreen(u32 color) {
 	u32* pixel = (u32*)renderState.memory;
@@ -407,7 +407,7 @@ internal void drawTriangle(Triangle& t, bool wireframe = false) {
 					N = N / length(N);
 					Vector R = P - camera.position;
 					R = R / length(R);
-					double light = computeLight(P, N, R, t.specular);
+					double light = computeLight(P, N, R, t.specular,false);
 					putPixel(x, y, (color * light));
 					*dep = z;
 				}
@@ -628,7 +628,7 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 internal Vector reflectRay(const Vector R, Vector& N) {
 	return (2 * (N * dot(R, N)) - R);
 }
-internal double computeLight(Vector& P,Vector& N,const Vector V,double s) {
+internal double computeLight(Vector& P,Vector& N,const Vector V,double s,bool rt = true) {
 	double i = 0.f;
 	for (const Light& light : scene.lights) {
 		//L = direction of the light
@@ -646,7 +646,7 @@ internal double computeLight(Vector& P,Vector& N,const Vector V,double s) {
 				L = (light.pos - P);
 				tMax = length(L);
 			}
-			double shadowT =closestIntersection(P, L, 0.000001, tMax).second;
+			double shadowT =rt?closestIntersection(P, L, 0.000001, tMax).second:infinity;
 			if (shadowT != infinity) {
 				continue;
 			}
@@ -704,6 +704,7 @@ Vector transformVertex(Vector vec,const Transform& tf) {
 }
 void renderObject(Instance& instance,bool bfc = true) {
 	const std::vector<Triangle> &triangles = instance.mesh->triangles;
+	std::vector<Triangle> tris = {};
 	for (const Triangle& triangle : triangles) {
 		Vector transformed[3];
 		Vector moved[3];
@@ -744,12 +745,16 @@ void renderObject(Instance& instance,bool bfc = true) {
 		newTri.p[2] = moved[2];
 
 		//Normal Colouring
-		//Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
-		newTri.color = triangle.color;
-		bool drawWireframe = false;
-		if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
-		drawTriangle(newTri, drawWireframe);
+		Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };
+		newTri.color = normalCol;
+		tris.push_back(newTri);
+		//drawTriangle(newTri, drawWireframe);
 		
+	}
+	bool drawWireframe = false;
+	if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
+	for (Triangle& tri : tris) {
+		drawTriangle(tri, drawWireframe);
 	}
 	if (debugState == DebugState::DS_BOUNDING_BOX) {
 		Box box = instance.getBoundingBox();
