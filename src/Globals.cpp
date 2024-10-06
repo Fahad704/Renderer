@@ -9,7 +9,8 @@ float vpHeight = 1.778;
 bool once = true;
 //100fps
 double frameLimit = 0.0125f;
-Transform camera(Vector{ 0,0,0 }, 1, {0,-180,0});
+double FOV = 60;
+Transform camera(Vector{ 0,0,0 }, 1, {0,0,0});
 Scene scene = {};
 //temp
 Triangle tempTri;

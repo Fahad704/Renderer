@@ -130,19 +130,20 @@ void init() {
 		//--Type----------Pos----Dir--intensity//
 		{LT_AMBIENT    ,{0,0,0},{0,0,0},0.2f},
 		{LT_POINT      ,{2,1,0},{0,0,0},0.6f},
-		{LT_DIRECTIONAL,{0,0,0},{1,4,4},0.2f}
+		{LT_DIRECTIONAL,{0,0,0},{1,4,4},0.2f},
+		{LT_DIRECTIONAL,{0,0,0},{-1,-1,4},0.2f},
 	};
 
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/DemonSkull.obj", { 20,255,255 }, 0.5f, 1000);
+	static Mesh model = loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f);
 	//static Mesh cube = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
 	Instance ins[] = { 
-		{model, {0,-200,-58},1,{0,0,0}},
-		//{model, {-2,1,5},1,{3,0,0}},
-		//{model, {1,-2,6},1,{0,8,0}},
-		//{model, {3,0,7},1,{0,0,0}}
+		{model, {0,0,4},1,{0,0,0}},
+		{model, {-2,1,5},1,{3,0,0}},
+		{model, {1,-2,6},1,{0,8,0}},
+		{model, {3,0,7},1,{0,0,0}}
 	};
 	int insSize = sizeof(ins) / sizeof(Instance);
 	for(int i = 0;i<insSize;i++)
@@ -168,7 +169,6 @@ void update(const Input& input) {
 		}
 		//rayTrace();
 		std::cout << "\r" << "Frame rendered\n";
-		std::cout << "Width : " << renderState.width << " " << renderState.height << "\n";
 		std::time_t endTime;
 		timer::Duration deltaTime = timer_end(start, endTime);
 		fdt = deltaTime.count();
