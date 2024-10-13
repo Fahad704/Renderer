@@ -225,10 +225,16 @@ void interpolate(double x0, double y0, double x1, double y1,std::vector<double>&
 	double x = x0;
 	if (dy != 0) 
 		aspectratio = (dx / dy);
+	double size = ceil(y1) - floor(y0);
+	if (size > 0)
+		arr.resize(size);
+	int i = 0;
 	for (double y = ceil(y0); y <= floor(y1); y++) {
-		arr.push_back(x);
+		arr[i] = (x);
 		x += aspectratio;
+		i++;
 	}
+	arr.resize(i);
 }
 internal void drawTriangle(Triangle& t, bool wireframe = false) {
 
@@ -492,6 +498,7 @@ bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
 	return true;
 }
 internal std::vector<Triangle> getBVHTris(Instance& instance) {
+	//TODO(Fahad):implement BVH
 	return {};
 }
 internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, double tMin, double tMax) {
@@ -636,7 +643,6 @@ Vector transformVertex(Vector vec,const Transform& tf) {
 }
 std::vector<Triangle> clipTriangle(Triangle& t) {
 	//TODO(Fahad):Add clipping
-	std::vector<Triangle> clipped;
 	//Near Plane
 	if ((t.p[0].z < d) || (t.p[1].z < d) || (t.p[2].z < d))return {};
 	//left plane
@@ -645,11 +651,11 @@ std::vector<Triangle> clipTriangle(Triangle& t) {
 	Vector leftN =  rotate({ 1,0,0},{0,( theta + 90),0});
 	Vector upN = {0,-(1 / sqrt(2)),(1 / sqrt(2)) };
 	Vector downN = {0,(1 / sqrt(2)),(1 / sqrt(2)) };
-	if ((dot(t.p[0], leftN) < 0.f) || (dot(t.p[1], leftN) < 0.f) || (dot(t.p[2], leftN) < 0.f))return {};
-	if ((dot(t.p[0], rightN) < 0.f) || (dot(t.p[1], rightN) < 0.f) || (dot(t.p[2], rightN) < 0.f))return {};
+	if ((dot(t.p[0], leftN) < 0.f) || (dot(t.p[1], leftN) < 0.f) || (dot(t.p[2], leftN) < 0.f))return {t};
+	if ((dot(t.p[0], rightN) < 0.f) || (dot(t.p[1], rightN) < 0.f) || (dot(t.p[2], rightN) < 0.f))return {t};
 	//if ((dot(t.p[0], upN) < 0.f) || (dot(t.p[1], upN) < 0.f) || (dot(t.p[2], upN) < 0.f))return {};
 	//if ((dot(t.p[0], downN) < 0.f) || (dot(t.p[1], downN) < 0.f) || (dot(t.p[2], downN) < 0.f))return {};
-	return { t };
+	return {t};
 }
 void renderObject(Instance& instance,bool bfc = true) {
 	const std::vector<Triangle> &triangles = instance.mesh->triangles;

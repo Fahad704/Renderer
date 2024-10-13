@@ -1,9 +1,7 @@
 #ifndef MAIN_CPP
 #define MAIN_CPP
-#include "Window.cpp"
-#define isDown(b) input.buttons[b].isDown
-#define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
-#define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
+#include "Renderer.cpp"
+
 
 //TODO(Fahad):
 /*
@@ -140,7 +138,7 @@ void init() {
 	static Mesh model = loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f);
 	//static Mesh cube = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
 	Instance ins[] = { 
-		{model, {0,0,4},1,{0,0,0}},
+		{model, {0,-0.8,4},1,{0,0,0}},
 		{model, {-2,1,5},1,{3,0,0}},
 		{model, {1,-2,6},1,{0,8,0}},
 		{model, {3,0,7},1,{0,0,0}}
@@ -158,7 +156,7 @@ void update(const Input& input) {
 	if (rendMode && once){
 		clearScreen(0x000000);
 		//Ray tracing with 4 threads
-		size_t threadCount = 4;
+		size_t threadCount = 12;
 		std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
 		{
@@ -167,13 +165,7 @@ void update(const Input& input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
-		//rayTrace();
-		std::cout << "\r" << "Frame rendered\n";
-		std::time_t endTime;
-		timer::Duration deltaTime = timer_end(start, endTime);
-		fdt = deltaTime.count();
-		//std::cout << std::fixed << "\r" << 1.f / (deltaTime.count()) << " FPS" << std::flush;
-		once = false;
+		//once = false;
 		return;
 	}
 
@@ -181,21 +173,24 @@ void update(const Input& input) {
 	//Rasterize
 	if (!rendMode) {
 		clearScreen(0x646464);
+		//Normal Rasterization(No multithreading)
 		for (Instance& ins : scene.instances) {
 			renderObject(ins, bfc);
 		}
 		once = true;
-		std::time_t endTime;
-		//Limit frame rate to reduce power consumption
-		double overhead = (frameLimit * 100) - (fdt);
-		if (overhead > 0) {
-			Sleep(overhead);
-		}
-		timer::Duration deltaTime = timer_end(start, endTime);
-		fdt = deltaTime.count();
-		//Display fps on console
-		std::cout << std::fixed << "\r" << 1.f / (deltaTime.count()) << " FPS" << std::flush;
 	}
-	
+
+
+	//Limit frame rate to reduce power consumption
+	double overhead = (frameLimit) - (fdt);
+	if (overhead > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(int(floor(overhead))));
+	}
+	std::time_t endTime;
+	timer::Duration deltaTime = timer_end(start, endTime);
+	fdt = deltaTime.count();
+
+	//Display fps on console
+	std::cout << std::fixed << "\r" << (double)1 / fdt << " FPS" << std::flush;
 }
 #endif

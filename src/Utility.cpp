@@ -3,6 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <fstream>
 #include <vector>
+#include <Windows.h>
 #include <iostream>
 #include <chrono>
 #include <sstream>
@@ -75,6 +76,10 @@ void clamp(u32& num, u32 min_limit, u32 max_limit) {
 		return;
 	}
 	return;
+}
+void turnConsoleOff() {
+	FreeConsole();
+	std::fclose(stdout);
 }
 struct Colour {
 	u8 R;

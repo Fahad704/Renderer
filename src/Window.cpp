@@ -19,9 +19,14 @@ static RenderState renderState;
 static HWND window = {};
 
 #include "Platform_common.cpp"
+void init();
+void update(const Input&);
 #include "Globals.cpp"
 #include "Renderer.cpp"
 #include "Resource.h"
+#define isDown(b) input.buttons[b].isDown
+#define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
+#define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
 #include "Main.cpp"
 void clearScreen(u32);
 LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
