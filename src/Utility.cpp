@@ -29,14 +29,13 @@ namespace timer {
 	typedef std::chrono::duration<double> Duration;
 	typedef std::chrono::time_point<std::chrono::system_clock> Timer;
 };
-timer::Timer timerStart() {
-	timer::Timer start = std::chrono::system_clock::now();
-	return start;
+timer::Timer tstart, tend;
+void timerStart() {
+	tstart = std::chrono::system_clock::now();
 }
-std::chrono::duration<double> timer_end(timer::Timer start,std::time_t& end_time) {
-	timer::Timer end = std::chrono::system_clock::now();
-	end_time = std::chrono::system_clock::to_time_t(end);
-	return (end - start);
+std::chrono::duration<double> timerEnd(timer::Timer start) {
+	tend = std::chrono::system_clock::now();
+	return (tend - start);
 }
 enum LightType {
 	LT_POINT,

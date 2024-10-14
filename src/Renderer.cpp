@@ -225,16 +225,19 @@ void interpolate(double x0, double y0, double x1, double y1,std::vector<double>&
 	double x = x0;
 	if (dy != 0) 
 		aspectratio = (dx / dy);
-	double size = ceil(y1) - floor(y0);
+	double size = (ceil(y1) - floor(y0));
 	if (size > 0)
 		arr.resize(size);
+	else
+		return;
 	int i = 0;
 	for (double y = ceil(y0); y <= floor(y1); y++) {
 		arr[i] = (x);
 		x += aspectratio;
 		i++;
 	}
-	arr.resize(i);
+	if(i != size)
+		arr.resize(i);
 }
 internal void drawTriangle(Triangle& t, bool wireframe = false) {
 

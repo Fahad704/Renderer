@@ -135,7 +135,7 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f);
+	static Mesh model = loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f);
 	//static Mesh cube = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
 	Instance ins[] = { 
 		{model, {0,-0.8,4},1,{0,0,0}},
@@ -149,7 +149,8 @@ void init() {
 	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
-	timer::Timer start = timerStart();
+	
+	timerStart();
 	
 	handleInput(input);
 	//Ray trace
@@ -182,12 +183,10 @@ void update(const Input& input) {
 
 
 	//Limit frame rate to reduce power consumption
-	double overhead = (frameLimit) - (fdt);
-	if (overhead > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(int(floor(overhead))));
+	if (fdt < frameLimit) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(int(frameLimit - fdt)));
 	}
-	std::time_t endTime;
-	timer::Duration deltaTime = timer_end(start, endTime);
+	std::chrono::duration<double> deltaTime = timerEnd(tstart);
 	fdt = deltaTime.count();
 
 	//Display fps on console
