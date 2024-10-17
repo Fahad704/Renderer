@@ -329,27 +329,41 @@ struct Instance {
 	}
 	//Returns Bounding Box in world space
 	Box getBoundingBox() {
-		Vector lowest = { INFINITY,INFINITY,INFINITY };
-		Vector highest = {-INFINITY,-INFINITY,-INFINITY};
-		for (const Triangle& triangle : mesh->triangles) {
-			Vector tv[3];
-			tv[0] = transformVertex(triangle.p[0], transform);
-			tv[1] = transformVertex(triangle.p[1], transform);
-			tv[2] = transformVertex(triangle.p[2], transform);
-			for (int i = 0; i < 3; i++) {
-				lowest.x = (tv[i].x < lowest.x ? tv[i].x : lowest.x);
-				lowest.y = (tv[i].y < lowest.y ? tv[i].y : lowest.y);
-				lowest.z = (tv[i].z < lowest.z ? tv[i].z : lowest.z);
+		if ((boundingBox.lowest == INFINITY) && (boundingBox.highest == -INFINITY)) {
+			Vector lowest = { INFINITY,INFINITY,INFINITY };
+			Vector highest = { -INFINITY,-INFINITY,-INFINITY };
+			for (const Triangle& triangle : mesh->triangles) {
+				Vector tv[3];
+				tv[0] = transformVertex(triangle.p[0], transform);
+				tv[1] = transformVertex(triangle.p[1], transform);
+				tv[2] = transformVertex(triangle.p[2], transform);
+				for (int i = 0; i < 3; i++) {
+					lowest.x = (tv[i].x < lowest.x ? tv[i].x : lowest.x);
+					lowest.y = (tv[i].y < lowest.y ? tv[i].y : lowest.y);
+					lowest.z = (tv[i].z < lowest.z ? tv[i].z : lowest.z);
 
-				highest.x = (tv[i].x > highest.x ? tv[i].x : highest.x);
-				highest.y = (tv[i].y > highest.y ? tv[i].y : highest.y);
-				highest.z = (tv[i].z > highest.z ? tv[i].z : highest.z);
+					highest.x = (tv[i].x > highest.x ? tv[i].x : highest.x);
+					highest.y = (tv[i].y > highest.y ? tv[i].y : highest.y);
+					highest.z = (tv[i].z > highest.z ? tv[i].z : highest.z);
+				}
 			}
+
+			boundingBox = { highest, lowest };
+			return { highest,lowest };
 		}
-		
-		boundingBox = { highest, lowest};
-		return { highest,lowest };
+		else {
+			return boundingBox;
+		}
 	}
+	void applyTransform(const Transform& tf) {
+		transform.scale = tf.scale * transform.scale;
+		transform.position = tf.position + transform.position;
+		transform.rotation = tf.rotation + transform.rotation;
+		boundingBox.lowest = INFINITY;
+		boundingBox.highest = -INFINITY;
+		getBoundingBox();
+	}
+	
 };
 struct Light {
 	LightType type;

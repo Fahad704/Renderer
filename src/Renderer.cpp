@@ -558,6 +558,7 @@ internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, doub
 			if (dot(normal, D) > 0) {
 				continue;
 			}
+			triangle.normal = tri.normal;
 			double triangleInt = intersectRayTriangle(O, D, tri);
 			if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
 				closestT = triangleInt;
@@ -654,10 +655,10 @@ std::vector<Triangle> clipTriangle(Triangle& t) {
 	Vector leftN =  rotate({ 1,0,0},{0,( theta + 90),0});
 	Vector upN = {0,-(1 / sqrt(2)),(1 / sqrt(2)) };
 	Vector downN = {0,(1 / sqrt(2)),(1 / sqrt(2)) };
-	if ((dot(t.p[0], leftN) < 0.f) || (dot(t.p[1], leftN) < 0.f) || (dot(t.p[2], leftN) < 0.f))return {t};
-	if ((dot(t.p[0], rightN) < 0.f) || (dot(t.p[1], rightN) < 0.f) || (dot(t.p[2], rightN) < 0.f))return {t};
-	//if ((dot(t.p[0], upN) < 0.f) || (dot(t.p[1], upN) < 0.f) || (dot(t.p[2], upN) < 0.f))return {};
-	//if ((dot(t.p[0], downN) < 0.f) || (dot(t.p[1], downN) < 0.f) || (dot(t.p[2], downN) < 0.f))return {};
+	if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
+	if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f))return {};
+	if ((dot(t.p[0], upN) < 0.f) && (dot(t.p[1], upN) < 0.f) && (dot(t.p[2], upN) < 0.f))return {};
+	if ((dot(t.p[0], downN) < 0.f) && (dot(t.p[1], downN) < 0.f) && (dot(t.p[2], downN) < 0.f))return {};
 	return {t};
 }
 void renderObject(Instance& instance,bool bfc = true) {
@@ -704,12 +705,14 @@ void renderObject(Instance& instance,bool bfc = true) {
 
 		//Frustum culling
 		std::vector<Triangle> clippedTris = clipTriangle(newTri);
+		
 		if (!clippedTris.size())continue;
 		for (const Triangle& ct : clippedTris) {
 			tris.push_back(ct);
 		}
 		
 	}
+	triSeenCount = tris.size();
 	bool drawWireframe = false;
 	if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
 	for (Triangle& tri : tris) {
@@ -771,7 +774,7 @@ void rayTraceThr(int threadNum,int threadCount)
 			Vector direction = canvasToViewport(x, y);
 			direction = direction / length(D);
 			direction = rotate(direction, camera.rotation);
-			Colour result = traceRay(camera.position, direction, 1, infinity, 0);
+			Colour result = traceRay(camera.position, direction, 1, infinity, 2);
 			putPixel(x, y, result);
 		}
 	}

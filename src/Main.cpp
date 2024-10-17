@@ -10,6 +10,7 @@
 *		-Implement BVH ray tracing
 *		-Implement Occlusion culling
 *	Adding Features:
+*		-interpolated normals(Rasterizer)
 *		-read and display textures(Rasterizer)
 *		-render according to material(Rasterizer)
 *		-Make the structure API like for the renderer
@@ -63,7 +64,7 @@ void handleInput(const Input& input) {
 	}
 	//Normalize move vector and move the Camera
 	if (!(move == Vector{ 0,0,0 })) {
-
+		once = true;
 		move = move / length(move);
 		move = move * speed;
 		move = rotate(move, camera.rotation);
@@ -88,11 +89,14 @@ void handleInput(const Input& input) {
 	if (pressed(BUTTON_C))
 		bfc = !bfc;
 	//Rotate Camera Left
-	if (isDown(BUTTON_Z))
+	if (isDown(BUTTON_Z)) {
 		camera.rotation.y += 60.0 * fdt;
+		once = true;
+	}
 	//Rotate Camera right
 	if (isDown(BUTTON_X)) {
 		camera.rotation.y -= 60.0 * fdt;
+		once = true;
 	}
 	//Reset camera Position and rotation
 	if (pressed(BUTTON_Q)) {
@@ -104,7 +108,9 @@ void handleInput(const Input& input) {
 		fdt = 0.0001;
 	}
 	if (isDown(MOUSE_BUTTON_RIGHT)) {
-		scene.instances[0].transform.rotation.y += 100 * fdt;
+		Transform tf = { {0,0,0},1,{0,100 * fdt,0} };
+		scene.instances[0].applyTransform(tf);
+		once = true;
 	}
 }
 void init() {
@@ -112,12 +118,11 @@ void init() {
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {};
 	//Sphere spherestem[] = {
-		//	//Position-----Radius---Colour----specular-reflect//
-			//{ { 0 , 0  , 3}, 1  ,{255,0 , 0}	,500,  0.2f},
-			//{ { 2 ,  0  , 4}, 1  ,{0, 0, 255}	,500,  0.4f },
-			//{ { -2, 0   , 4}, 1  ,{0, 255, 0}	,10,   0.3f},
-		   // {{ 1, 1   , 0}, 0.5f  ,{0, 255, 0}	,10,   0.3f},
-			 //{ { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
+	//		//Position-----Radius---Colour----specular-reflect//
+	//		{ { 0 , 0  , 3}, 1  ,{255,0 , 0}	,500,  0.2f},
+	//		{ { 2 ,  0  , 4}, 1  ,{0, 0, 255}	,1000,  0.4f },
+	//		{ { -2, 0   , 4}, 1  ,{0, 255, 0}	,10,   0.3f},
+	//		{ { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
 	//};
 	//int spherecount = sizeof(spherestem) / sizeof(Sphere);
 	//for (int i = 0; i < spherecount; i++) {
@@ -135,13 +140,12 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f);
-	//static Mesh cube = loadOBJ("../Models/cube.obj", { 20,255,255 }, 0.5f, 1000);
+	static Mesh model = loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f,1000);
 	Instance ins[] = { 
-		{model, {0,-0.8,4},1,{0,0,0}},
-		{model, {-2,1,5},1,{3,0,0}},
-		{model, {1,-2,6},1,{0,8,0}},
-		{model, {3,0,7},1,{0,0,0}}
+		{model, {0,-0.8f,3},0.5f,{0,0,0}},
+		//{model, {-2,1,7},1,{3,0,0}},
+		//{model, {1,-2,8},1,{0,8,0}},
+		//{model, {3,0,9},1,{0,0,0}}
 	};
 	int insSize = sizeof(ins) / sizeof(Instance);
 	for(int i = 0;i<insSize;i++)
@@ -149,12 +153,12 @@ void init() {
 	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
-	
+
 	timerStart();
-	
+
 	handleInput(input);
 	//Ray trace
-	if (rendMode && once){
+	if (rendMode && once) {
 		clearScreen(0x000000);
 		//Ray tracing with 4 threads
 		size_t threadCount = 12;
@@ -166,14 +170,14 @@ void update(const Input& input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
-		//once = false;
-		return;
+		once = false;
 	}
 
 
 	//Rasterize
 	if (!rendMode) {
 		clearScreen(0x646464);
+		triSeenCount = 0;
 		//Normal Rasterization(No multithreading)
 		for (Instance& ins : scene.instances) {
 			renderObject(ins, bfc);
@@ -190,6 +194,7 @@ void update(const Input& input) {
 	fdt = deltaTime.count();
 
 	//Display fps on console
-	std::cout << std::fixed << "\r" << (double)1 / fdt << " FPS" << std::flush;
+	std::cout << std::fixed << "\r" << (double)1/fdt << " FPS ";
+	std::cout << std::fixed << "Tri Rendering: " << triSeenCount << std::flush;
 }
 #endif
