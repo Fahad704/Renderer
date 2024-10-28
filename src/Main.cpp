@@ -105,7 +105,7 @@ void handleInput(const Input& input) {
 	}
 	//Slow down time
 	if (isDown(MOUSE_BUTTON_LEFT)) {
-		fdt = 0.0001;
+		fdt = 0.001;
 	}
 	if (isDown(MOUSE_BUTTON_RIGHT)) {
 		Transform tf = { {0,0,0},1,{0,100 * fdt,0} };
@@ -133,19 +133,19 @@ void init() {
 		//--Type----------Pos----Dir--intensity//
 		{LT_AMBIENT    ,{0,0,0},{0,0,0},0.2f},
 		{LT_POINT      ,{2,1,0},{0,0,0},0.6f},
-		{LT_DIRECTIONAL,{0,0,0},{1,4,4},0.2f},
+		{LT_DIRECTIONAL,{0,0,0},{1,-4,4},0.2f},
 		{LT_DIRECTIONAL,{0,0,0},{-1,-1,4},0.2f},
 	};
 
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f,1000);
+	static Mesh model = loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,1000);
 	Instance ins[] = { 
-		{model, {0,-0.8f,3},0.5f,{0,0,0}},
-		//{model, {-2,1,7},1,{3,0,0}},
-		//{model, {1,-2,8},1,{0,8,0}},
-		//{model, {3,0,9},1,{0,0,0}}
+		{model, {0,-0.8f,3},1,{0,0,0}},
+		{model, {-2,1,7},1,{3,0,0}},
+		{model, {1,-2,8},1,{0,8,0}},
+		{model, {3,0,9},1,{0,0,0}}
 	};
 	int insSize = sizeof(ins) / sizeof(Instance);
 	for(int i = 0;i<insSize;i++)
@@ -160,7 +160,7 @@ void update(const Input& input) {
 	//Ray trace
 	if (rendMode && once) {
 		clearScreen(0x000000);
-		//Ray tracing with 4 threads
+		//Ray tracing with 12 threads
 		size_t threadCount = 12;
 		std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
@@ -188,13 +188,13 @@ void update(const Input& input) {
 
 	//Limit frame rate to reduce power consumption
 	if (fdt < frameLimit) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(int(frameLimit - fdt)));
+		std::this_thread::sleep_for(std::chrono::milliseconds(int((frameLimit) - fdt)));
 	}
 	std::chrono::duration<double> deltaTime = timerEnd(tstart);
 	fdt = deltaTime.count();
 
 	//Display fps on console
-	std::cout << std::fixed << "\r" << (double)1/fdt << " FPS ";
-	std::cout << std::fixed << "Tri Rendering: " << triSeenCount << std::flush;
+	std::cout << std::fixed << (double)1/fdt << " FPS - ";
+	std::cout << "Tri Rendering: " << triSeenCount << "\n";
 }
 #endif

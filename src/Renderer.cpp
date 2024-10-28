@@ -11,7 +11,7 @@ internal void clearScreen(u32 color) {
 	for (int y = 0; y < renderState.height; y++) {
 		for (int x = 0; x < renderState.width; x++) {
  			*pixel++ = color;
-			*dep++ = INT_MAX;
+			*dep++ = 0;
 		}
 	}
 }
@@ -335,7 +335,7 @@ internal void drawTriangle(Triangle& t, bool wireframe = false) {
 				int ny = ((renderState.height / (double)2.f) - y);
 				//Pointer to depth buffer
 				double* dep = ((double*)(depth)) + (ny * renderState.width) + nx;
-				if (z < (*dep)) {
+				if (1/z > (*dep)) {
 					//Point in camera space
 					Vector P = T;
 					//Camera space to world space
@@ -350,7 +350,7 @@ internal void drawTriangle(Triangle& t, bool wireframe = false) {
 					R = R / length(R);
 					double light = computeLight(P, N, R, t.specular,false);
 					putPixel(x, y, (color * light));
-					*dep = z;
+					*dep = 1/z;
 				}
 			}
 		}
@@ -582,7 +582,7 @@ internal double computeLight(Vector& P,Vector& N,const Vector V,double s,bool rt
 		}
 		else {
 			if (light.type == LT_DIRECTIONAL) {
-				L = light.direction;
+				L = { -light.direction.x,-light.direction.y,-light.direction.z };
 				tMax = infinity;
 			}
 			else if (light.type == LT_POINT) {
@@ -650,13 +650,16 @@ std::vector<Triangle> clipTriangle(Triangle& t) {
 	//Near Plane
 	if ((t.p[0].z < d) || (t.p[1].z < d) || (t.p[2].z < d))return {};
 	//left plane
-	double theta = 90 - (FOV / 2.f);
-	Vector rightN = rotate({-1,0,0},{0,(-theta - 90),0});
-	Vector leftN =  rotate({ 1,0,0},{0,( theta + 90),0});
+	//double theta = 90 - (FOV / 2.f);
+
+	Vector nearN = {0,0,1};
+	Vector rightN = {-1/sqrt(2),0,-1/sqrt(2)};
+	Vector leftN = { 1 / sqrt(2),0,1 / sqrt(2) };;
 	Vector upN = {0,-(1 / sqrt(2)),(1 / sqrt(2)) };
 	Vector downN = {0,(1 / sqrt(2)),(1 / sqrt(2)) };
-	if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
-	if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f))return {};
+	//if ((dot(t.p[0], nearN) < 0.f) && (dot(t.p[1], nearN) < 0.f) && (dot(t.p[2], nearN) < 0.f))return {};
+	//if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
+	//if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f))return {};
 	if ((dot(t.p[0], upN) < 0.f) && (dot(t.p[1], upN) < 0.f) && (dot(t.p[2], upN) < 0.f))return {};
 	if ((dot(t.p[0], downN) < 0.f) && (dot(t.p[1], downN) < 0.f) && (dot(t.p[2], downN) < 0.f))return {};
 	return {t};
@@ -664,6 +667,7 @@ std::vector<Triangle> clipTriangle(Triangle& t) {
 void renderObject(Instance& instance,bool bfc = true) {
 	const std::vector<Triangle> &triangles = instance.mesh->triangles;
 	std::vector<Triangle> tris = {};
+	
 	for (const Triangle& triangle : triangles) {
 		Vector transformed[3];
 		Vector moved[3];
@@ -710,9 +714,8 @@ void renderObject(Instance& instance,bool bfc = true) {
 		for (const Triangle& ct : clippedTris) {
 			tris.push_back(ct);
 		}
-		
 	}
-	triSeenCount = tris.size();
+	triSeenCount += tris.size();
 	bool drawWireframe = false;
 	if (debugState == DebugState::DS_TRIANGLE)drawWireframe = true;
 	for (Triangle& tri : tris) {
