@@ -76,9 +76,23 @@ void clamp(u32& num, u32 min_limit, u32 max_limit) {
 	}
 	return;
 }
+void clamp(int& num, int min_limit, int max_limit) {
+	if (num < min_limit) {
+		num = min_limit;
+		return;
+	}
+	else if (num > max_limit) {
+		num = max_limit;
+		return;
+	}
+	return;
+}
 void turnConsoleOff() {
 	FreeConsole();
 	std::fclose(stdout);
+}
+double getMax(const double& n1,const double& n2) {
+	return ((n1 > n2) ? n1 : n2);
 }
 struct Colour {
 	u8 R;
@@ -124,6 +138,9 @@ public:
 			newcol.z = 255;
 		}
 		return { u8(newcol.x),u8(newcol.y),u8(newcol.z) };
+	}
+	double luminance() {
+		return ((0.2126f * double(R)) + (0.7152f * double(G)) + (0.0722f * double(B)));
 	}
 };
 internal Colour hexToRGB(u32 hex) {

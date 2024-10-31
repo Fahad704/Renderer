@@ -23,6 +23,12 @@ internal void putPixel(int x, int y,Colour color) {
 	u32* pixel = (u32*)renderState.memory + x + (y*renderState.width);
 	*pixel = hexColor;
 }
+//put pixel Direct (x and y specify buffer value)
+internal void putPixelD(int x,int y,Colour color) {
+	u32 hexColor = rgbtoHex(color);
+	u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
+	*pixel = hexColor;
+}
 internal Colour getPixel(int x, int y){
 	u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
 	Colour result = hexToRGB(*pixel);
@@ -657,7 +663,7 @@ std::vector<Triangle> clipTriangle(Triangle& t) {
 	Vector leftN = { 1 / sqrt(2),0,1 / sqrt(2) };;
 	Vector upN = {0,-(1 / sqrt(2)),(1 / sqrt(2)) };
 	Vector downN = {0,(1 / sqrt(2)),(1 / sqrt(2)) };
-	//if ((dot(t.p[0], nearN) < 0.f) && (dot(t.p[1], nearN) < 0.f) && (dot(t.p[2], nearN) < 0.f))return {};
+	//if ((dot(t.p[0], nearN) < d) && (dot(t.p[1], nearN) < d) && (dot(t.p[2], nearN) < d))return {};
 	//if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
 	//if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f))return {};
 	if ((dot(t.p[0], upN) < 0.f) && (dot(t.p[1], upN) < 0.f) && (dot(t.p[2], upN) < 0.f))return {};
@@ -785,7 +791,7 @@ void rayTraceThr(int threadNum,int threadCount)
 void rayTrace() {
 	clearScreen(0x000000);
 	for (float y = (canvas.y / 2); y > -(canvas.y / 2); y--) {
-		int scanlineDone = ( canvas.y - (y + ((canvas.y) / 2.0f)));
+		int scanlineDone = (canvas.y - (y + ((canvas.y) / 2.0f)));
 		std::cout << "\rScanlines Done:" << scanlineDone << '/' << (canvas.y - 1) << ':' << int((scanlineDone / (canvas.y - 1)) * 100) << "%" << std::flush;
 		for (float x = (-canvas.x / 2); x < (canvas.x / 2); x++) {
 			D = canvasToViewport(x, y);
@@ -793,6 +799,51 @@ void rayTrace() {
 			D = rotate(D, camera.rotation);
 			Colour result = traceRay(camera.position, D, 1, infinity, 3);
 			putPixel(x, y, result);
+		}
+	}
+}
+void postProcessing() {
+	//FXAA
+	float edgeThreshold = 0.f;
+	for (int y = 1; y < (renderState.height - 1); y++) {
+		for (int x = 1; x < (renderState.width - 1); x++) {
+			Colour colorCenter = getPixel(x, y);
+			Colour colorTop = getPixel(x, y - 1);
+			Colour colorBottom = getPixel(x, y + 1);
+			Colour colorLeft = getPixel(x - 1, y);
+			Colour colorRight = getPixel(x + 1, y);
+
+			double centerLuma = colorCenter.luminance();
+			double topLuma = colorTop.luminance();
+			double bottomLuma = colorBottom.luminance();
+			double leftLuma = colorLeft.luminance();
+			double rightLuma = colorRight.luminance();
+
+			double edgeHorizontal = std::abs(leftLuma - rightLuma);
+			double edgeVertical = std::abs(topLuma - bottomLuma);
+
+			bool isHorizontal = (edgeHorizontal >= edgeVertical);
+
+			Colour blendColour;
+			if (isHorizontal) {
+				blendColour.R = ((colorTop.R + colorBottom.R) * 0.5f);
+				blendColour.G = ((colorTop.G + colorBottom.G) * 0.5f);
+				blendColour.B = ((colorTop.B + colorBottom.B) * 0.5f);
+			}
+			else {
+				blendColour.R = ((colorLeft.R + colorRight.R) * 0.5f);
+				blendColour.G = ((colorLeft.G + colorRight.G) * 0.5f);
+				blendColour.B = ((colorLeft.B + colorRight.B) * 0.5f);
+			}
+
+			bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
+
+			if (isEdge) {
+				putPixelD(x, y, blendColour);
+			}
+			else {
+				putPixelD(x, y, colorCenter);
+			}
 		}
 	}
 }

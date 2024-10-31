@@ -6,20 +6,21 @@
 //TODO(Fahad):
 /*
 *	Optimizations:
-*		-Implement Frustum culling
+*		-Implement Frustum culling(Proper one)
 *		-Implement BVH ray tracing
 *		-Implement Occlusion culling
 *	Adding Features:
 *		-interpolated normals(Rasterizer)
 *		-read and display textures(Rasterizer)
 *		-render according to material(Rasterizer)
-*		-Make the structure API like for the renderer
 *		-Add some ui
+*	Code Refactoring:
+*		-Make the structure API like for the renderer
+* 
 */
 
-
-
-bool rendMode=false;
+bool rendMode = false;
+bool antiAliasing = true;
 //Back face culling
 bool bfc = true;
 //frame delta time
@@ -112,6 +113,16 @@ void handleInput(const Input& input) {
 		scene.instances[0].applyTransform(tf);
 		once = true;
 	}
+	if (pressed(BUTTON_A)) {
+		//Anti aliasing
+		antiAliasing = !antiAliasing;
+		if (antiAliasing) {
+			std::cout << "\nAnti aliasing turned on.\n";
+		}
+		else {
+			std::cout << "\nAnti aliasing turned off.\n";
+		}
+	}
 }
 void init() {
 	debugState = DebugState::DS_TRIANGLE;
@@ -140,12 +151,12 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,1000);
+	static Mesh model = loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f,1000);
 	Instance ins[] = { 
 		{model, {0,-0.8f,3},1,{0,0,0}},
-		{model, {-2,1,7},1,{3,0,0}},
-		{model, {1,-2,8},1,{0,8,0}},
-		{model, {3,0,9},1,{0,0,0}}
+		//{model, {-2,1,7},1,{3,0,0}},
+		//{model, {1,-2,8},1,{0,8,0}},
+		//{model, {3,0,9},1,{0,0,0}}
 	};
 	int insSize = sizeof(ins) / sizeof(Instance);
 	for(int i = 0;i<insSize;i++)
@@ -153,9 +164,8 @@ void init() {
 	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
-
+	//Start counting frame time
 	timerStart();
-
 	handleInput(input);
 	//Ray trace
 	if (rendMode && once) {
@@ -173,7 +183,6 @@ void update(const Input& input) {
 		once = false;
 	}
 
-
 	//Rasterize
 	if (!rendMode) {
 		clearScreen(0x646464);
@@ -184,8 +193,9 @@ void update(const Input& input) {
 		}
 		once = true;
 	}
-
-
+	if (antiAliasing && (debugState == DebugState::DS_OFF)) {
+		postProcessing();
+	}
 	//Limit frame rate to reduce power consumption
 	if (fdt < frameLimit) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(int((frameLimit) - fdt)));
@@ -194,7 +204,6 @@ void update(const Input& input) {
 	fdt = deltaTime.count();
 
 	//Display fps on console
-	std::cout << std::fixed << (double)1/fdt << " FPS - ";
-	std::cout << "Tri Rendering: " << triSeenCount << "\n";
+	std::cout << std::fixed<<"\r" << (double)1 / fdt << " FPS - " << "Tri Rendering: " << triSeenCount;
 }
 #endif
