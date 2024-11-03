@@ -139,6 +139,8 @@ input.buttons[b].isDown = isDown;\
 					process_messages(BUTTON_Z, 'Z');
 					process_messages(BUTTON_Q, 'Q');
 					process_messages(BUTTON_X, 'X');
+					process_messages(BUTTON_M, 'M');
+					process_messages(BUTTON_N, 'N');
 				}
 			}break;
 			case WM_LBUTTONDOWN: {

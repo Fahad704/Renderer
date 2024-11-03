@@ -654,18 +654,22 @@ Vector transformVertex(Vector vec,const Transform& tf) {
 std::vector<Triangle> clipTriangle(Triangle& t) {
 	//TODO(Fahad):Add clipping
 	//Near Plane
-	if ((t.p[0].z < d) || (t.p[1].z < d) || (t.p[2].z < d))return {};
+	//if ((t.p[0].z < d) || (t.p[1].z < d) || (t.p[2].z < d))return {};
 	//left plane
 	//double theta = 90 - (FOV / 2.f);
 
 	Vector nearN = {0,0,1};
-	Vector rightN = {-1/sqrt(2),0,-1/sqrt(2)};
+	Vector rightN = { (-1 / sqrt(2)),0,(1 / sqrt(2)) };
 	Vector leftN = { 1 / sqrt(2),0,1 / sqrt(2) };;
 	Vector upN = {0,-(1 / sqrt(2)),(1 / sqrt(2)) };
 	Vector downN = {0,(1 / sqrt(2)),(1 / sqrt(2)) };
-	//if ((dot(t.p[0], nearN) < d) && (dot(t.p[1], nearN) < d) && (dot(t.p[2], nearN) < d))return {};
-	//if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
-	//if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f))return {};
+	if (((dot(t.p[0], nearN) - d) < 0.f) && ((dot(t.p[1], nearN) - d) < 0.f) && ((dot(t.p[2], nearN) - d) < 0.f))return {};
+	if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
+	if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f)) {
+		Triangle newtri = t;
+		newtri.color = { 255,0,0 };
+		return {newtri};
+	}
 	if ((dot(t.p[0], upN) < 0.f) && (dot(t.p[1], upN) < 0.f) && (dot(t.p[2], upN) < 0.f))return {};
 	if ((dot(t.p[0], downN) < 0.f) && (dot(t.p[1], downN) < 0.f) && (dot(t.p[2], downN) < 0.f))return {};
 	return {t};
@@ -802,8 +806,7 @@ void rayTrace() {
 		}
 	}
 }
-void postProcessing() {
-	//FXAA
+void FXAA() {
 	float edgeThreshold = 0.f;
 	for (int y = 1; y < (renderState.height - 1); y++) {
 		for (int x = 1; x < (renderState.width - 1); x++) {

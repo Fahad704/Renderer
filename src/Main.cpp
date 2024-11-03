@@ -72,23 +72,40 @@ void handleInput(const Input& input) {
 		camera.position = camera.position + (move * fdt);
 	}
 	//Show triangles of the mesh
-	if (isDown(BUTTON_T))
+	if (pressed(BUTTON_T)) {
+		if (debugState != DebugState::DS_TRIANGLE)std::cout << "\nDebug state set to wireframe triangle\n";
 		debugState = DebugState::DS_TRIANGLE;
+	}
 	//Show bounding box of the mesh
-	if (isDown(BUTTON_B))
+	if (pressed(BUTTON_B)) {
+		if (debugState != DebugState::DS_BOUNDING_BOX)std::cout << "\nDebug state set to bounding box\n";
 		debugState = DebugState::DS_BOUNDING_BOX;
+	}
 	//Turn off Debug view
-	if (isDown(BUTTON_V))
+	if (pressed(BUTTON_V)) {
+		if(debugState != DebugState::DS_OFF)std::cout << "\nVisual debugging off\n";
 		debugState = DebugState::DS_OFF;
+	}
 	//Change ray tracing to rasterization and vise versa
-	if (pressed(BUTTON_R))
+	if (pressed(BUTTON_R)) {
 		rendMode = !rendMode;
+		if (rendMode) {
+			std::cout << "\nRay tracing turned on\n";
+		}else{
+			std::cout << "\nRay tracing turned off\n";
+		}
+	}
 	//Exporting an image
 	if (pressed(BUTTON_P))
 		exportToPPM("Image.ppm");
 	//Backface culling toggle
-	if (pressed(BUTTON_C))
+	if (pressed(BUTTON_C)) {
 		bfc = !bfc;
+		if (bfc)
+			std::cout << "\nBackface culling turned on\n";
+		else
+			std::cout << "\nBackface culling turned off\n";
+	}
 	//Rotate Camera Left
 	if (isDown(BUTTON_Z)) {
 		camera.rotation.y += 60.0 * fdt;
@@ -102,6 +119,7 @@ void handleInput(const Input& input) {
 	//Reset camera Position and rotation
 	if (pressed(BUTTON_Q)) {
 		camera.rotation.y = 0;
+		camera.rotation.x = 0;
 		camera.position = { 0,0,0 };
 	}
 	//Slow down time
@@ -122,6 +140,14 @@ void handleInput(const Input& input) {
 		else {
 			std::cout << "\nAnti aliasing turned off.\n";
 		}
+	}
+	if (isDown(BUTTON_N)) {
+		camera.rotation.x += 60.0 * fdt;
+		once = true;
+	}
+	if (isDown(BUTTON_M)) {
+		camera.rotation.x -= 60.0 * fdt;
+		once = true;
 	}
 }
 void init() {
@@ -152,7 +178,7 @@ void init() {
 	std::vector<Instance> instances = {};
 
 	static Mesh model = loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f,1000);
-	Instance ins[] = { 
+	Instance ins[] = {
 		{model, {0,-0.8f,3},1,{0,0,0}},
 		//{model, {-2,1,7},1,{3,0,0}},
 		//{model, {1,-2,8},1,{0,8,0}},
@@ -180,6 +206,9 @@ void update(const Input& input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
+		if (antiAliasing && (debugState == DebugState::DS_OFF)) {
+			FXAA();
+		}
 		once = false;
 	}
 
@@ -191,11 +220,12 @@ void update(const Input& input) {
 		for (Instance& ins : scene.instances) {
 			renderObject(ins, bfc);
 		}
+		if (antiAliasing && (debugState == DebugState::DS_OFF)) {
+			FXAA();
+		}
 		once = true;
 	}
-	if (antiAliasing && (debugState == DebugState::DS_OFF)) {
-		postProcessing();
-	}
+	
 	//Limit frame rate to reduce power consumption
 	if (fdt < frameLimit) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(int((frameLimit) - fdt)));
