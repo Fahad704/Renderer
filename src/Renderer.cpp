@@ -694,24 +694,23 @@ void renderObject(Instance& instance,bool bfc = true) {
 		moved[2] = rotate(moved[2], -camera.rotation);
 
 		const bool backFaceCulling = bfc;
-		Triangle transformedTri;
+		Triangle newTri;
 		Vector PO = -moved[0];
-		transformedTri.p[0] = transformed[0];
-		transformedTri.p[1] = transformed[1];
-		transformedTri.p[2] = transformed[2];
-		Vector normal = transformedTri.getNormal();
+		newTri.p[0] = moved[0];
+		newTri.p[1] = moved[1];
+		newTri.p[2] = moved[2];
+		Vector normal = newTri.getNormal();
 		normal = normal / length(normal);
-		PO = rotate(PO, camera.rotation);
 
 		//Backface culling
 		if (!(dot(normal, PO) > 0.f) && backFaceCulling) {
 			continue;
 		}
 		
-		Triangle newTri;
+		/*Triangle newTri;
 		newTri.p[0] = moved[0];
 		newTri.p[1] = moved[1];
-		newTri.p[2] = moved[2];
+		newTri.p[2] = moved[2];*/
 
 		//Normal Colouring
 		//Colour normalCol = { u8(abs(normal.x * 255.f)), u8(abs(normal.y * 255.f)), u8(abs(normal.z * 255.f)) };

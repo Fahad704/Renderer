@@ -126,21 +126,22 @@ input.buttons[b].isDown = isDown;\
 					process_messages(BUTTON_LEFT, VK_LEFT);
 					process_messages(BUTTON_RIGHT, VK_RIGHT);
 					process_messages(BUTTON_SPACE, VK_SPACE);
-					process_messages(BUTTON_R, 'R');
-					process_messages(BUTTON_W, 'W');
+					process_messages(BUTTON_ESC, VK_ESCAPE);
 					process_messages(BUTTON_A, 'A');
-					process_messages(BUTTON_V, 'V');
-					process_messages(BUTTON_T, 'T');
 					process_messages(BUTTON_B, 'B');
-					process_messages(BUTTON_S, 'S');
-					process_messages(BUTTON_P, 'P');
-					process_messages(BUTTON_D, 'D');
 					process_messages(BUTTON_C, 'C');
-					process_messages(BUTTON_Z, 'Z');
-					process_messages(BUTTON_Q, 'Q');
-					process_messages(BUTTON_X, 'X');
+					process_messages(BUTTON_D, 'D');
 					process_messages(BUTTON_M, 'M');
 					process_messages(BUTTON_N, 'N');
+					process_messages(BUTTON_P, 'P');
+					process_messages(BUTTON_Q, 'Q');
+					process_messages(BUTTON_R, 'R');
+					process_messages(BUTTON_S, 'S');
+					process_messages(BUTTON_T, 'T');
+					process_messages(BUTTON_V, 'V');
+					process_messages(BUTTON_W, 'W');
+					process_messages(BUTTON_X, 'X');
+					process_messages(BUTTON_Z, 'Z');
 				}
 			}break;
 			case WM_LBUTTONDOWN: {

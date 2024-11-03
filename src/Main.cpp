@@ -29,6 +29,9 @@ void handleInput(const Input& input) {
 	double speed = 5.f;
 	Vector move = { 0,0,0 };
 	//Movement events
+	if (isDown(BUTTON_ESC)) {
+		running = false;
+	}
 	if (isDown(BUTTON_RIGHT))
 		move = Vector{ 10.f, 0, 0 };
 
@@ -75,16 +78,19 @@ void handleInput(const Input& input) {
 	if (pressed(BUTTON_T)) {
 		if (debugState != DebugState::DS_TRIANGLE)std::cout << "\nDebug state set to wireframe triangle\n";
 		debugState = DebugState::DS_TRIANGLE;
+		once = true;
 	}
 	//Show bounding box of the mesh
 	if (pressed(BUTTON_B)) {
 		if (debugState != DebugState::DS_BOUNDING_BOX)std::cout << "\nDebug state set to bounding box\n";
 		debugState = DebugState::DS_BOUNDING_BOX;
+		once = true;
 	}
 	//Turn off Debug view
 	if (pressed(BUTTON_V)) {
 		if(debugState != DebugState::DS_OFF)std::cout << "\nVisual debugging off\n";
 		debugState = DebugState::DS_OFF;
+		once = true;
 	}
 	//Change ray tracing to rasterization and vise versa
 	if (pressed(BUTTON_R)) {
@@ -94,6 +100,7 @@ void handleInput(const Input& input) {
 		}else{
 			std::cout << "\nRay tracing turned off\n";
 		}
+		once = true;
 	}
 	//Exporting an image
 	if (pressed(BUTTON_P))
@@ -121,6 +128,7 @@ void handleInput(const Input& input) {
 		camera.rotation.y = 0;
 		camera.rotation.x = 0;
 		camera.position = { 0,0,0 };
+		once = true;
 	}
 	//Slow down time
 	if (isDown(MOUSE_BUTTON_LEFT)) {
@@ -206,24 +214,24 @@ void update(const Input& input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
-		if (antiAliasing && (debugState == DebugState::DS_OFF)) {
+		if (antiAliasing && (debugState != DebugState::DS_TRIANGLE)) {
 			FXAA();
 		}
 		once = false;
 	}
 
 	//Rasterize
-	if (!rendMode) {
+	if (!rendMode && once) {
 		clearScreen(0x646464);
 		triSeenCount = 0;
 		//Normal Rasterization(No multithreading)
 		for (Instance& ins : scene.instances) {
 			renderObject(ins, bfc);
 		}
-		if (antiAliasing && (debugState == DebugState::DS_OFF)) {
+		if (antiAliasing && (debugState != DebugState::DS_TRIANGLE)) {
 			FXAA();
 		}
-		once = true;
+		once = false;
 	}
 	
 	//Limit frame rate to reduce power consumption
