@@ -1,12 +1,13 @@
 #ifndef WINDOW_CPP
 #define WINDOW_CPP
+#define _CRT_SECURE_NO_WARNINGS
 /*
 * ------------------------------------------------------------------
 * This file handles all the windowing and windows api specific tasks
 * ------------------------------------------------------------------
 */
-#include "Utility.cpp"
 #include <Windows.h>
+#include "Utility.cpp"
 global_variable bool running = true;
 struct RenderState {
 	int height;
@@ -77,7 +78,7 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 
 	//Random seed
-	srand(time(NULL));
+	srand(u32(time(NULL)));
 	//Create Window Class
 	WNDCLASS window_class = {};
 	window_class.lpfnWndProc = window_callback;

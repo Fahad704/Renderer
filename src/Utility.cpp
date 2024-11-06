@@ -1,6 +1,5 @@
 #ifndef UTILITY_CPP
 #define UTILITY_CPP
-#define _CRT_SECURE_NO_WARNINGS
 #include <fstream>
 #include <vector>
 #include <Windows.h>
@@ -18,6 +17,7 @@
 #include "Window.cpp"
 #include "Vector.h"
 #include "Vector.cpp"
+#include "Matrix4.cpp"
 #define infinity 2000000000
 
 typedef unsigned int u32;
@@ -37,16 +37,23 @@ std::chrono::duration<double> timerEnd(timer::Timer start) {
 	tend = std::chrono::system_clock::now();
 	return (tend - start);
 }
-enum LightType {
-	LT_POINT,
-	LT_DIRECTIONAL,
-	LT_AMBIENT
-};
 enum class DebugState {
 	DS_OFF,
 	DS_BOUNDING_BOX,
 	DS_TRIANGLE
 };
+struct SceneSettings {
+	bool bfc;
+	bool antiAliasing;
+	int triSeenCount;
+	DebugState debugState;
+};
+enum LightType {
+	LT_POINT,
+	LT_DIRECTIONAL,
+	LT_AMBIENT
+};
+
 template<typename T>
 void swap(T& a, T& b) {
 	T c;
@@ -330,8 +337,41 @@ struct Transform {
 		this->rotation = rotation;
 	}
 };
-Vector transformVertex(Vector vec, const Transform& tf);
-Vector rotate(const Vector& vec, const Vector& rotation);
+internal Vector rotate(const Vector& vec, const Vector& rotationP) {
+	if (rotationP == Vector{ 0,0,0 }) {
+		return vec;
+	}
+	Vector rotation = { (rotationP.x * (PI * 2)) / 360,(rotationP.y * (PI * 2)) / 360,(rotationP.z * (PI * 2)) / 360 };
+
+	//rotation aruond x axis
+	Vector xrotated;
+
+	xrotated.x = vec.x;
+	xrotated.y = (vec.y * cos(rotation.x)) + (vec.z * -sin(rotation.x));
+	xrotated.z = (vec.y * (sin(rotation.x))) + (vec.z * cos(rotation.x));
+
+	//rotation aruond y axis
+	Vector yrotated;
+
+	yrotated.y = xrotated.y;
+
+	yrotated.x = xrotated.x * cos(rotation.y) + xrotated.z * (-sin(rotation.y));
+	yrotated.z = xrotated.x * sin(rotation.y) + xrotated.z * cos(rotation.y);
+
+	//rotation aruond z axis
+	Vector zrotated;
+	zrotated.z = yrotated.z;
+
+	zrotated.x = yrotated.x * cos(rotation.z) + yrotated.y * (-sin(rotation.z));
+	zrotated.y = yrotated.x * sin(rotation.z) + yrotated.y * cos(rotation.z);
+
+	return zrotated;
+}
+internal Vector transformVertex(Vector vec, const Transform& tf) {
+	Vector rotated = rotate(vec, tf.rotation);
+	Vector translated = (rotated * tf.scale) + tf.position;
+	return translated;
+}
 struct Instance {
 	Mesh* mesh;
 	Transform transform;

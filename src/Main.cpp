@@ -76,20 +76,20 @@ void handleInput(const Input& input) {
 	}
 	//Show triangles of the mesh
 	if (pressed(BUTTON_T)) {
-		if (debugState != DebugState::DS_TRIANGLE)std::cout << "\nDebug state set to wireframe triangle\n";
-		debugState = DebugState::DS_TRIANGLE;
+		if (sceneSettings.debugState != DebugState::DS_TRIANGLE)std::cout << "\nDebug state set to wireframe triangle\n";
+		sceneSettings.debugState = DebugState::DS_TRIANGLE;
 		once = true;
 	}
 	//Show bounding box of the mesh
 	if (pressed(BUTTON_B)) {
-		if (debugState != DebugState::DS_BOUNDING_BOX)std::cout << "\nDebug state set to bounding box\n";
-		debugState = DebugState::DS_BOUNDING_BOX;
+		if (sceneSettings.debugState != DebugState::DS_BOUNDING_BOX)std::cout << "\nDebug state set to bounding box\n";
+		sceneSettings.debugState = DebugState::DS_BOUNDING_BOX;
 		once = true;
 	}
 	//Turn off Debug view
 	if (pressed(BUTTON_V)) {
-		if(debugState != DebugState::DS_OFF)std::cout << "\nVisual debugging off\n";
-		debugState = DebugState::DS_OFF;
+		if(sceneSettings.debugState != DebugState::DS_OFF)std::cout << "\nVisual debugging off\n";
+		sceneSettings.debugState = DebugState::DS_OFF;
 		once = true;
 	}
 	//Change ray tracing to rasterization and vise versa
@@ -104,7 +104,7 @@ void handleInput(const Input& input) {
 	}
 	//Exporting an image
 	if (pressed(BUTTON_P))
-		exportToPPM("Image.ppm");
+		Renderer::exportToPPM("Image.ppm");
 	//Backface culling toggle
 	if (pressed(BUTTON_C)) {
 		bfc = !bfc;
@@ -159,7 +159,6 @@ void handleInput(const Input& input) {
 	}
 }
 void init() {
-	debugState = DebugState::DS_TRIANGLE;
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {};
 	//Sphere spherestem[] = {
@@ -185,7 +184,7 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f,1000);
+	static Mesh model = Renderer::loadOBJ("../Models/sponza.obj", { 255,255,255 }, 0.f,1000);
 	Instance ins[] = {
 		{model, {0,-0.8f,3},1,{0,0,0}},
 		//{model, {-2,1,7},1,{3,0,0}},
@@ -203,34 +202,26 @@ void update(const Input& input) {
 	handleInput(input);
 	//Ray trace
 	if (rendMode && once) {
-		clearScreen(0x000000);
+		Renderer::clearScreen(0x000000);
 		//Ray tracing with 12 threads
 		size_t threadCount = 12;
 		std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
 		{
-			tObjs[i] = std::thread(rayTraceThr, i, threadCount);
+			tObjs[i] = std::thread(Renderer::rayTraceThr, i, threadCount);
 		}
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
-		if (antiAliasing && (debugState != DebugState::DS_TRIANGLE)) {
-			FXAA();
+		if (antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
+			Renderer::FXAA();
 		}
 		once = false;
 	}
 
 	//Rasterize
 	if (!rendMode && once) {
-		clearScreen(0x646464);
-		triSeenCount = 0;
-		//Normal Rasterization(No multithreading)
-		for (Instance& ins : scene.instances) {
-			renderObject(ins, bfc);
-		}
-		if (antiAliasing && (debugState != DebugState::DS_TRIANGLE)) {
-			FXAA();
-		}
+		Renderer::renderScene();
 		once = false;
 	}
 	
@@ -242,6 +233,6 @@ void update(const Input& input) {
 	fdt = deltaTime.count();
 
 	//Display fps on console
-	std::cout << std::fixed<<"\r" << (double)1 / fdt << " FPS - " << "Tri Rendering: " << triSeenCount;
+	std::cout << std::fixed<<"\r" << (double)1 / fdt << " FPS - " << "Tri Rendering: " << sceneSettings.triSeenCount;
 }
 #endif
