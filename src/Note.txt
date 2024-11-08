@@ -1,2 +1,0 @@
-You need to have g++ 14 or above
-if still the Build.bat fails try build-no-icon.bat

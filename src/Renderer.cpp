@@ -16,7 +16,8 @@ namespace Renderer {
 			}
 		}
 	}
-
+	//Put pixel (x and y specify viewport coordinates)
+	//this means x=0,y=0 will be on center
 	internal void putPixel(int x, int y, Colour color) {
 		u32 hexColor = rgbtoHex(color);
 		x += renderState.width / 2;
@@ -25,6 +26,7 @@ namespace Renderer {
 		*pixel = hexColor;
 	}
 	//put pixel Direct (x and y specify buffer value)
+	//x=0,y=0 will be on top left
 	internal void putPixelD(int x, int y, Colour color) {
 		u32 hexColor = rgbtoHex(color);
 		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);

@@ -18,11 +18,6 @@
 *		-Make the structure API like for the renderer
 * 
 */
-
-bool rendMode = false;
-bool antiAliasing = true;
-//Back face culling
-bool bfc = true;
 //frame delta time
 double fdt=0.06;
 void handleInput(const Input& input) {
@@ -68,7 +63,7 @@ void handleInput(const Input& input) {
 	}
 	//Normalize move vector and move the Camera
 	if (!(move == Vector{ 0,0,0 })) {
-		once = true;
+		change = true;
 		move = move / length(move);
 		move = move * speed;
 		move = rotate(move, camera.rotation);
@@ -78,19 +73,19 @@ void handleInput(const Input& input) {
 	if (pressed(BUTTON_T)) {
 		if (sceneSettings.debugState != DebugState::DS_TRIANGLE)std::cout << "\nDebug state set to wireframe triangle\n";
 		sceneSettings.debugState = DebugState::DS_TRIANGLE;
-		once = true;
+		change = true;
 	}
 	//Show bounding box of the mesh
 	if (pressed(BUTTON_B)) {
 		if (sceneSettings.debugState != DebugState::DS_BOUNDING_BOX)std::cout << "\nDebug state set to bounding box\n";
 		sceneSettings.debugState = DebugState::DS_BOUNDING_BOX;
-		once = true;
+		change = true;
 	}
 	//Turn off Debug view
 	if (pressed(BUTTON_V)) {
 		if(sceneSettings.debugState != DebugState::DS_OFF)std::cout << "\nVisual debugging off\n";
 		sceneSettings.debugState = DebugState::DS_OFF;
-		once = true;
+		change = true;
 	}
 	//Change ray tracing to rasterization and vise versa
 	if (pressed(BUTTON_R)) {
@@ -100,35 +95,35 @@ void handleInput(const Input& input) {
 		}else{
 			std::cout << "\nRay tracing turned off\n";
 		}
-		once = true;
+		change = true;
 	}
 	//Exporting an image
 	if (pressed(BUTTON_P))
 		Renderer::exportToPPM("Image.ppm");
 	//Backface culling toggle
 	if (pressed(BUTTON_C)) {
-		bfc = !bfc;
-		if (bfc)
+		sceneSettings.bfc = !sceneSettings.bfc;
+		if (sceneSettings.bfc)
 			std::cout << "\nBackface culling turned on\n";
 		else
 			std::cout << "\nBackface culling turned off\n";
+		change = true;
 	}
 	//Rotate Camera Left
 	if (isDown(BUTTON_Z)) {
 		camera.rotation.y += 60.0 * fdt;
-		once = true;
+		change = true;
 	}
 	//Rotate Camera right
 	if (isDown(BUTTON_X)) {
 		camera.rotation.y -= 60.0 * fdt;
-		once = true;
+		change = true;
 	}
 	//Reset camera Position and rotation
 	if (pressed(BUTTON_Q)) {
-		camera.rotation.y = 0;
-		camera.rotation.x = 0;
+		camera.rotation = { 0,0,0 };
 		camera.position = { 0,0,0 };
-		once = true;
+		change = true;
 	}
 	//Slow down time
 	if (isDown(MOUSE_BUTTON_LEFT)) {
@@ -137,41 +132,31 @@ void handleInput(const Input& input) {
 	if (isDown(MOUSE_BUTTON_RIGHT)) {
 		Transform tf = { {0,0,0},1,{0,100 * fdt,0} };
 		scene.instances[0].applyTransform(tf);
-		once = true;
+		change = true;
 	}
 	if (pressed(BUTTON_A)) {
 		//Anti aliasing
-		antiAliasing = !antiAliasing;
-		if (antiAliasing) {
+		sceneSettings.antiAliasing = !sceneSettings.antiAliasing;
+		if (sceneSettings.antiAliasing) {
 			std::cout << "\nAnti aliasing turned on.\n";
 		}
 		else {
 			std::cout << "\nAnti aliasing turned off.\n";
 		}
+		change = true;
 	}
 	if (isDown(BUTTON_N)) {
 		camera.rotation.x += 60.0 * fdt;
-		once = true;
+		change = true;
 	}
 	if (isDown(BUTTON_M)) {
 		camera.rotation.x -= 60.0 * fdt;
-		once = true;
+		change = true;
 	}
 }
 void init() {
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {};
-	//Sphere spherestem[] = {
-	//		//Position-----Radius---Colour----specular-reflect//
-	//		{ { 0 , 0  , 3}, 1  ,{255,0 , 0}	,500,  0.2f},
-	//		{ { 2 ,  0  , 4}, 1  ,{0, 0, 255}	,1000,  0.4f },
-	//		{ { -2, 0   , 4}, 1  ,{0, 255, 0}	,10,   0.3f},
-	//		{ { 0 ,-5001, 0},5000,{255,125,0}	,1000, 0.5f}
-	//};
-	//int spherecount = sizeof(spherestem) / sizeof(Sphere);
-	//for (int i = 0; i < spherecount; i++) {
-	//	spheres.push_back(spherestem[i]);
-	//}
 
 	std::vector<Light> lights = {
 		//--Type----------Pos----Dir--intensity//
@@ -184,7 +169,7 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("../Models/sponza.obj", { 255,255,255 }, 0.f,1000);
+	static Mesh model = Renderer::loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f,1000);
 	Instance ins[] = {
 		{model, {0,-0.8f,3},1,{0,0,0}},
 		//{model, {-2,1,7},1,{3,0,0}},
@@ -201,7 +186,7 @@ void update(const Input& input) {
 	timerStart();
 	handleInput(input);
 	//Ray trace
-	if (rendMode && once) {
+	if (rendMode && change) {
 		Renderer::clearScreen(0x000000);
 		//Ray tracing with 12 threads
 		size_t threadCount = 12;
@@ -213,16 +198,16 @@ void update(const Input& input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
-		if (antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
+		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			Renderer::FXAA();
 		}
-		once = false;
+		change = false;
 	}
 
 	//Rasterize
-	if (!rendMode && once) {
+	if (!rendMode && change) {
 		Renderer::renderScene();
-		once = false;
+		change = false;
 	}
 	
 	//Limit frame rate to reduce power consumption

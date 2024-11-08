@@ -64,7 +64,7 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		renderState.bitmapinfo.bmiHeader.biCompression = BI_RGB;
 		canvas = { double(renderState.width), double(renderState.height)};
 		double aspectratio = double(renderState.width) / double(renderState.height);
-		once = true;
+		change = true;
 		vpWidth = aspectratio;
 		vpHeight = 1;
 	}break;

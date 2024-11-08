@@ -8,7 +8,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <typeinfo>
-#include <glad/glad.h>
+#include <glad/glad.h>// i included this because i plan on making it run on opengl later
 #include <gl/GL.h>
 #include <iomanip>
 #include <thread> 

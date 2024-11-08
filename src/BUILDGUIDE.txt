@@ -1,0 +1,6 @@
+things needed to build
+g++ 14 or above
+iconv
+windres
+if you only have g++ 14 or above run build-no-icon.bat
+if you have everything run build.bat
