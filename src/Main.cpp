@@ -6,10 +6,11 @@
 //TODO(Fahad):
 /*
 *	Optimizations:
-*		-Implement Frustum culling(Proper one)
+*		-Implement proper Frustum culling
 *		-Implement BVH ray tracing
-*		-Implement Occlusion culling
+*		-Implement proper Occlusion culling
 *	Adding Features:
+*		-Add matrix transformation for renderer)
 *		-interpolated normals(Rasterizer)
 *		-read and display textures(Rasterizer)
 *		-render according to material(Rasterizer)
@@ -185,10 +186,11 @@ void update(const Input& input) {
 	//Start counting frame time
 	timerStart();
 	handleInput(input);
-	//Ray trace
 	if (rendMode && change) {
+		//Ray trace
 		Renderer::clearScreen(0x000000);
 		//Ray tracing with 12 threads
+		//it is still slow
 		size_t threadCount = 12;
 		std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
@@ -203,9 +205,8 @@ void update(const Input& input) {
 		}
 		change = false;
 	}
-
-	//Rasterize
-	if (!rendMode && change) {
+	else if (change) {
+		//Rasterize
 		Renderer::renderScene();
 		change = false;
 	}

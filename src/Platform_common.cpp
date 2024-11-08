@@ -1,5 +1,6 @@
 #ifndef PLATFORM_COMMON_CPP
 #define PLATFORM_COMMON_CPP
+//this says platform common but there is only one platform lol
 enum Buttons {
 	BUTTON_UP,
 	BUTTON_DOWN,

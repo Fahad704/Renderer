@@ -634,11 +634,7 @@ namespace Renderer {
 		Vector downN = { 0,(1 / sqrt(2)),(1 / sqrt(2)) };
 		if (((dot(t.p[0], nearN) - d) < 0.f) && ((dot(t.p[1], nearN) - d) < 0.f) && ((dot(t.p[2], nearN) - d) < 0.f))return {};
 		if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
-		if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f)) {
-			Triangle newtri = t;
-			newtri.color = { 255,0,0 };
-			return {  };
-		}
+		if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f))return {};
 		if ((dot(t.p[0], upN) < 0.f) && (dot(t.p[1], upN) < 0.f) && (dot(t.p[2], upN) < 0.f))return {};
 		if ((dot(t.p[0], downN) < 0.f) && (dot(t.p[1], downN) < 0.f) && (dot(t.p[2], downN) < 0.f))return {};
 		return { t };
