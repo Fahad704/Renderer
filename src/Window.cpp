@@ -94,8 +94,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	//Create Window 
 	window = CreateWindow(window_class.lpszClassName, L"Renderer!", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, hInstance, 0);
 	HDC hdc = GetDC(window);
-	HGLRC hglrc = wglCreateContext(hdc);
-	wglMakeCurrent(hdc, hglrc);
 	AllocConsole();
 	std::freopen("CONOUT$", "w", stdout);
 	
