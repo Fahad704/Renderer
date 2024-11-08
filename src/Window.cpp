@@ -105,11 +105,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	init();
 	while (running) {
 
-		//Message loop
 		MSG message;
 		for (int i = 0; i < BUTTON_COUNT; i++) {
 			input.buttons[i].changed = false;
 		}
+		//Message loop
 		while (PeekMessage(&message, window, 0, 0, PM_REMOVE)) {
 			switch (message.message) {
 			case WM_KEYUP:
@@ -177,6 +177,7 @@ input.buttons[b].isDown = isDown;\
 			
 
 		//Draw buffer
+		//TODO(Fahad) find a better way to display buffer to the screen
 		StretchDIBits(hdc, 0, renderState.height-1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 	}
 }

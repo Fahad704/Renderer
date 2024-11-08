@@ -1,4 +1,39 @@
-# Renderer 
+# Renderer
+
+This is a C++ Application used for rendering images using Ray tracer or Rasterizer
+
+## Installation
+
+Currently there is no proper Build system but there is a batch file that has g++ flags and there is Visual studio project file in the repo
+
+and the project only works in windows 
+
+if you have iconv and windres
+```bash
+cd src
+Build.bat
+```
+if you only have g++ 
+```bash
+cd src
+build-no-icon.bat
+```
+## Usage
+"R" - To toggle ray tracing/Rasterization(Ray tracing not recommanded , only use ray tracing when the poly count is below 100)<br>
+"Arrow keys" - to move<br>
+"W and S" to move up and down<br>
+"Z and X" - to rotate camera left and right<br>
+"V" - turn off wireframe view<br>
+"B" - to see bounding boxes<br>
+"N and M" - to rotate camera up and down(does not work as intended)<br>
+"C" - to toggle backface culling<br>
+"P" - to export current frame to ppm file<br>
+"T" - to turn on wireframe mode<br>
+"Q" - to reset position and rotation of camera to 0,0,0<br>
+"Space bar" - to view model(s) details<br>
+"A" - to toggle anti aliasing (FXAA)<br>
+"ESC" - to close<br>
+# Renders
 ### Ray tracer <br>
 #### <span style="color;">Ray traced white king<br></span>
 ![WhiteKing](https://github.com/user-attachments/assets/d1ca4791-e568-4340-90c2-9f07e56d71ed)
@@ -10,4 +45,3 @@
 ![KingColorNorm](https://github.com/user-attachments/assets/39916a7d-256b-4a05-9f69-a9e6daded15a)<br>
 #### Same king rendered as triangle wireframe
 ![KingTrisNorm](https://github.com/user-attachments/assets/32c47d44-8504-477a-a5ba-feb240a973cd)<br>
-
