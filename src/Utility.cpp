@@ -23,18 +23,29 @@ typedef unsigned char u8;
 #define internal static
 #define global_variable static
 #define PI 3.14159265359
-namespace timer {
-	typedef std::chrono::duration<double> Duration;
-	typedef std::chrono::time_point<std::chrono::system_clock> Timer;
+class Timer {
+public:
+	Timer()
+	{
+		m_StartTimePoint = std::chrono::high_resolution_clock::now();
+	}
+	~Timer() {
+		Stop();
+	}
+	void Stop() {
+		auto endTimePoint = std::chrono::high_resolution_clock::now();
+
+		auto start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimePoint).time_since_epoch().count();
+		auto end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimePoint).time_since_epoch().count();
+
+		auto duration = end - start;
+		double ms = duration * 0.001;
+
+		std::cout << duration << " us (" << ms << "ms)\n";
+	}
+private:
+	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimePoint;
 };
-timer::Timer tstart, tend;
-void timerStart() {
-	tstart = std::chrono::system_clock::now();
-}
-std::chrono::duration<double> timerEnd(timer::Timer start) {
-	tend = std::chrono::system_clock::now();
-	return (tend - start);
-}
 enum class DebugState {
 	DS_OFF,
 	DS_BOUNDING_BOX,

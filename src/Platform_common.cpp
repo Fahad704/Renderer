@@ -2,6 +2,7 @@
 #define PLATFORM_COMMON_CPP
 //this says platform common but there is only one platform lol
 enum Buttons {
+	BUTTON_SHIFT,
 	BUTTON_UP,
 	BUTTON_DOWN,
 	BUTTON_RIGHT,
@@ -14,7 +15,9 @@ enum Buttons {
 	BUTTON_B,
 	BUTTON_C,
 	BUTTON_D,
+	BUTTON_F,
 	BUTTON_G,
+	BUTTON_L,
 	BUTTON_M,
 	BUTTON_N,
 	BUTTON_P,

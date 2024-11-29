@@ -95,6 +95,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	window = CreateWindow(window_class.lpszClassName, L"Renderer!", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, hInstance, 0);
 	HDC hdc = GetDC(window);
 	AllocConsole();
+	ShowCursor(false);
 	std::freopen("CONOUT$", "w", stdout);
 	
 	Input input = {};
@@ -126,10 +127,13 @@ input.buttons[b].isDown = isDown;\
 					process_messages(BUTTON_RIGHT, VK_RIGHT);
 					process_messages(BUTTON_SPACE, VK_SPACE);
 					process_messages(BUTTON_ESC, VK_ESCAPE);
+					process_messages(BUTTON_SHIFT, VK_SHIFT);
 					process_messages(BUTTON_A, 'A');
 					process_messages(BUTTON_B, 'B');
 					process_messages(BUTTON_C, 'C');
 					process_messages(BUTTON_D, 'D');
+					process_messages(BUTTON_F, 'F');
+					process_messages(BUTTON_L, 'L');
 					process_messages(BUTTON_M, 'M');
 					process_messages(BUTTON_N, 'N');
 					process_messages(BUTTON_P, 'P');

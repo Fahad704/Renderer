@@ -22,30 +22,48 @@
 //frame delta time
 double fdt=0.06;
 void handleInput(const Input& input) {
-	double speed = 5.f;
+	POINT prevPoint = { 0,0 };
+	POINT mousePoint;
+	RECT rectangle;
+	GetWindowRect(window, &rectangle);
+	int windowX = rectangle.left;
+	int windowY = rectangle.top;
+	prevPoint = { long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)) };
+	GetCursorPos(&mousePoint);	Vector mousePrev = { double(prevPoint.x) - windowX, double(prevPoint.y) - windowY};
+	Vector mouseNow = {double(mousePoint.x) - windowX,double(mousePoint.y) - windowY };
+	Vector mouseDiff = mouseNow - mousePrev;
+	SetCursorPos(long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)));
+	double speed = 1.f;
 	Vector move = { 0,0,0 };
-	//Movement events
 	if (isDown(BUTTON_ESC)) {
 		running = false;
 	}
-	if (isDown(BUTTON_RIGHT))
-		move = Vector{ 10.f, 0, 0 };
-
-	if (isDown(BUTTON_LEFT))
-		move = move + Vector{ -10.f, 0, 0 };
-
-	if (isDown(BUTTON_UP))
-		move = move + Vector{ 0, 0, 10.f };
-
-	if (isDown(BUTTON_DOWN))
-		move = move + Vector{ 0, 0, -10.f };
-
+	//Movement events
 	if (isDown(BUTTON_W))
-		move = move + Vector{ 0,10.f,0 };
-
+		move = move + Vector{ 0, 0, 1.f };
+	if (isDown(BUTTON_A)) 
+		move = move + Vector{ -1.f, 0,0};
+	
 	if (isDown(BUTTON_S))
-		move = move + Vector{ 0,-10.f,0 };
-	if (pressed(BUTTON_SPACE)) {
+		move = move + Vector{ 0, 0, -1.f };
+	if (isDown(BUTTON_D)) {
+		move = move + Vector{ 1.f, 0, 0 };
+	}
+	if (isDown(BUTTON_SHIFT))
+		move = move + Vector{ 0,-1.f,0 };
+	if (isDown(BUTTON_SPACE)) {
+		move = move + Vector{ 0,1.f,0 };
+	}
+	//Normalize move vector and move the Camera
+	if (!(move == Vector{ 0,0,0 })) {
+		change = true;
+		move = move / length(move);
+		move = move * speed;
+		move = rotate(move, camera.rotation);
+		camera.position = camera.position + (move * (fdt));
+	}
+
+	if (pressed(BUTTON_L)) {
 		std::cout << "\nPosition : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n";
 		std::cout << "Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n";
 		int c = 1;
@@ -62,14 +80,7 @@ void handleInput(const Input& input) {
 		}
 		std::cout << "Total triangle count :" << totalTris << '\n';
 	}
-	//Normalize move vector and move the Camera
-	if (!(move == Vector{ 0,0,0 })) {
-		change = true;
-		move = move / length(move);
-		move = move * speed;
-		move = rotate(move, camera.rotation);
-		camera.position = camera.position + (move * fdt);
-	}
+	
 	//Show triangles of the mesh
 	if (pressed(BUTTON_T)) {
 		if (sceneSettings.debugState != DebugState::DS_TRIANGLE)std::cout << "\nDebug state set to wireframe triangle\n";
@@ -110,16 +121,6 @@ void handleInput(const Input& input) {
 			std::cout << "\nBackface culling turned off\n";
 		change = true;
 	}
-	//Rotate Camera Left
-	if (isDown(BUTTON_Z)) {
-		camera.rotation.y += 60.0 * fdt;
-		change = true;
-	}
-	//Rotate Camera right
-	if (isDown(BUTTON_X)) {
-		camera.rotation.y -= 60.0 * fdt;
-		change = true;
-	}
 	//Reset camera Position and rotation
 	if (pressed(BUTTON_Q)) {
 		camera.rotation = { 0,0,0 };
@@ -127,6 +128,7 @@ void handleInput(const Input& input) {
 		change = true;
 	}
 	//Slow down time
+	fdt = 0.06;
 	if (isDown(MOUSE_BUTTON_LEFT)) {
 		fdt = 0.001;
 	}
@@ -135,7 +137,7 @@ void handleInput(const Input& input) {
 		scene.instances[0].applyTransform(tf);
 		change = true;
 	}
-	if (pressed(BUTTON_A)) {
+	if (pressed(BUTTON_F)) {
 		//Anti aliasing
 		sceneSettings.antiAliasing = !sceneSettings.antiAliasing;
 		if (sceneSettings.antiAliasing) {
@@ -146,12 +148,9 @@ void handleInput(const Input& input) {
 		}
 		change = true;
 	}
-	if (isDown(BUTTON_N)) {
-		camera.rotation.x += 60.0 * fdt;
-		change = true;
-	}
-	if (isDown(BUTTON_M)) {
-		camera.rotation.x -= 60.0 * fdt;
+	
+	if (mouseDiff != Vector{ 0,0,0 }) {
+		camera.rotation.y += mouseDiff.x * fdt;
 		change = true;
 	}
 }
@@ -184,7 +183,6 @@ void init() {
 }
 void update(const Input& input) {
 	//Start counting frame time
-	timerStart();
 	handleInput(input);
 	if (rendMode && change) {
 		//Ray trace
@@ -210,15 +208,7 @@ void update(const Input& input) {
 		Renderer::renderScene();
 		change = false;
 	}
-	
-	//Limit frame rate to reduce power consumption
-	if (fdt < frameLimit) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(int((frameLimit) - fdt)));
-	}
-	std::chrono::duration<double> deltaTime = timerEnd(tstart);
-	fdt = deltaTime.count();
 
-	//Display fps on console
-	std::cout << std::fixed<<"\r" << (double)1 / fdt << " FPS - " << "Tri Rendering: " << sceneSettings.triSeenCount;
-}
+
+}//Limit frame rate to reduce power consumption
 #endif
