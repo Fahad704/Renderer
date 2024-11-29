@@ -150,7 +150,7 @@ void handleInput(const Input& input) {
 	}
 	
 	if (mouseDiff != Vector{ 0,0,0 }) {
-		camera.rotation.y += mouseDiff.x * fdt;
+		camera.rotation.y -= mouseDiff.x * fdt;
 		change = true;
 	}
 }
