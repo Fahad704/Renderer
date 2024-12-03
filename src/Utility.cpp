@@ -25,9 +25,11 @@ typedef unsigned char u8;
 #define PI 3.14159265359
 class Timer {
 public:
+	double dtms;
 	Timer()
 	{
 		m_StartTimePoint = std::chrono::high_resolution_clock::now();
+		dtms = 0;
 	}
 	~Timer() {
 		Stop();
@@ -39,13 +41,14 @@ public:
 		auto end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimePoint).time_since_epoch().count();
 
 		auto duration = end - start;
-		double ms = duration * 0.001;
+		dtms = duration * 0.001;
 
-		std::cout << duration << " us (" << ms << "ms)\n";
+		std::cout << duration << " us (" << dtms << "ms)\n";
 	}
 private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimePoint;
 };
+
 enum class DebugState {
 	DS_OFF,
 	DS_BOUNDING_BOX,
@@ -56,13 +59,34 @@ struct SceneSettings {
 	bool antiAliasing;
 	int triSeenCount;
 	DebugState debugState;
-};
+	bool lockMouse;
+}sceneSettings = { true,true,0,DebugState::DS_TRIANGLE, true };
 enum LightType {
 	LT_POINT,
 	LT_DIRECTIONAL,
 	LT_AMBIENT
 };
-
+Vector getMouseDiff() {
+	static POINT prevPoint = { 0,0 };
+	POINT mousePoint;
+	RECT rectangle;
+	GetWindowRect(window, &rectangle);
+	int windowX = rectangle.left;
+	int windowY = rectangle.top;
+	
+	GetCursorPos(&mousePoint);
+	Vector mousePrev = { double(prevPoint.x) - windowX, double(prevPoint.y) - windowY };
+	if (sceneSettings.lockMouse) {
+		prevPoint = { long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)) };
+		SetCursorPos(long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)));
+	}
+	else {
+		prevPoint = mousePoint;
+	}
+	Vector mouseNow = { double(mousePoint.x) - windowX,double(mousePoint.y) - windowY };
+	Vector mouseDiff = mouseNow - mousePrev;
+	return mouseDiff;
+}
 template<typename T>
 void swap(T& a, T& b) {
 	T c;

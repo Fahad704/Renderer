@@ -690,6 +690,8 @@ namespace Renderer {
 			moved[1] = transformVertex(triangle.p[1], transform);
 			moved[2] = transformVertex(triangle.p[2], transform);
 
+
+			//World space to camera space
 			moved[0] = moved[0] - camera.position;
 			moved[1] = moved[1] - camera.position;
 			moved[2] = moved[2] - camera.position;

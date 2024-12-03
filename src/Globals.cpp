@@ -2,12 +2,12 @@
 #define GLOBALS_CPP
 #include "Window.cpp"
 Vector canvas(720, 720);
-SceneSettings sceneSettings = {true,true,0,DebugState::DS_TRIANGLE};
 float const d = 1.f;
 Vector D = {1,1,1};
 float vpWidth = 1.f;
 float vpHeight = 1.778f;
 //only rendering when frame change to make sure my cpu doesn't explode
+//Especially for Ray tracer
 bool change = true;
 //true = raytracer , false = rasterizer
 bool rendMode = false;

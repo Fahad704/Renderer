@@ -22,17 +22,7 @@
 //frame delta time
 double fdt=0.06;
 void handleInput(const Input& input) {
-	POINT prevPoint = { 0,0 };
-	POINT mousePoint;
-	RECT rectangle;
-	GetWindowRect(window, &rectangle);
-	int windowX = rectangle.left;
-	int windowY = rectangle.top;
-	prevPoint = { long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)) };
-	GetCursorPos(&mousePoint);	Vector mousePrev = { double(prevPoint.x) - windowX, double(prevPoint.y) - windowY};
-	Vector mouseNow = {double(mousePoint.x) - windowX,double(mousePoint.y) - windowY };
-	Vector mouseDiff = mouseNow - mousePrev;
-	SetCursorPos(long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)));
+	Vector mouseDiff = sceneSettings.lockMouse ? getMouseDiff() : 0;
 	double speed = 1.f;
 	Vector move = { 0,0,0 };
 	if (isDown(BUTTON_ESC)) {
@@ -148,9 +138,14 @@ void handleInput(const Input& input) {
 		}
 		change = true;
 	}
-	
+	if (pressed(BUTTON_G)) {
+		ShowCursor(sceneSettings.lockMouse);
+		sceneSettings.lockMouse = !sceneSettings.lockMouse;
+	}
+	//Move according to mouse difference
 	if (mouseDiff != Vector{ 0,0,0 }) {
 		camera.rotation.y -= mouseDiff.x * fdt;
+		//camera.rotation.x += mouseDiff.y * fdt;
 		change = true;
 	}
 }
@@ -182,6 +177,7 @@ void init() {
 	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
+	Timer timer;
 	//Start counting frame time
 	handleInput(input);
 	if (rendMode && change) {
@@ -209,6 +205,8 @@ void update(const Input& input) {
 		change = false;
 	}
 
-
+	if (timer.dtms < frameLimit) {
+		Sleep(frameLimit - timer.dtms);
+	}
 }//Limit frame rate to reduce power consumption
 #endif

@@ -7,8 +7,6 @@
 * ------------------------------------------------------------------
 */
 #include <Windows.h>
-#include "Utility.cpp"
-global_variable bool running = true;
 struct RenderState {
 	int height;
 	int width;
@@ -19,7 +17,9 @@ void* depth;
 static RenderState renderState;
 static HWND window = {};
 
+#include "Utility.cpp"
 #include "Platform_common.cpp"
+global_variable bool running = true;
 void init();
 void update(const Input&);
 #include "Globals.cpp"
@@ -133,6 +133,7 @@ input.buttons[b].isDown = isDown;\
 					process_messages(BUTTON_C, 'C');
 					process_messages(BUTTON_D, 'D');
 					process_messages(BUTTON_F, 'F');
+					process_messages(BUTTON_G, 'G');
 					process_messages(BUTTON_L, 'L');
 					process_messages(BUTTON_M, 'M');
 					process_messages(BUTTON_N, 'N');
