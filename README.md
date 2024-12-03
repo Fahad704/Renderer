@@ -1,6 +1,7 @@
 # Renderer
 
 This is a C++ Application used for rendering using Ray tracer or Rasterizer , i started this project to learn the graphics pipeline and the windows API. It can Render any 3d obj file with light and soon it will support material files.
+I made this Project following Gabriel Gambetta's "Computer Graphics From scratch" and some of my own stuff
 
 ## Installation
 
