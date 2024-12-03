@@ -20,18 +20,17 @@ build-no-icon.bat
 ```
 ## Usage
 "R" - To toggle ray tracing/Rasterization(Ray tracing not recommanded , only use ray tracing when the poly count is below 100)<br>
-"Arrow keys" - to move<br>
-"W and S" to move up and down<br>
-"Z and X" - to rotate camera left and right<br>
+"W A S D" - to move<br>
+"Space and Shift" to move up and down<br>
+Press "G" to Lock/Unlock mouse<br>
 "V" - turn off wireframe view<br>
 "B" - to see bounding boxes<br>
-"N and M" - to rotate camera up and down(does not work as intended)<br>
 "C" - to toggle backface culling<br>
 "P" - to export current frame to ppm file<br>
 "T" - to turn on wireframe mode<br>
 "Q" - to reset position and rotation of camera to 0,0,0<br>
-"Space bar" - to view model(s) details<br>
-"A" - to toggle anti aliasing (FXAA)<br>
+"L" - to view model(s) details<br>
+"F" - to toggle anti aliasing (FXAA)<br>
 "ESC" - to close<br>
 # Renders
 ### Ray tracer <br>
