@@ -46,7 +46,7 @@ namespace Renderer {
 			}
 		}
 	}
-	internal void exportToPPM(std::string filename) {
+	internal void exportToPPM(const std::string& filename) {
 		std::ofstream ofs;
 		ofs.open(filename);
 		if (!ofs.is_open()) {
@@ -678,11 +678,10 @@ namespace Renderer {
 			}
 		}
 	}
-	void renderMesh(Mesh& mesh, Transform transform) {
-		const std::vector<Triangle>& triangles = mesh.triangles;
+	internal void renderMesh(Mesh& mesh, Transform transform) {
 		std::vector<Triangle> tris = {};
 
-		for (const Triangle& triangle : triangles) {
+		for (const Triangle& triangle : mesh.triangles) {
 			Vector transformed[3];
 			Vector moved[3];
 			//Model space to world space

@@ -43,7 +43,7 @@ public:
 		auto duration = end - start;
 		dtms = duration * 0.001;
 
-		std::cout << duration << " us (" << dtms << "ms)\n";
+		//std::cout << duration << " µs (" << dtms << "ms)\n";
 	}
 private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimePoint;
@@ -376,27 +376,23 @@ internal Vector rotate(const Vector& vec, const Vector& rotationP) {
 	}
 	Vector rotation = { (rotationP.x * (PI * 2)) / 360,(rotationP.y * (PI * 2)) / 360,(rotationP.z * (PI * 2)) / 360 };
 
-	//rotation aruond x axis
-	Vector xrotated;
-
-	xrotated.x = vec.x;
-	xrotated.y = (vec.y * cos(rotation.x)) + (vec.z * -sin(rotation.x));
-	xrotated.z = (vec.y * (sin(rotation.x))) + (vec.z * cos(rotation.x));
-
-	//rotation aruond y axis
+	//Yaw
 	Vector yrotated;
+	yrotated.y = vec.y;
+	yrotated.x = vec.x * cos(rotation.y) + vec.z * (-sin(rotation.y));
+	yrotated.z = vec.x * sin(rotation.y) + vec.z * cos(rotation.y);
 
-	yrotated.y = xrotated.y;
+	//Pitch
+	Vector xrotated;
+	xrotated.x = yrotated.x;
+	xrotated.y = yrotated.y * cos(rotation.x) + yrotated.z * (-sin(rotation.x));
+	xrotated.z = yrotated.y * sin(rotation.x) + yrotated.z * cos(rotation.x);
 
-	yrotated.x = xrotated.x * cos(rotation.y) + xrotated.z * (-sin(rotation.y));
-	yrotated.z = xrotated.x * sin(rotation.y) + xrotated.z * cos(rotation.y);
-
-	//rotation aruond z axis
+	//Roll
 	Vector zrotated;
-	zrotated.z = yrotated.z;
-
-	zrotated.x = yrotated.x * cos(rotation.z) + yrotated.y * (-sin(rotation.z));
-	zrotated.y = yrotated.x * sin(rotation.z) + yrotated.y * cos(rotation.z);
+	zrotated.z = xrotated.z;
+	zrotated.x =xrotated.x * cos(rotation.z) + xrotated.y * (-sin(rotation.z));
+	zrotated.y = xrotated.x * sin(rotation.z) + xrotated.y * cos(rotation.z);
 
 	return zrotated;
 }

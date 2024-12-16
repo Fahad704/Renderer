@@ -10,7 +10,7 @@
 *		-Implement BVH ray tracing
 *		-Implement proper Occlusion culling
 *	Adding Features:
-*		-Add matrix transformation for renderer)
+*		-Add matrix transformation for renderer
 *		-interpolated normals(Rasterizer)
 *		-read and display textures(Rasterizer)
 *		-render according to material(Rasterizer)
@@ -23,36 +23,38 @@
 double fdt=0.06;
 void handleInput(const Input& input) {
 	Vector mouseDiff = sceneSettings.lockMouse ? getMouseDiff() : 0;
-	double speed = 1.f;
-	Vector move = { 0,0,0 };
+	double speed = 1.0;
+	Vector velocity = { 0.0,0.0,0.0 };
 	if (isDown(BUTTON_ESC)) {
 		running = false;
 	}
 	//Movement events
 	if (isDown(BUTTON_W))
-		move = move + Vector{ 0, 0, 1.f };
+		velocity = velocity + Vector{0,0,1.0};
 	if (isDown(BUTTON_A)) 
-		move = move + Vector{ -1.f, 0,0};
+		velocity = velocity + Vector{-1.0,0,0};
 	
 	if (isDown(BUTTON_S))
-		move = move + Vector{ 0, 0, -1.f };
+		velocity = velocity + Vector{0,0,-1.0};
 	if (isDown(BUTTON_D)) {
-		move = move + Vector{ 1.f, 0, 0 };
+		velocity = velocity + Vector{1.0,0,0};
 	}
 	if (isDown(BUTTON_SHIFT))
-		move = move + Vector{ 0,-1.f,0 };
+		velocity = velocity + Vector{0,-1.0,0};
 	if (isDown(BUTTON_SPACE)) {
-		move = move + Vector{ 0,1.f,0 };
+		velocity = velocity + Vector{0,1.0,0};
 	}
-	//Normalize move vector and move the Camera
-	if (!(move == Vector{ 0,0,0 })) {
-		change = true;
-		move = move / length(move);
-		move = move * speed;
-		move = rotate(move, camera.rotation);
-		camera.position = camera.position + (move * (fdt));
-	}
+	
+	
 
+	//Normalize move vector and move the Camera
+	if (!(velocity == Vector{ 0,0,0 })) {
+		change = true;
+		velocity = velocity / length(velocity);
+		velocity = velocity * speed;
+		velocity = rotate(velocity, { 0,camera.rotation.y,0 });
+		camera.position = camera.position + velocity * fdt;
+	}
 	if (pressed(BUTTON_L)) {
 		std::cout << "\nPosition : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n";
 		std::cout << "Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n";
@@ -144,8 +146,9 @@ void handleInput(const Input& input) {
 	}
 	//Move according to mouse difference
 	if (mouseDiff != Vector{ 0,0,0 }) {
+		std::cout << "Mouse Diff : x:" << mouseDiff.x << " y:" << mouseDiff.y << "\n";
 		camera.rotation.y -= mouseDiff.x * fdt;
-		//camera.rotation.x += mouseDiff.y * fdt;
+		camera.rotation.x += mouseDiff.y * fdt;
 		change = true;
 	}
 }
