@@ -1,47 +1,114 @@
+
 # Renderer
 
-This is a C++ Application used for rendering using Ray tracer or Rasterizer , i started this project to learn the graphics pipeline and the windows API. It can Render any 3d obj file with light and soon it will support material files.
-I made this Project following Gabriel Gambetta's "Computer Graphics From scratch" and some of my own stuff
+**Renderer** is a C++ application for rendering 3D models using either a **ray tracer** or a **rasterizer**, designed to learn the graphics pipeline and Windows API. It supports rendering OBJ files with basic lighting and includes features for visualization and debugging.
+
+This project is inspired by Gabriel Gambetta's *Computer Graphics From Scratch* and includes custom implementations.
+
+## Features
+
+### Rendering Modes
+- **Ray Tracing**: Provides high-quality rendering but is slow for high-poly models.
+- **Rasterization**: Optimized for real-time rendering with support for various visual debugging features.
+
+### Supported File Formats
+- **OBJ**: 3D models (Material/MTL support planned for future updates).
+
+### Visual Features
+- **Lighting**: Simple light rendering.
+- **Wireframe Mode**: Toggle for edge-based rendering.
+- **Anti-Aliasing**: FXAA for smoother edges.
+- **Bounding Boxes**: Visualize object bounds.
+- **Backface Culling**: Toggle to improve performance by discarding non-visible polygons.
+
+### Controls
+- **W, A, S, D**: Move the camera.
+- **Space/Shift**: Move the camera up/down.
+- **Mouse**: Rotate the camera.
+- **Key Bindings**:
+  - `R`: Toggle ray tracing/rasterization.
+  - `G`: Lock/unlock the mouse.
+  - `V`: Toggle wireframe mode.
+  - `B`: Show/hide bounding boxes.
+  - `C`: Toggle backface culling.
+  - `P`: Export the current frame to a PPM file.
+  - `Q`: Reset camera position and rotation.
+  - `L`: Display model details.
+  - `F`: Toggle FXAA anti-aliasing.
+  - `ESC`: Exit the application.
 
 ## Installation
 
-Currently there is no proper Build system but there is a batch file that has g++ flags and there is Visual studio project file in the repo
+### Prerequisites
+- **Operating System**: Windows (other platforms not yet supported).
+- **Dependencies**:
+  - `g++` compiler.
+  - Optional: `iconv` and `windres` for specific builds.
 
-and the project only works in windows 
+### Build Instructions
+Clone the repository:
+```bash
+git clone https://github.com/Fahad704/Renderer.git
+cd Renderer
+```
 
-if you have iconv and windres
+#### Using GCC and Iconv
 ```bash
 cd src
 Build.bat
 ```
-if you only have g++ 
+
+#### Without Iconv
 ```bash
 cd src
 build-no-icon.bat
 ```
-## Usage
-"R" - To toggle ray tracing/Rasterization(Ray tracing not recommanded , only use ray tracing when the poly count is below 100)<br>
-"W A S D" - to move<br>
-"Space and Shift" to move up and down<br>
-Press "G" to Lock/Unlock mouse<br>
-"V" - turn off wireframe view<br>
-"B" - to see bounding boxes<br>
-"C" - to toggle backface culling<br>
-"P" - to export current frame to ppm file<br>
-"T" - to turn on wireframe mode<br>
-"Q" - to reset position and rotation of camera to 0,0,0<br>
-"L" - to view model(s) details<br>
-"F" - to toggle anti aliasing (FXAA)<br>
-"ESC" - to close<br>
-# Renders
-### Ray tracer <br>
-#### <span style="color;">Ray traced white king<br></span>
-![WhiteKing](https://github.com/user-attachments/assets/d1ca4791-e568-4340-90c2-9f07e56d71ed)
-<br>
-#### Ray traced spheres<br>
-![RayTracerReflection](https://github.com/user-attachments/assets/7bfc2390-8e0e-4a74-9dea-2c2b927a367c)<br>
-### Rasterizer
-#### King rendered with light, coloured according to its surface normal<br>
-![KingColorNorm](https://github.com/user-attachments/assets/39916a7d-256b-4a05-9f69-a9e6daded15a)<br>
-#### Same king rendered as triangle wireframe
-![KingTrisNorm](https://github.com/user-attachments/assets/32c47d44-8504-477a-a5ba-feb240a973cd)<br>
+
+#### Using Visual Studio
+- Open the `.vcxproj` file in Visual Studio.
+- Build the project from the IDE.
+
+### Running the Application
+After building, run the executable from the `bin` directory:
+```bash
+cd bin
+Renderer.exe
+```
+
+## Sample Outputs
+
+### Ray Tracing
+- **White King**: A ray-traced render of a chess piece.
+![WhiteKing](https://github.com/user-attachments/assets/8c97e116-1da8-4f69-be0b-e1772792075a)
+
+- **Spheres**: Reflection on spheres rendered using ray tracing.
+![RayTracerReflection](https://github.com/user-attachments/assets/a848f865-3c41-4b84-8db5-720a3365d647)
+
+### Rasterization
+- **Surface Normal Coloring**: Visualization of surface normals.
+- ![DemonSkullDepth](https://github.com/user-attachments/assets/39b3cd52-3e36-4013-ad2f-3eac4b3d6e59)
+
+- **Wireframe Mode**: A triangle-based wireframe view.
+- ![DemonSkullTris](https://github.com/user-attachments/assets/cfa0e260-9c0b-42bb-b6ee-a1fb85195104)
+
+- **Single Colour**: Same model rendered in single colour with multiple light soources.
+-  ![DemonSkullLightBr](https://github.com/user-attachments/assets/8087e7b8-26d6-40c9-92ab-f3ff4738c997)
+
+
+## Planned Features
+- **Porting to OpenGL**: Rewrite the renderer in OpenGL.
+- **Material and Texture Support**: Import and render MTL files.
+- **Performance Optimizations**: Acceleration structures (e.g., BVH) for ray tracing.
+- **Cross-Platform Support**: Expand compatibility to Linux and macOS.
+
+## Contributing
+Contributions are welcome! To get started:
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-name`).
+3. Commit changes (`git commit -m "Description"`).
+4. Push to the branch (`git push origin feature-name`).
+5. Open a pull request.
+
+## Acknowledgments
+- **Gabriel Gambetta**: For inspiration through *Computer Graphics From Scratch*.
+- **ChatGPT** : Readme written by *ChatGPT*.
