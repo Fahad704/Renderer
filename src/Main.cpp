@@ -146,7 +146,6 @@ void handleInput(const Input& input) {
 	}
 	//Move according to mouse difference
 	if (mouseDiff != Vector{ 0,0,0 }) {
-		std::cout << "Mouse Diff : x:" << mouseDiff.x << " y:" << mouseDiff.y << "\n";
 		camera.rotation.y -= mouseDiff.x * fdt;
 		camera.rotation.x += mouseDiff.y * fdt;
 		change = true;

@@ -43,7 +43,7 @@ public:
 		auto duration = end - start;
 		dtms = duration * 0.001;
 
-		//std::cout << duration << " µs (" << dtms << "ms)\n";
+		std::cout << duration << " µs (" << dtms << "ms)\n";
 	}
 private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimePoint;
