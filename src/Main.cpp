@@ -23,7 +23,7 @@
 double fdt=0.06;
 void handleInput(const Input& input) {
 	Vector mouseDiff = sceneSettings.lockMouse ? getMouseDiff() : 0;
-	double speed = 1.0;
+	float speed = 100.f;
 	Vector velocity = { 0.0,0.0,0.0 };
 	if (isDown(BUTTON_ESC)) {
 		running = false;
@@ -125,7 +125,7 @@ void handleInput(const Input& input) {
 		fdt = 0.001;
 	}
 	if (isDown(MOUSE_BUTTON_RIGHT)) {
-		Transform tf = { {0,0,0},1,{0,100 * fdt,0} };
+		Transform tf = { {0,0,0},1,{0,float(100 * fdt),0} };
 		scene.instances[0].applyTransform(tf);
 		change = true;
 	}
@@ -153,7 +153,11 @@ void handleInput(const Input& input) {
 }
 void init() {
 	//Spheres (currently only rendered in ray tracing)
-	std::vector<Sphere> spheres = {};
+	std::vector<Sphere> spheres = {
+		{{0,0,-3},1.f,{255,0,0},100,0.4f },
+		{{-1,0,-4},1.f,{0,255,0},100,0.4f },
+		{{1,0,-4},1.f,{0,0,255},100,0.4f }
+	};
 
 	std::vector<Light> lights = {
 		//--Type----------Pos----Dir--intensity//
@@ -166,9 +170,9 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("../Models/King.obj", { 255,255,255 }, 0.f,1000);
+	static Mesh model = Renderer::loadOBJ("../Models/sponza.obj", { 255,255,255 }, 0.f,1000);
 	Instance ins[] = {
-		{model, {0,-0.8f,3},1,{0,0,0}},
+		{model, {0,-0.8f,3},1.f,{0,180,0}},
 		//{model, {-2,1,7},1,{3,0,0}},
 		//{model, {1,-2,8},1,{0,8,0}},
 		//{model, {3,0,9},1,{0,0,0}}
@@ -208,7 +212,7 @@ void update(const Input& input) {
 	}
 
 	if (timer.dtms < frameLimit) {
-		Sleep(frameLimit - timer.dtms);
+		//Sleep(frameLimit - timer.dtms);
 	}
 }//Limit frame rate to reduce power consumption
 #endif

@@ -4,11 +4,11 @@
 #include <cassert>
 #define WHITE {255,255,255}
 namespace Renderer {
-	internal double computeLight(Vector&, Vector&, const Vector, double, bool);
+	internal float computeLight(Vector&, Vector&, const Vector, float, bool);
 	internal Vector reflectRay(const Vector&, Vector&);
 	internal void clearScreen(u32 color) {
 		u32* pixel = (u32*)renderState.memory;
-		double* dep = (double*)depth;
+		float* dep = (float*)depth;
 		for (int y = 0; y < renderState.height; y++) {
 			for (int x = 0; x < renderState.width; x++) {
 				*pixel++ = color;
@@ -37,7 +37,7 @@ namespace Renderer {
 		Colour result = hexToRGB(*pixel);
 		return result;
 	}
-	internal void drawSquare(double x, double y, int size, Colour color) {
+	internal void drawSquare(float x, float y, int size, Colour color) {
 		x -= size * 0.5f;
 		y -= size * 0.5f;
 		for (int i = int(y); i < y + size; i++) {
@@ -64,16 +64,16 @@ namespace Renderer {
 		ofs.close();
 	}
 	internal void drawLine(Vector a, Vector b, Colour color) {
-		double dy = b.y - a.y;
-		double dx = b.x - a.x;
+		float dy = b.y - a.y;
+		float dx = b.x - a.x;
 		if (abs(dx) > abs(dy)) {
 			if (a.x > b.x) {
 				swap(a, b);
 			}
-			double aspectRatio = 0;
+			float aspectRatio = 0;
 			if (dx != 0)
 				aspectRatio = (dy / dx);
-			double y = a.y;
+			float y = a.y;
 			for (int x = a.x; x <= b.x; x++) {
 				if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
 					y += aspectRatio;
@@ -89,10 +89,10 @@ namespace Renderer {
 			if (a.y > b.y) {
 				swap(a, b);
 			}
-			double aspectRatio = 0;
+			float aspectRatio = 0;
 			if (dy != 0)
 				aspectRatio = (dx / dy);
-			double x = a.x;
+			float x = a.x;
 			for (int y = a.y; y <= b.y; y++) {
 				if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
 					x += aspectRatio;
@@ -104,7 +104,7 @@ namespace Renderer {
 			}
 		}
 	}
-	Mesh loadOBJ(std::string filename, Colour color = { 0,0,0 }, double reflectiveness = 0, double specular = -1)
+	Mesh loadOBJ(std::string filename, Colour color = { 0,0,0 }, float reflectiveness = 0, float specular = -1)
 	{
 		std::vector<Vector> vertexes = {};
 		std::vector<Vector> normals = {};
@@ -142,7 +142,7 @@ namespace Renderer {
 			case VERTEX_MODE:
 			{
 				std::istringstream iss(line.substr(2));
-				double x = 0, y = 0, z = 0;
+				float x = 0, y = 0, z = 0;
 				iss >> x >> y >> z;
 				vertexes.push_back({ x,y,z });
 			}
@@ -150,7 +150,7 @@ namespace Renderer {
 			case TEXTURE_MODE:
 			{
 				std::istringstream iss(line.substr(3));
-				double u, v, w;
+				float u, v, w;
 				iss >> u >> v >> w;
 				Texture newtext({ u, v, w });
 				texture.push_back(newtext);
@@ -159,7 +159,7 @@ namespace Renderer {
 			case NORMAL_MODE:
 			{
 				std::istringstream iss(line.substr(3));
-				double x, y, z;
+				float x, y, z;
 				iss >> x >> y >> z;
 				Vector newnorm(x, y, z);
 				normals.push_back(newnorm);
@@ -216,31 +216,31 @@ namespace Renderer {
 		mesh.initTriangles();
 		return mesh;
 	}
-	Vector canvasToViewport(double x, double y) {
+	Vector canvasToViewport(float x, float y) {
 		return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 	}
-	std::pair<double, double> viewportToCanvas(double x, double y) {
+	std::pair<float, float> viewportToCanvas(float x, float y) {
 		return { x * (canvas.x / vpWidth) ,y * (canvas.y / vpHeight) };
 	}
 	Vector projectVertex(Vector v) {
 		//Perspective Projection
-		std::pair<double, double> result = viewportToCanvas(double((v.x * d) / v.z), double((v.y * d) / v.z));
+		std::pair<float, float> result = viewportToCanvas(float((v.x * d) / v.z), float((v.y * d) / v.z));
 		return { result.first,result.second ,d };
 	}
-	void interpolate(double x0, double y0, double x1, double y1, std::vector<double>& arr) {
-		double dx = x1 - x0;
-		double dy = y1 - y0;
-		double aspectratio = 0;
-		double x = x0;
+	void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr) {
+		float dx = x1 - x0;
+		float dy = y1 - y0;
+		float aspectratio = 0;
+		float x = x0;
 		if (dy != 0)
 			aspectratio = (dx / dy);
-		double size = (ceil(y1) - floor(y0));
+		float size = (ceil(y1) - floor(y0));
 		if (size > 0)
 			arr.resize(size);
 		else
 			return;
 		int i = 0;
-		for (double y = ceil(y0); y <= floor(y1); y++) {
+		for (float y = ceil(y0); y <= floor(y1); y++) {
 			arr[i] = (x);
 			x += aspectratio;
 			i++;
@@ -276,13 +276,13 @@ namespace Renderer {
 			return;
 		}
 
-		std::vector<double> x01;
-		std::vector<double> x12;
-		std::vector<double> x02;
+		std::vector<float> x01;
+		std::vector<float> x12;
+		std::vector<float> x02;
 
-		std::vector<double> z01;
-		std::vector<double> z12;
-		std::vector<double> z02;
+		std::vector<float> z01;
+		std::vector<float> z12;
+		std::vector<float> z02;
 
 		interpolate(p1.x, p1.y, p2.x, p2.y, x01);
 		interpolate(p2.x, p2.y, p3.x, p3.y, x12);
@@ -293,19 +293,19 @@ namespace Renderer {
 		interpolate(p1.z, p1.y, p3.z, p3.y, z02);
 
 		//concatenate short sides in 0-1
-		for (const double& val : x12) {
+		for (const float& val : x12) {
 			x01.push_back(val);
 		}
 
-		for (const double& val : z12) {
+		for (const float& val : z12) {
 			z01.push_back(val);
 		}
 
-		int m = int(x02.size() / (double)2);
-		std::vector<double> xLeft = {};
-		std::vector<double> xRight = {};
-		std::vector<double> zLeft = {};
-		std::vector<double> zRight = {};
+		int m = int(x02.size() / (float)2);
+		std::vector<float> xLeft = {};
+		std::vector<float> xRight = {};
+		std::vector<float> zLeft = {};
+		std::vector<float> zRight = {};
 
 		//Finding left and right
 		if (x02.size()) {
@@ -326,23 +326,23 @@ namespace Renderer {
 		}
 
 		for (int y = int(p1.y); y < int(p3.y); y++) {
-			double xL = xLeft[y - int(p1.y)];
-			double xR = xRight[y - int(p1.y)];
+			float xL = xLeft[y - int(p1.y)];
+			float xR = xRight[y - int(p1.y)];
 
-			std::vector<double> zSegment = {};
+			std::vector<float> zSegment = {};
 			interpolate(zLeft[y - int(p1.y)], xL, zRight[y - int(p1.y)], xR, zSegment);
 
 
 			for (int x = int(xL); x < int(xR); x++) {
 				//Per Fragment
-				double z = zSegment[x - int(xL)];
+				float z = zSegment[x - int(xL)];
 				Vector T = canvasToViewport((x * z) / d, (y * z) / d);
 				T.z = z;
-				if (isIn(double(x), (-canvas.x / 2.0), (canvas.x / 2.0)) && isIn(double(y), (-canvas.y / 2.0), (canvas.y / 2.0))) {
+				if (isIn(float(x), float(-canvas.x / 2.f), float(canvas.x / 2.f)) && isIn(float(y), float(-canvas.y / 2.f), float(canvas.y / 2.f))) {
 					int nx = int(x + (renderState.width / 2.0));
-					int ny = int((renderState.height / (double)2.f) - y);
+					int ny = int((renderState.height / (float)2.f) - y);
 					//Pointer to depth buffer
-					double* dep = ((double*)(depth)) + (ny * renderState.width) + nx;
+					float* dep = ((float*)(depth)) + (ny * renderState.width) + nx;
 					if (1 / z > (*dep)) {
 						//Point in camera space
 						Vector P = T;
@@ -356,7 +356,7 @@ namespace Renderer {
 						N = N / length(N);
 						Vector R = P - camera.position;
 						R = R / length(R);
-						double light = computeLight(P, N, R, t.specular, false);
+						float light = computeLight(P, N, R, t.specular, false);
 						putPixel(x, y, (color * light));
 						*dep = 1 / z;
 					}
@@ -403,30 +403,30 @@ namespace Renderer {
 		drawLine(p[3], p[7], red);
 	}
 
-	internal double intersectRaySphere(Vector& O, Vector& D, Sphere& sphere) {
-		double r = sphere.radius;
+	internal float intersectRaySphere(Vector& O, Vector& D, Sphere& sphere) {
+		float r = sphere.radius;
 		Vector CO = O - sphere.center;
 
-		double a = dot(D, D);
-		double b = 2 * dot(CO, D);
-		double c = dot(CO, CO) - (r * r);
+		float a = dot(D, D);
+		float b = 2 * dot(CO, D);
+		float c = dot(CO, CO) - (r * r);
 
-		double discriminant = (b * b) - (4 * a * c);
+		float discriminant = (b * b) - (4 * a * c);
 
 		if (discriminant < 0) {
 			return infinity;
 		}
-		double t = (-b - sqrt(discriminant)) / (2 * a);
+		float t = (-b - sqrt(discriminant)) / (2 * a);
 		return t;
 	}
-	internal double intersectRayTriangle(Vector O, Vector D, Triangle triangle)
+	internal float intersectRayTriangle(Vector O, Vector D, Triangle triangle)
 	{
-		double t = 0;
+		float t = 0;
 		Vector N = triangle.getNormal();
-		double NdotRay = dot(N, D);
+		float NdotRay = dot(N, D);
 		if (NdotRay > 0)
 			return infinity;
-		double d = -dot(N, triangle.p[0]);
+		float d = -dot(N, triangle.p[0]);
 		t = -(dot(N, O) + d) / NdotRay;
 		if (t < 0)
 			return infinity;
@@ -464,7 +464,7 @@ namespace Renderer {
 	internal bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
 	{
 		Vector invDir = 1.0f / D;
-		double tmin, tmax, tymin, tymax, tzmin, tzmax;
+		float tmin, tmax, tymin, tymax, tzmin, tzmax;
 		if (invDir.x >= 0) {
 			tmin = (box.lowest.x - O.x) * invDir.x;
 			tmax = (box.highest.x - O.x) * invDir.x;
@@ -512,13 +512,13 @@ namespace Renderer {
 		//TODO(Fahad):implement BVH
 		return {};
 	}
-	internal std::pair<Object*, double> closestIntersection(Vector O, Vector D, double tMin, double tMax) {
-		double closestT = infinity;
+	internal std::pair<Object*, float> closestIntersection(Vector O, Vector D, float tMin, float tMax) {
+		float closestT = infinity;
 		Object* closestObject = nullptr;
 		//Sphere intersection
 		for (Sphere& sphere : scene.spheres) {
-			double sphereInt = intersectRaySphere(O, D, sphere);
-			double T = sphereInt;
+			float sphereInt = intersectRaySphere(O, D, sphere);
+			float T = sphereInt;
 			if (isIn(T, tMin, tMax) && T < closestT) {
 				closestT = T;
 				closestObject = &sphere;
@@ -527,7 +527,7 @@ namespace Renderer {
 		//Triangle
 		for (Triangle& triangle : scene.triangles)
 		{
-			double triangleInt = intersectRayTriangle(O, D, triangle);
+			float triangleInt = intersectRayTriangle(O, D, triangle);
 			if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
 				closestT = triangleInt;
 				closestObject = &triangle;
@@ -567,7 +567,7 @@ namespace Renderer {
 					continue;
 				}
 				triangle.normal = tri.normal;
-				double triangleInt = intersectRayTriangle(O, D, tri);
+				float triangleInt = intersectRayTriangle(O, D, tri);
 				if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
 					closestT = triangleInt;
 					closestObject = &triangle;
@@ -579,12 +579,12 @@ namespace Renderer {
 	internal Vector reflectRay(const Vector& R, Vector& N) {
 		return (2 * (N * dot(R, N)) - R);
 	}
-	internal double computeLight(Vector& P, Vector& N, const Vector V, double s, bool rt = true) {
-		double i = 0.f;
+	internal float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rt = true) {
+		float i = 0.f;
 		for (const Light& light : scene.lights) {
 			//L = direction of the light
 			Vector L = {};
-			double tMax = 0;
+			float tMax = 0;
 			if (light.type == LT_AMBIENT) {
 				i += light.intensity;
 			}
@@ -597,19 +597,19 @@ namespace Renderer {
 					L = (light.pos - P);
 					tMax = length(L);
 				}
-				double shadowT = rt ? closestIntersection(P, L, 0.000001, tMax).second : infinity;
+				float shadowT = rt ? closestIntersection(P, L, 0.000001, tMax).second : infinity;
 				if (shadowT != infinity) {
 					continue;
 				}
 				//Diffuse reflection
-				double nDotL = dot(N, L);
+				float nDotL = dot(N, L);
 				if (nDotL > 0) {
 					i += (light.intensity * nDotL / (length(N) * length(L)));
 				}
 				//specular reflection
 				if (s != -1) {
 					Vector R = reflectRay(L, N);
-					double vDotR = dot(V, R);
+					float vDotR = dot(V, R);
 					if (vDotR > 0) {
 						i += light.intensity * pow((vDotR / (length(R) * length(V))), s);
 					}
@@ -622,10 +622,10 @@ namespace Renderer {
 	internal std::vector<Triangle> clipTriangle(Triangle& t) {
 		//TODO(Fahad):Add Proper clipping
 		Vector nearN = { 0,0,1 };
-		Vector rightN = { (-1 / sqrt(2)),0,(1 / sqrt(2)) };
-		Vector leftN = { 1 / sqrt(2),0,1 / sqrt(2) };;
-		Vector upN = { 0,-(1 / sqrt(2)),(1 / sqrt(2)) };
-		Vector downN = { 0,(1 / sqrt(2)),(1 / sqrt(2)) };
+		Vector rightN = { float(-1 / sqrt(2)),0,float(1 / sqrt(2)) };
+		Vector leftN = { float(1 / sqrt(2)),0,float(1 / sqrt(2)) };;
+		Vector upN = { 0,float(-1 / sqrt(2)),float(1 / sqrt(2)) };
+		Vector downN = { 0,float(1 / sqrt(2)),float(1 / sqrt(2)) };
 		//Intentionally used OR to temperorily fix lag
 		if (((dot(t.p[0], nearN) - d) < 0.f) || ((dot(t.p[1], nearN) - d) < 0.f) || ((dot(t.p[2], nearN) - d) < 0.f))return {};
 		if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
@@ -644,14 +644,14 @@ namespace Renderer {
 				Colour colorLeft = getPixel(x - 1, y);
 				Colour colorRight = getPixel(x + 1, y);
 
-				double centerLuma = colorCenter.luminance();
-				double topLuma = colorTop.luminance();
-				double bottomLuma = colorBottom.luminance();
-				double leftLuma = colorLeft.luminance();
-				double rightLuma = colorRight.luminance();
+				float centerLuma = colorCenter.luminance();
+				float topLuma = colorTop.luminance();
+				float bottomLuma = colorBottom.luminance();
+				float leftLuma = colorLeft.luminance();
+				float rightLuma = colorRight.luminance();
 
-				double edgeHorizontal = std::abs(leftLuma - rightLuma);
-				double edgeVertical = std::abs(topLuma - bottomLuma);
+				float edgeHorizontal = std::abs(leftLuma - rightLuma);
+				float edgeVertical = std::abs(topLuma - bottomLuma);
 
 				bool isHorizontal = (edgeHorizontal >= edgeVertical);
 
@@ -677,6 +677,31 @@ namespace Renderer {
 				}
 			}
 		}
+	}
+	internal void processTriangles(std::vector<Triangle>& tris,size_t start,size_t end, bool drawWireframe) {
+		for (int i = start; i < end; ++i) {
+			drawTriangle(tris[i], drawWireframe);
+		}
+	}
+	internal void drawTriangleMultiThread(std::vector<Triangle>& tris,bool drawWireframe,unsigned int numThreads) {
+		size_t totalTriangles = tris.size();
+
+		std::vector<std::thread> threads;
+
+		size_t trisPerThread = totalTriangles / numThreads;
+		size_t remainingTriangles = totalTriangles % numThreads;
+
+		size_t start = 0;
+		for (unsigned int i = 0; i < numThreads; i++) {
+			size_t end = start + trisPerThread + (i < remainingTriangles ? 1 : 0);
+			threads.emplace_back(processTriangles, std::ref(tris), start, end, drawWireframe);
+			start = end;
+		}
+
+		for (std::thread& thread : threads) {
+			thread.join();
+		}
+
 	}
 	internal void renderMesh(Mesh& mesh, Transform transform) {
 		std::vector<Triangle> tris = {};
@@ -724,14 +749,15 @@ namespace Renderer {
 		}
 		sceneSettings.triSeenCount += tris.size();
 		bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
-		for (Triangle& tri : tris) {
-			drawTriangle(tri, drawWireframe);
-		}
+		drawTriangleMultiThread(tris, drawWireframe,12);
+		//for (Triangle& tri : tris) {
+		//	drawTriangle(tri, drawWireframe);
+		//}
 	}
-	internal Colour traceRay(Vector O, Vector D, double tMin, double tMax, int recursionLimit) {
-		std::pair<Object*, double> intersection = closestIntersection(O, D, tMin, tMax);
+	internal Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
+		std::pair<Object*, float> intersection = closestIntersection(O, D, tMin, tMax);
 		Object* closestObject = intersection.first;
-		double closestT = intersection.second;
+		float closestT = intersection.second;
 		Colour bgColor = { 100,100,100 };
 		if (closestT == infinity) {
 			return bgColor;
@@ -751,9 +777,9 @@ namespace Renderer {
 		}
 		//Normalizing the normal
 		N = N / length(N);
-		double light = computeLight(P, N, -D, closestObject->specular);
+		float light = computeLight(P, N, -D, closestObject->specular);
 		Colour localColor = (closestObject->color * light);
-		double r = closestObject->reflectiveness;
+		float r = closestObject->reflectiveness;
 		if (recursionLimit <= 0 || r <= 0.f) {
 			return localColor;
 		}
@@ -765,14 +791,14 @@ namespace Renderer {
 	}
 	void rayTraceThr(int threadNum, int threadCount)
 	{
-		double ycount = (canvas.y / threadCount);
-		double ymin = ycount * threadNum;
-		double ymax = ymin + ycount;
+		float ycount = (canvas.y / threadCount);
+		float ymin = ycount * threadNum;
+		float ymax = ymin + ycount;
 		ymin -= canvas.y / 2.0f;
 		ymax -= canvas.y / 2.0f;
-		for (double y = ymin; y < ymax; y++) {
+		for (float y = ymin; y < ymax; y++) {
 			int scanlineDone = int(canvas.y - (y + ((canvas.y) / 2.0f)));
-			for (double x = (-canvas.x / 2.0); x < (canvas.x / 2.0); x++) {
+			for (float x = (-canvas.x / 2.0); x < (canvas.x / 2.0); x++) {
 				Vector direction = canvasToViewport(x, y);
 				direction = direction / length(D);
 				direction = rotate(direction, camera.rotation);
@@ -783,10 +809,10 @@ namespace Renderer {
 	}
 	void rayTrace() {
 		clearScreen(0x000000);
-		for (double y = (canvas.y / 2.0); y > -(canvas.y / 2.0); y--) {
+		for (float y = (canvas.y / 2.0); y > -(canvas.y / 2.0); y--) {
 			int scanlineDone = int(canvas.y - (y + ((canvas.y) / 2.0f)));
 			std::cout << "\rScanlines Done:" << scanlineDone << '/' << (canvas.y - 1) << ':' << int((scanlineDone / (canvas.y - 1)) * 100) << "%" << std::flush;
-			for (double x = (-canvas.x / 2.0); x < (canvas.x / 2.0); x++) {
+			for (float x = (-canvas.x / 2.0); x < (canvas.x / 2.0); x++) {
 				D = canvasToViewport(x, y);
 				D = D / length(D);
 				D = rotate(D, camera.rotation);

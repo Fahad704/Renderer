@@ -25,7 +25,7 @@ typedef unsigned char u8;
 #define PI 3.14159265359
 class Timer {
 public:
-	double dtms;
+	float dtms;
 	Timer()
 	{
 		m_StartTimePoint = std::chrono::high_resolution_clock::now();
@@ -75,7 +75,7 @@ Vector getMouseDiff() {
 	int windowY = rectangle.top;
 	
 	GetCursorPos(&mousePoint);
-	Vector mousePrev = { double(prevPoint.x) - windowX, double(prevPoint.y) - windowY };
+	Vector mousePrev = { float(prevPoint.x) - windowX, float(prevPoint.y) - windowY };
 	if (sceneSettings.lockMouse) {
 		prevPoint = { long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)) };
 		SetCursorPos(long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)));
@@ -83,7 +83,7 @@ Vector getMouseDiff() {
 	else {
 		prevPoint = mousePoint;
 	}
-	Vector mouseNow = { double(mousePoint.x) - windowX,double(mousePoint.y) - windowY };
+	Vector mouseNow = { float(mousePoint.x) - windowX,float(mousePoint.y) - windowY };
 	Vector mouseDiff = mouseNow - mousePrev;
 	return mouseDiff;
 }
@@ -94,7 +94,7 @@ void swap(T& a, T& b) {
 	a = b;
 	b = c;
 }
-void clamp(double& num, double min_limit, double max_limit) {
+void clamp(float& num, float min_limit, float max_limit) {
 	if (num < min_limit) {
 		num = min_limit;
 		return;
@@ -131,7 +131,7 @@ void turnConsoleOff() {
 	FreeConsole();
 	std::fclose(stdout);
 }
-double getMax(const double& n1,const double& n2) {
+float getMax(const float& n1,const float& n2) {
 	return ((n1 > n2) ? n1 : n2);
 }
 struct Colour {
@@ -153,8 +153,8 @@ public:
 	bool operator==(Colour& op) {
 		return (this->R == op.R && this->G == op.G && this->B == op.B);
 	}
-	Colour operator*(const double num) {
-		Vector newcol = { double(this->R * num),double(this->G * num),double(this->B * num) };
+	Colour operator*(const float num) {
+		Vector newcol = { float(this->R * num),float(this->G * num),float(this->B * num) };
 		if (newcol.x > 255) {
 			newcol.x = 255;
 		}
@@ -167,7 +167,7 @@ public:
 		return { u8(newcol.x),u8(newcol.y),u8(newcol.z) };
 	}
 	Colour operator+(const Colour& col) {
-		Vector newcol = { double(this->R + col.R),double(this->G + col.G),double(this->B + col.B) };
+		Vector newcol = { float(this->R + col.R),float(this->G + col.G),float(this->B + col.B) };
 		if (newcol.x > 255) {
 			newcol.x = 255;
 		}
@@ -179,8 +179,8 @@ public:
 		}
 		return { u8(newcol.x),u8(newcol.y),u8(newcol.z) };
 	}
-	double luminance() {
-		return ((0.2126f * double(R)) + (0.7152f * double(G)) + (0.0722f * double(B)));
+	float luminance() {
+		return ((0.2126f * float(R)) + (0.7152f * float(G)) + (0.0722f * float(B)));
 	}
 };
 internal Colour hexToRGB(u32 hex) {
@@ -201,18 +201,18 @@ enum class Type
 };
 struct Object {
 	Colour color;
-	double specular;
-	double reflectiveness;
+	float specular;
+	float reflectiveness;
 	virtual Type getType()
 	{
 		return Type::ST_BASE;
 	}
 };
 struct Sphere : Object{
-	double radius;
+	float radius;
 	Vector center;
 	
-	Sphere(Vector center = { 0,0,0 }, double radius = NULL, Colour color = {0,0,0},double specular = -1,double reflectiveness = 0) {
+	Sphere(Vector center = { 0,0,0 }, float radius = NULL, Colour color = {0,0,0},float specular = -1,float reflectiveness = 0) {
 		this->center = center;
 		this->radius = radius;
 		this->color = color;
@@ -235,7 +235,7 @@ struct Triangle : Object {
 		reflectiveness = 0;
 		specular = -1;
 	}
-	Triangle(const Vector p[3], Vector normal = {0,0,0}, Colour color = { 0,0,0 }, double specular = -1, double reflectiveness = 0) {
+	Triangle(const Vector p[3], Vector normal = {0,0,0}, Colour color = { 0,0,0 }, float specular = -1, float reflectiveness = 0) {
 		this->p[0] = p[0];
 		this->p[1] = p[1];
 		this->p[2] = p[2];
@@ -263,9 +263,9 @@ struct Triangle : Object {
 };
 struct Texture
 {
-	double u;
-	double v;
-	double w;
+	float u;
+	float v;
+	float w;
 };
 struct Index
 {
@@ -292,8 +292,8 @@ struct Mesh {
 	std::vector<Triangle> triangles;
 	Box boundingBox;
 	Colour color;
-	double reflectiveness;
-	double specular;
+	float reflectiveness;
+	float specular;
 	Mesh() {
 		vertexes = {};
 		normals = {};
@@ -304,7 +304,7 @@ struct Mesh {
 		reflectiveness = 0;
 		specular = -1;
 	}
-	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Colour color = {0,0,0}, double reflectiveness = 0.f, double specular = -1)
+	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Colour color = {0,0,0}, float reflectiveness = 0.f, float specular = -1)
 	{
 		vertexes = vertex;
 		normals = normal;
@@ -357,14 +357,14 @@ struct Mesh {
 };
 struct Transform {
 	Vector position;
-	double scale;
+	float scale;
 	Vector rotation;
 	Transform() {
 		position = { 0,0,0 };
 		scale = 0;
 		rotation = 0;
 	}
-	Transform(Vector position, double scale, Vector rotation) {
+	Transform(Vector position, float scale, Vector rotation) {
 		this->position = position;
 		this->scale = scale;
 		this->rotation = rotation;
@@ -374,19 +374,19 @@ internal Vector rotate(const Vector& vec, const Vector& rotationP) {
 	if (rotationP == Vector{ 0,0,0 }) {
 		return vec;
 	}
-	Vector rotation = { (rotationP.x * (PI * 2)) / 360,(rotationP.y * (PI * 2)) / 360,(rotationP.z * (PI * 2)) / 360 };
+	Vector rotation = { float(rotationP.x * (PI * 2)) / 360.f,float(rotationP.y * (PI * 2)) / 360.f,float(rotationP.z * (PI * 2)) / 360.f };
 
 	//Yaw
 	Vector yrotated;
 	yrotated.y = vec.y;
-	yrotated.x = vec.x * cos(rotation.y) + vec.z * (-sin(rotation.y));
-	yrotated.z = vec.x * sin(rotation.y) + vec.z * cos(rotation.y);
+	yrotated.x = vec.x * std::cos(rotation.y) + vec.z * (-std::sin(rotation.y));
+	yrotated.z = vec.x * std::sin(rotation.y) + vec.z * std::cos(rotation.y);
 
 	//Pitch
 	Vector xrotated;
 	xrotated.x = yrotated.x;
-	xrotated.y = yrotated.y * cos(rotation.x) + yrotated.z * (-sin(rotation.x));
-	xrotated.z = yrotated.y * sin(rotation.x) + yrotated.z * cos(rotation.x);
+	xrotated.y = yrotated.y * std::cos(rotation.x) + yrotated.z * (-std::sin(rotation.x));
+	xrotated.z = yrotated.y * std::sin(rotation.x) + yrotated.z * std::cos(rotation.x);
 
 	//Roll
 	Vector zrotated;
@@ -405,7 +405,7 @@ struct Instance {
 	Mesh* mesh;
 	Transform transform;
 	Box boundingBox;
-	Instance(Mesh& mesh , Vector position = { 0,0,0 },double scale = 1,Vector rotation = {0,0,0}) {
+	Instance(Mesh& mesh , Vector position = { 0,0,0 },float scale = 1,Vector rotation = {0,0,0}) {
 		this->mesh = &mesh;
 		transform.position = position;
 		transform.scale = scale;
@@ -455,7 +455,7 @@ struct Light {
 	LightType type;
 	Vector pos;
 	Vector direction;
-	double intensity;
+	float intensity;
 };
 template<typename T>
 internal bool isIn(T value,T lower, T higher) {

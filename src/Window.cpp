@@ -49,7 +49,7 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		renderState.height = rect.bottom - rect.top;
 
 		int bufferSize = renderState.width * renderState.height * sizeof(unsigned int);
-		int dbufSize = renderState.width * renderState.height * sizeof(double);
+		int dbufSize = renderState.width * renderState.height * sizeof(float);
 		//Screen backbuffer
 		if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
 		renderState.memory = VirtualAlloc(0, bufferSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -62,8 +62,8 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		renderState.bitmapinfo.bmiHeader.biPlanes = 1;
 		renderState.bitmapinfo.bmiHeader.biBitCount = 32;
 		renderState.bitmapinfo.bmiHeader.biCompression = BI_RGB;
-		canvas = { double(renderState.width), double(renderState.height)};
-		double aspectratio = double(renderState.width) / double(renderState.height);
+		canvas = { float(renderState.width), float(renderState.height)};
+		float aspectratio = float(renderState.width) / float(renderState.height);
 		change = true;
 		vpWidth = aspectratio;
 		vpHeight = 1;
@@ -91,15 +91,16 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	//Register Window Class 
 	RegisterClass(&window_class);
 
-	//Create Window 
-	window = CreateWindow(window_class.lpszClassName, L"Renderer!", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, hInstance, 0);
-	HDC hdc = GetDC(window);
+	//Create console
 	AllocConsole();
-	ShowCursor(false);
 	std::freopen("CONOUT$", "w", stdout);
-	
+
+	//Create Window 
+	window = CreateWindow(window_class.lpszClassName, L"My Honest Reaction", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, hInstance, 0);
+	HDC hdc = GetDC(window);
+	ShowCursor(false);
+	SetCursorPos(0, 0);
 	Input input = {};
-	
 
 	init();
 	while (running) {
@@ -174,7 +175,6 @@ input.buttons[b].isDown = isDown;\
 			}
 			}
 		}
-
 		//Update Loop
 		update(input);
 			
