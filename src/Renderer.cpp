@@ -77,7 +77,6 @@ namespace Renderer {
 			for (int x = a.x; x <= b.x; x++) {
 				if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
 					y += aspectRatio;
-					//continue;
 				}
 				else {
 					putPixel(x, y, color);
@@ -347,11 +346,11 @@ namespace Renderer {
 						//Point in camera space
 						Vector P = T;
 						//Camera space to world space
-						P = transformVertex(P, camera);
+						P = transformVertex(P, camera,RotateOrder::RO_XYZ);
 						Triangle newTri;
-						newTri.p[0] = transformVertex(t.p[0], camera);
-						newTri.p[1] = transformVertex(t.p[1], camera);
-						newTri.p[2] = transformVertex(t.p[2], camera);
+						newTri.p[0] = transformVertex(t.p[0],camera,RotateOrder::RO_XYZ);
+						newTri.p[1] = transformVertex(t.p[1],camera,RotateOrder::RO_XYZ);
+						newTri.p[2] = transformVertex(t.p[2],camera,RotateOrder::RO_XYZ);
 						Vector N = newTri.getNormal();
 						N = N / length(N);
 						Vector R = P - camera.position;
@@ -550,11 +549,9 @@ namespace Renderer {
 					return { closestObject,closestT };
 				}
 			}
-			else {
-				if (!RayIntersectsBox(O, D, mbb))
-				{
-					continue;
-				}
+			else if (!RayIntersectsBox(O, D, mbb))
+			{
+				continue;
 			}
 			for (Triangle& triangle : triangles)
 			{
@@ -562,6 +559,11 @@ namespace Renderer {
 				tri.p[0] = transformVertex(triangle.p[0], instance.transform);
 				tri.p[1] = transformVertex(triangle.p[1], instance.transform);
 				tri.p[2] = transformVertex(triangle.p[2], instance.transform);
+
+				if (camera.rotation.x != 0) {
+					std::cout << "";
+				}
+
 				Vector normal = tri.getNormal();
 				if (dot(normal, D) > 0) {
 					continue;
@@ -678,12 +680,12 @@ namespace Renderer {
 			}
 		}
 	}
-	internal void processTriangles(std::vector<Triangle>& tris,size_t start,size_t end, bool drawWireframe) {
+	internal void drawTrianglesThr(std::vector<Triangle>& tris,size_t start,size_t end, bool drawWireframe) {
 		for (int i = start; i < end; ++i) {
 			drawTriangle(tris[i], drawWireframe);
 		}
 	}
-	internal void drawTriangleMultiThread(std::vector<Triangle>& tris,bool drawWireframe,unsigned int numThreads) {
+	internal void drawTrianglesMultiThread(std::vector<Triangle>& tris,bool drawWireframe,unsigned int numThreads) {
 		size_t totalTriangles = tris.size();
 
 		std::vector<std::thread> threads;
@@ -694,7 +696,7 @@ namespace Renderer {
 		size_t start = 0;
 		for (unsigned int i = 0; i < numThreads; i++) {
 			size_t end = start + trisPerThread + (i < remainingTriangles ? 1 : 0);
-			threads.emplace_back(processTriangles, std::ref(tris), start, end, drawWireframe);
+			threads.emplace_back(drawTrianglesThr, std::ref(tris), start, end, drawWireframe);
 			start = end;
 		}
 
@@ -707,7 +709,6 @@ namespace Renderer {
 		std::vector<Triangle> tris = {};
 
 		for (const Triangle& triangle : mesh.triangles) {
-			Vector transformed[3];
 			Vector moved[3];
 			//Model space to world space
 			moved[0] = transformVertex(triangle.p[0], transform);
@@ -749,10 +750,7 @@ namespace Renderer {
 		}
 		sceneSettings.triSeenCount += tris.size();
 		bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
-		drawTriangleMultiThread(tris, drawWireframe,12);
-		//for (Triangle& tri : tris) {
-		//	drawTriangle(tri, drawWireframe);
-		//}
+		drawTrianglesMultiThread(tris, drawWireframe,12);
 	}
 	internal Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
 		std::pair<Object*, float> intersection = closestIntersection(O, D, tMin, tMax);
@@ -800,8 +798,8 @@ namespace Renderer {
 			int scanlineDone = int(canvas.y - (y + ((canvas.y) / 2.0f)));
 			for (float x = (-canvas.x / 2.0); x < (canvas.x / 2.0); x++) {
 				Vector direction = canvasToViewport(x, y);
+				direction = rotate(direction,camera.rotation,RotateOrder::RO_XYZ);
 				direction = direction / length(D);
-				direction = rotate(direction, camera.rotation);
 				Colour result = traceRay(camera.position, direction, 1, infinity, 2);
 				putPixel(x, y, result);
 			}
@@ -814,8 +812,8 @@ namespace Renderer {
 			std::cout << "\rScanlines Done:" << scanlineDone << '/' << (canvas.y - 1) << ':' << int((scanlineDone / (canvas.y - 1)) * 100) << "%" << std::flush;
 			for (float x = (-canvas.x / 2.0); x < (canvas.x / 2.0); x++) {
 				D = canvasToViewport(x, y);
-				D = D / length(D);
 				D = rotate(D, camera.rotation);
+				D = D / length(D);
 				Colour result = traceRay(camera.position, D, 1, infinity, 3);
 				putPixel(x, y, result);
 			}
@@ -824,12 +822,15 @@ namespace Renderer {
 	void renderScene() {
 		clearScreen(0x646464);
 		sceneSettings.triSeenCount = 0;
+		//Render meshes
 		for (Instance& ins : scene.instances) {
 			renderMesh(*ins.mesh, ins.transform);
 		}
+		//Apply AA
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			FXAA();
 		}
+		//Draw Bounding boxes
 		for (Instance& ins : scene.instances) {
 			if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {
 				Box box = ins.getBoundingBox();

@@ -18,11 +18,11 @@ static RenderState renderState;
 static HWND window = {};
 
 #include "Utility.cpp"
-#include "Platform_common.cpp"
+#include "Platform_common.h"
 global_variable bool running = true;
 void init();
 void update(const Input&);
-#include "Globals.cpp"
+#include "Globals.h"
 #include "Renderer.cpp"
 #include "Resource.h"
 #define isDown(b) input.buttons[b].isDown
@@ -96,7 +96,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	std::freopen("CONOUT$", "w", stdout);
 
 	//Create Window 
-	window = CreateWindow(window_class.lpszClassName, L"My Honest Reaction", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, hInstance, 0);
+	window = CreateWindow(window_class.lpszClassName, L"Renderer!", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, hInstance, 0);
 	HDC hdc = GetDC(window);
 	ShowCursor(false);
 	SetCursorPos(0, 0);
@@ -122,31 +122,31 @@ input.buttons[b].changed = (isDown != input.buttons[b].isDown);\
 input.buttons[b].isDown = isDown;\
 }break;
 				switch (vk_code) {
-					process_messages(BUTTON_UP,VK_UP) 
-					process_messages(BUTTON_DOWN, VK_DOWN);
-					process_messages(BUTTON_LEFT, VK_LEFT);
-					process_messages(BUTTON_RIGHT, VK_RIGHT);
-					process_messages(BUTTON_SPACE, VK_SPACE);
-					process_messages(BUTTON_ESC, VK_ESCAPE);
-					process_messages(BUTTON_SHIFT, VK_SHIFT);
-					process_messages(BUTTON_A, 'A');
-					process_messages(BUTTON_B, 'B');
-					process_messages(BUTTON_C, 'C');
-					process_messages(BUTTON_D, 'D');
-					process_messages(BUTTON_F, 'F');
-					process_messages(BUTTON_G, 'G');
-					process_messages(BUTTON_L, 'L');
-					process_messages(BUTTON_M, 'M');
-					process_messages(BUTTON_N, 'N');
-					process_messages(BUTTON_P, 'P');
-					process_messages(BUTTON_Q, 'Q');
-					process_messages(BUTTON_R, 'R');
-					process_messages(BUTTON_S, 'S');
-					process_messages(BUTTON_T, 'T');
-					process_messages(BUTTON_V, 'V');
-					process_messages(BUTTON_W, 'W');
-					process_messages(BUTTON_X, 'X');
-					process_messages(BUTTON_Z, 'Z');
+					process_messages(BUTTON_UP,VK_UP)
+					process_messages(BUTTON_DOWN, VK_DOWN)
+					process_messages(BUTTON_LEFT, VK_LEFT)
+					process_messages(BUTTON_RIGHT, VK_RIGHT)
+					process_messages(BUTTON_SPACE, VK_SPACE)
+					process_messages(BUTTON_ESC, VK_ESCAPE)
+					process_messages(BUTTON_SHIFT, VK_SHIFT)
+					process_messages(BUTTON_A, 'A')
+					process_messages(BUTTON_B, 'B')
+					process_messages(BUTTON_C, 'C')
+					process_messages(BUTTON_D, 'D')
+					process_messages(BUTTON_F, 'F')
+					process_messages(BUTTON_G, 'G')
+					process_messages(BUTTON_L, 'L')
+					process_messages(BUTTON_M, 'M')
+					process_messages(BUTTON_N, 'N')
+					process_messages(BUTTON_P, 'P')
+					process_messages(BUTTON_Q, 'Q')
+					process_messages(BUTTON_R, 'R')
+					process_messages(BUTTON_S, 'S')
+					process_messages(BUTTON_T, 'T')
+					process_messages(BUTTON_V, 'V')
+					process_messages(BUTTON_W, 'W')
+					process_messages(BUTTON_X, 'X')
+					process_messages(BUTTON_Z, 'Z')
 				}
 			}break;
 			case WM_LBUTTONDOWN: {

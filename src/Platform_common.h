@@ -1,5 +1,5 @@
-#ifndef PLATFORM_COMMON_CPP
-#define PLATFORM_COMMON_CPP
+#ifndef PLATFORM_COMMON_H
+#define PLATFORM_COMMON_H
 //this says platform common but there is only one platform lol
 enum Buttons {
 	BUTTON_SHIFT,

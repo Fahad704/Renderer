@@ -1,5 +1,3 @@
-#ifndef VECTOR_CPP
-#define VECTOR_CPP
 #include "Vector.h"
 #include <math.h>
 Vector operator+(const Vector&vec1,const Vector& vec) {
@@ -41,17 +39,16 @@ Vector operator*(const float num, const Vector& vec) {
 Vector operator/(const float num, const Vector& vec) {
 	return { (num / vec.x),(num / vec.y),(num / vec.z) };
 }
-inline Vector cross(const Vector& vec1, const Vector& vec2){
+Vector cross(const Vector& vec1, const Vector& vec2){
 	Vector cross = {};
 	cross.x = (vec1.y * vec2.z) - (vec1.z * vec2.y);
 	cross.y = (vec1.z * vec2.x) - (vec1.x * vec2.z);
 	cross.z = (vec1.x * vec2.y) - (vec1.y * vec2.x);
 	return cross;
 }
-inline float dot(const Vector& first,const Vector& second) {
+float dot(const Vector& first,const Vector& second) {
 	return ((first.x * second.x) + (first.y * second.y) + (first.z * second.z));
 }
-inline float length(const Vector& vec) {
+float length(const Vector& vec) {
 	return sqrt((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z));
 }
-#endif

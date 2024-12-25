@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector.cpp"
+#include "Vector.h"
 struct Vector4
 {
 	double x, y, z, w;

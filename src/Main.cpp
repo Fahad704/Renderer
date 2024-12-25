@@ -1,7 +1,7 @@
 #ifndef MAIN_CPP
 #define MAIN_CPP
-#include "Renderer.cpp"
 
+#include "Renderer.cpp"
 
 //TODO(Fahad):
 /*
@@ -16,6 +16,8 @@
 *		-render according to material(Rasterizer)
 *		-Add some ui
 *	Code Refactoring:
+*		-Make better file structure
+*		-Abstract Windowing into classes
 *		-Make the structure API like for the renderer
 * 
 */
@@ -23,7 +25,7 @@
 double fdt=0.06;
 void handleInput(const Input& input) {
 	Vector mouseDiff = sceneSettings.lockMouse ? getMouseDiff() : 0;
-	float speed = 100.f;
+	float speed = 2.f;
 	Vector velocity = { 0.0,0.0,0.0 };
 	if (isDown(BUTTON_ESC)) {
 		running = false;
@@ -170,9 +172,9 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("../Models/sponza.obj", { 255,255,255 }, 0.f,1000);
+	static Mesh model = Renderer::loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,1000);
 	Instance ins[] = {
-		{model, {0,-0.8f,3},1.f,{0,180,0}},
+		{model, {0,-0.8,3},1.f,{0,0,0}},
 		//{model, {-2,1,7},1,{3,0,0}},
 		//{model, {1,-2,8},1,{0,8,0}},
 		//{model, {3,0,9},1,{0,0,0}}
@@ -183,8 +185,9 @@ void init() {
 	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
-	Timer timer;
 	//Start counting frame time
+	Timer timer;
+	
 	handleInput(input);
 	if (rendMode && change) {
 		//Ray trace
@@ -200,6 +203,7 @@ void update(const Input& input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
+		//Renderer::rayTrace();
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			Renderer::FXAA();
 		}
@@ -212,7 +216,7 @@ void update(const Input& input) {
 	}
 
 	if (timer.dtms < frameLimit) {
-		//Sleep(frameLimit - timer.dtms);
+		Sleep(frameLimit - timer.dtms);
 	}
 }//Limit frame rate to reduce power consumption
 #endif

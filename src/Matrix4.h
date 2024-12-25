@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector4.cpp"
+#include "Vector4.h"
 
 struct Matrix4
 {

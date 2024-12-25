@@ -1,5 +1,5 @@
-#ifndef GLOBALS_CPP
-#define GLOBALS_CPP
+#ifndef GLOBALS_H
+#define GLOBALS_H
 #include "Window.cpp"
 Vector canvas(720, 720);
 float const d = 1.f;

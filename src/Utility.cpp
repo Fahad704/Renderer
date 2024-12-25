@@ -14,7 +14,6 @@
 #include <time.h>
 #include "Window.cpp"
 #include "Vector.h"
-#include "Vector.cpp"
 #include "Matrix4.cpp"
 #define infinity 2000000000
 
@@ -43,7 +42,7 @@ public:
 		auto duration = end - start;
 		dtms = duration * 0.001;
 
-		std::cout << duration << " µs (" << dtms << "ms)\n";
+		//std::cout << duration << " µs (" << dtms << "ms)\n";
 	}
 private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimePoint;
@@ -60,7 +59,7 @@ struct SceneSettings {
 	int triSeenCount;
 	DebugState debugState;
 	bool lockMouse;
-}sceneSettings = { true,true,0,DebugState::DS_TRIANGLE, true };
+}sceneSettings = { true,true,0,DebugState::DS_BOUNDING_BOX, true };
 enum LightType {
 	LT_POINT,
 	LT_DIRECTIONAL,
@@ -285,7 +284,7 @@ struct Box {
 	}
 };
 struct Mesh {
-	std::vector<Vector> vertexes;
+	std::vector<Vector> vertices;
 	std::vector<Vector> normals;
 	std::vector<Texture> texture;
 	std::vector<Face> faces;
@@ -295,7 +294,7 @@ struct Mesh {
 	float reflectiveness;
 	float specular;
 	Mesh() {
-		vertexes = {};
+		vertices = {};
 		normals = {};
 		texture = {};
 		faces = {};
@@ -306,7 +305,7 @@ struct Mesh {
 	}
 	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Colour color = {0,0,0}, float reflectiveness = 0.f, float specular = -1)
 	{
-		vertexes = vertex;
+		vertices = vertex;
 		normals = normal;
 		texture = text;
 		faces = face;
@@ -325,9 +324,9 @@ struct Mesh {
 		for (const Face& face : faces) {
 			Triangle triangle;
 			Vector v1, v2, v3;
-			v1 = vertexes.at(face.index[0].vert-1);
-			v2 = vertexes.at(face.index[1].vert-1);
-			v3 = vertexes.at(face.index[2].vert-1);
+			v1 = vertices.at(face.index[0].vert-1);
+			v2 = vertices.at(face.index[1].vert-1);
+			v3 = vertices.at(face.index[2].vert-1);
 			triangle.reflectiveness = reflectiveness;
 			triangle.specular = specular;
 			triangle.p[0] = v1;
@@ -337,7 +336,7 @@ struct Mesh {
 			triangle.normal = face.index[0].norm;
 			triangles.push_back(triangle);
 		}
-		for (const Vector& vertex : vertexes) {
+		for (const Vector& vertex : vertices) {
 			if (count == 0) {
 				lowest = vertex;
 				highest = vertex;
@@ -370,34 +369,59 @@ struct Transform {
 		this->rotation = rotation;
 	}
 };
-internal Vector rotate(const Vector& vec, const Vector& rotationP) {
+enum class RotateOrder {
+	RO_YXZ = 0,
+	RO_XYZ
+};
+internal Vector rotate(const Vector& vec, const Vector& rotationP,RotateOrder ro = RotateOrder::RO_YXZ) {
 	if (rotationP == Vector{ 0,0,0 }) {
 		return vec;
 	}
 	Vector rotation = { float(rotationP.x * (PI * 2)) / 360.f,float(rotationP.y * (PI * 2)) / 360.f,float(rotationP.z * (PI * 2)) / 360.f };
+	Vector result = {};
+	if (ro == RotateOrder::RO_YXZ) {
+		//Yaw
+		Vector yrotated;
+		yrotated.y = vec.y;
+		yrotated.x = vec.x * std::cos(rotation.y) + vec.z * (-std::sin(rotation.y));
+		yrotated.z = vec.x * std::sin(rotation.y) + vec.z * std::cos(rotation.y);
 
-	//Yaw
-	Vector yrotated;
-	yrotated.y = vec.y;
-	yrotated.x = vec.x * std::cos(rotation.y) + vec.z * (-std::sin(rotation.y));
-	yrotated.z = vec.x * std::sin(rotation.y) + vec.z * std::cos(rotation.y);
+		//Pitch
+		Vector xrotated;
+		xrotated.x = yrotated.x;
+		xrotated.y = yrotated.y * std::cos(rotation.x) + yrotated.z * (-std::sin(rotation.x));
+		xrotated.z = yrotated.y * std::sin(rotation.x) + yrotated.z * std::cos(rotation.x);
 
-	//Pitch
-	Vector xrotated;
-	xrotated.x = yrotated.x;
-	xrotated.y = yrotated.y * std::cos(rotation.x) + yrotated.z * (-std::sin(rotation.x));
-	xrotated.z = yrotated.y * std::sin(rotation.x) + yrotated.z * std::cos(rotation.x);
+		//Roll
+		Vector zrotated;
+		zrotated.z = xrotated.z;
+		zrotated.x = xrotated.x * std::cos(rotation.z) + xrotated.y * (-std::sin(rotation.z));
+		zrotated.y = xrotated.x * std::sin(rotation.z) + xrotated.y * std::cos(rotation.z);
 
-	//Roll
-	Vector zrotated;
-	zrotated.z = xrotated.z;
-	zrotated.x =xrotated.x * cos(rotation.z) + xrotated.y * (-sin(rotation.z));
-	zrotated.y = xrotated.x * sin(rotation.z) + xrotated.y * cos(rotation.z);
+		result = zrotated;
+	}
+	else if (ro == RotateOrder::RO_XYZ) {
+		Vector xrotated;
+		xrotated.x = vec.x;
+		xrotated.y = vec.y * std::cos(rotation.x) + vec.z * (-std::sin(rotation.x));
+		xrotated.z = vec.y * std::sin(rotation.x) + vec.z * std::cos(rotation.x);
 
-	return zrotated;
+		Vector yrotated;
+		yrotated.y = xrotated.y;
+		yrotated.x = xrotated.x * std::cos(rotation.y) + xrotated.z * (-std::sin(rotation.y));
+		yrotated.z = xrotated.x * std::sin(rotation.y) + xrotated.z * std::cos(rotation.y);
+
+		Vector zrotated;
+		zrotated.z = yrotated.z;
+		zrotated.x = yrotated.x * std::cos(rotation.z) + yrotated.y * (-std::sin(rotation.z));
+		zrotated.y = yrotated.x * std::sin(rotation.z) + yrotated.y * (std::cos(rotation.z));
+
+		result = zrotated;
+	}
+	return result;
 }
-internal Vector transformVertex(Vector vec, const Transform& tf) {
-	Vector rotated = rotate(vec, tf.rotation);
+internal Vector transformVertex(Vector vec, const Transform& tf,RotateOrder ro = RotateOrder::RO_YXZ) {
+	Vector rotated = rotate(vec, tf.rotation,ro);
 	Vector translated = (rotated * tf.scale) + tf.position;
 	return translated;
 }
