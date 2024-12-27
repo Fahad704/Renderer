@@ -184,6 +184,7 @@ input.buttons[b].isDown = isDown;\
 		//TODO(Fahad) find a better way to display buffer to the screen
 		StretchDIBits(hdc, 0, renderState.height-1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 	}
-	ReleaseDC(window, hdc);
+	ReleaseDC(window, hdc);\
+	return 0;
 }
 #endif

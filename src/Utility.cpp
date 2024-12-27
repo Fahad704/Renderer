@@ -212,7 +212,7 @@ struct Sphere : Object{
 	float radius;
 	Vector center;
 	
-	Sphere(Vector center = { 0,0,0 }, float radius = NULL, Colour color = {0,0,0},float specular = -1,float reflectiveness = 0) {
+	Sphere(Vector center = { 0,0,0 }, float radius = 1.f, Colour color = {0,0,0},float specular = -1,float reflectiveness = 0) {
 		this->center = center;
 		this->radius = radius;
 		this->color = color;
