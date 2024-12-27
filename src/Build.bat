@@ -2,8 +2,10 @@ pushd ..
 mkdir bin
 mkdir int
 popd
-g++ -DUNICODE -D_UNICODE -O3 -march=native -funroll-loops -c Window.cpp -o ../int/renderer.o
+g++ -DUNICODE -D_UNICODE -O3 -march=native -funroll-loops -std=c++17 -c Window.cpp -o ../int/renderer.o
+g++ -O3 -c Vector.cpp -o ../int/Vector.o
 iconv -f UTF-16LE -t UTF-8 ../Renderer.rc > ../resource.rc
 windres ../resource.rc -o ../int/resource.o
-g++ -flto ../int/renderer.o ../int/resource.o -o ../bin/Renderer.exe -Wl,--subsystem,windows -luser32 -lkernel32 -lgdi32
+g++ -flto -std=c++17 ../int/renderer.o ../int/resource.o ../int/Vector.o -o ../bin/Renderer.exe -Wl,--subsystem,windows -luser32 -lkernel32 -lgdi32
 "../bin/Renderer.exe"
+pause

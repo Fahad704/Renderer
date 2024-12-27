@@ -41,6 +41,7 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		FreeConsole();
 		std::fclose(stdout);
 		DestroyWindow(hWnd);
+		return DefWindowProc(window, uMsg, wParam, lParam);
 	}break;
 	case WM_SIZE: {
 		RECT rect;
@@ -183,5 +184,6 @@ input.buttons[b].isDown = isDown;\
 		//TODO(Fahad) find a better way to display buffer to the screen
 		StretchDIBits(hdc, 0, renderState.height-1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 	}
+	ReleaseDC(window, hdc);
 }
 #endif
