@@ -355,6 +355,7 @@ struct Mesh {
 		boundingBox.highest = highest;
 	}
 };
+
 struct Transform {
 	Vector position;
 	float scale;
@@ -500,4 +501,5 @@ struct Scene {
 	std::vector<Instance> instances;
 	std::vector<Light> lights;
 };
+
 #endif

@@ -172,28 +172,24 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,1000);
-	Instance ins[] = {
-		{model, {0,-0.8,3},1.f,{0,0,0}},
-		//{model, {-2,1,7},1,{3,0,0}},
-		//{model, {1,-2,8},1,{0,8,0}},
-		//{model, {3,0,9},1,{0,0,0}}
+	static Mesh cube = Renderer::loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,1000);
+	instances = {
+		{cube, {0,-0.8,3},1.f,{0,0,0}}
 	};
-	int insSize = sizeof(ins) / sizeof(Instance);
-	for(int i = 0;i<insSize;i++)
-		instances.push_back(ins[i]);
+
 	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
 	//Start counting frame time
 	Timer timer;
-	
+#define MULTITHREAD_RT 1
 	handleInput(input);
 	if (rendMode && change) {
 		//Ray trace
 		Renderer::clearScreen(0x000000);
 		//Ray tracing with 12 threads
 		//it is still slow
+#if MULTITHREAD_RT
 		size_t threadCount = 12;
 		std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
@@ -203,7 +199,9 @@ void update(const Input& input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
-		//Renderer::rayTrace();
+#else
+		Renderer::rayTrace();
+#endif
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			Renderer::FXAA();
 		}

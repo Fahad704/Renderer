@@ -215,6 +215,7 @@ namespace Renderer {
 		mesh.initTriangles();
 		return mesh;
 	}
+	static Mesh sphereMesh = loadOBJ("../Models/Sphere.obj");
 	Vector canvasToViewport(float x, float y) {
 		return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 	}
@@ -226,26 +227,18 @@ namespace Renderer {
 		std::pair<float, float> result = viewportToCanvas(float((v.x * d) / v.z), float((v.y * d) / v.z));
 		return { result.first,result.second ,d };
 	}
-	void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr) {
+	internal void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr) {
 		float dx = x1 - x0;
 		float dy = y1 - y0;
-		float aspectratio = 0;
+		float aspectratio = (dy != 0) ? (dx / dy) : 0;
+		size_t size = int(y1) - int(y0);
+		
 		float x = x0;
-		if (dy != 0)
-			aspectratio = (dx / dy);
-		float size = (ceil(y1) - floor(y0));
-		if (size > 0)
-			arr.resize(size);
-		else
-			return;
-		int i = 0;
-		for (float y = ceil(y0); y <= floor(y1); y++) {
-			arr[i] = (x);
+
+		for (int y = int(y0); y < int(y1); y++) {
+			arr.push_back(x);
 			x += aspectratio;
-			i++;
 		}
-		if (i != size)
-			arr.resize(i);
 	}
 	internal void drawTriangle(Triangle& t, bool wireframe = false) {
 		Vector p1 = projectVertex(t.p[0]);
@@ -705,7 +698,7 @@ namespace Renderer {
 		}
 
 	}
-	internal void renderMesh(Mesh& mesh, Transform transform) {
+	internal void renderMesh(const Mesh& mesh, Transform transform) {
 		std::vector<Triangle> tris = {};
 
 		for (const Triangle& triangle : mesh.triangles) {
@@ -792,30 +785,27 @@ namespace Renderer {
 		float ycount = (canvas.y / threadCount);
 		float ymin = ycount * threadNum;
 		float ymax = ymin + ycount;
-		ymin -= canvas.y / 2.0f;
-		ymax -= canvas.y / 2.0f;
 		for (float y = ymin; y < ymax; y++) {
-			int scanlineDone = int(canvas.y - (y + ((canvas.y) / 2.0f)));
-			for (float x = (-canvas.x / 2.0); x < (canvas.x / 2.0); x++) {
-				Vector direction = canvasToViewport(x, y);
+			for (float x = 0; x < renderState.width; x++) {
+				Vector direction = canvasToViewport(x - (canvas.x / 2.f), (canvas.y / 2.f) - y);
 				direction = rotate(direction,camera.rotation,RotateOrder::RO_XYZ);
 				direction = direction / length(D);
-				Colour result = traceRay(camera.position, direction, 1, infinity, 2);
-				putPixel(x, y, result);
+				Colour result = traceRay(camera.position, direction, 1, infinity, 0);
+				putPixelD(x, y, result);
 			}
 		}
 	}
 	void rayTrace() {
 		clearScreen(0x000000);
-		for (float y = (canvas.y / 2.0); y > -(canvas.y / 2.0); y--) {
-			int scanlineDone = int(canvas.y - (y + ((canvas.y) / 2.0f)));
-			std::cout << "\rScanlines Done:" << scanlineDone << '/' << (canvas.y - 1) << ':' << int((scanlineDone / (canvas.y - 1)) * 100) << "%" << std::flush;
-			for (float x = (-canvas.x / 2.0); x < (canvas.x / 2.0); x++) {
-				D = canvasToViewport(x, y);
-				D = rotate(D, camera.rotation);
+		for (float y = 0; y < renderState.height; y++) {
+			int scanlineDone = y+1;
+			std::cout << "\rScanlines Done:" << scanlineDone << '/' << (renderState.width) << ':' << int((scanlineDone / (renderState.width)) * 100) << "%" << std::flush;
+			for (float x = 0; x < renderState.width; x++) {
+				D = canvasToViewport(x - (canvas.x / 2), (canvas.y/2) - y);
+				D = rotate(D, camera.rotation,RotateOrder::RO_XYZ);
 				D = D / length(D);
 				Colour result = traceRay(camera.position, D, 1, infinity, 3);
-				putPixel(x, y, result);
+				putPixelD(x, y, result);
 			}
 		}
 	}
@@ -826,6 +816,13 @@ namespace Renderer {
 		for (Instance& ins : scene.instances) {
 			renderMesh(*ins.mesh, ins.transform);
 		}
+
+		for (Sphere& sphere : scene.spheres) {
+			Mesh sphereM = loadOBJ("../Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
+			Instance sphereIns(sphereM, (sphere.center + Vector{ 0,-0.2f,0 }), sphere.radius * 0.4f);
+			renderMesh(*sphereIns.mesh, sphereIns.transform);
+		}
+
 		//Apply AA
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			FXAA();

@@ -14,8 +14,9 @@ bool rendMode = false;
 //100fps
 double frameLimit = 1.66f;
 double FOV = 60;
-Transform camera(Vector{ 0,0,-2 }, 1, {0,0,0});
+Transform camera(Vector{ 0,3,0 }, 1, {0,0,0});
 Scene scene = {};
 //temp
 Triangle tempTri;
+
 #endif
