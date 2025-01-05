@@ -629,8 +629,55 @@ namespace Renderer {
 		if ((dot(t.p[0], downN) < 0.f) && (dot(t.p[1], downN) < 0.f) && (dot(t.p[2], downN) < 0.f))return {};
 		return { t };
 	}
+	internal void FXAAthr(int threadNum,int threadCount, float edgeThreshold = 0.f) {
+		int yCount = (renderState.height - 2) / threadCount;
+		int ymin = (threadNum * yCount)+1;
+		int ymax = ymin + yCount;
+		for (int y = ymin; y < ymax; y++) {
+			for (int x = 1; x < renderState.width-1; x++) {
+				Colour colorCenter = getPixel(x, y);
+				Colour colorTop = getPixel(x, y - 1);
+				Colour colorBottom = getPixel(x, y + 1);
+				Colour colorLeft = getPixel(x - 1, y);
+				Colour colorRight = getPixel(x + 1, y);
+
+				float centerLuma = colorCenter.luminance();
+				float topLuma = colorTop.luminance();
+				float bottomLuma = colorBottom.luminance();
+				float leftLuma = colorLeft.luminance();
+				float rightLuma = colorRight.luminance();
+
+				float edgeHorizontal = std::abs(leftLuma - rightLuma);
+				float edgeVertical = std::abs(topLuma - bottomLuma);
+
+				bool isHorizontal = (edgeHorizontal >= edgeVertical);
+
+				Colour blendColour;
+				if (isHorizontal) {
+					blendColour.R = ((colorTop.R + colorBottom.R) * 0.5f);
+					blendColour.G = ((colorTop.G + colorBottom.G) * 0.5f);
+					blendColour.B = ((colorTop.B + colorBottom.B) * 0.5f);
+				}
+				else {
+					blendColour.R = ((colorLeft.R + colorRight.R) * 0.5f);
+					blendColour.G = ((colorLeft.G + colorRight.G) * 0.5f);
+					blendColour.B = ((colorLeft.B + colorRight.B) * 0.5f);
+				}
+
+				bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
+
+				if (isEdge) {
+					putPixelD(x, y, blendColour);
+				}
+				else {
+					putPixelD(x, y, colorCenter);
+				}
+			}
+		}
+	}
 	internal void FXAA() {
 		float edgeThreshold = 0.f;
+		/*
 		for (int y = 1; y < (renderState.height - 1); y++) {
 			for (int x = 1; x < (renderState.width - 1); x++) {
 				Colour colorCenter = getPixel(x, y);
@@ -671,6 +718,15 @@ namespace Renderer {
 					putPixelD(x, y, colorCenter);
 				}
 			}
+		}
+		*/
+		int threadCount = 12;
+		std::vector<std::thread> tObjs(threadCount);
+		for (int i = 0; i < threadCount; i++) {
+			tObjs[i] = std::thread(FXAAthr, i, threadCount,0.f);
+		}
+		for (int i = 0; i < threadCount; i++) {
+			tObjs[i].join();
 		}
 	}
 	internal void drawTrianglesThr(std::vector<Triangle>& tris,size_t start,size_t end, bool drawWireframe) {

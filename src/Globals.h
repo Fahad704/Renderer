@@ -12,7 +12,7 @@ bool change = true;
 //true = raytracer , false = rasterizer
 bool rendMode = false;
 //100fps
-double frameLimit = 1.66f;
+float frameLimit = 1;
 double FOV = 60;
 Transform camera(Vector{ 0,3,0 }, 1, {0,0,0});
 Scene scene = {};

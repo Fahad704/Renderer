@@ -55,7 +55,7 @@ void handleInput(const Input& input) {
 		velocity = velocity / length(velocity);
 		velocity = velocity * speed;
 		velocity = rotate(velocity, { 0,camera.rotation.y,0 });
-		camera.position = camera.position + velocity * fdt;
+		camera.position = camera.position + (velocity * fdt);
 	}
 	if (pressed(BUTTON_L)) {
 		std::cout << "\nPosition : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n";
@@ -156,9 +156,9 @@ void handleInput(const Input& input) {
 void init() {
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {
-		{{0,0,-3},1.f,{255,0,0},100,0.4f },
-		{{-1,0,-4},1.f,{0,255,0},100,0.4f },
-		{{1,0,-4},1.f,{0,0,255},100,0.4f }
+		//{{0,0,-3},1.f,{255,0,0},100,0.4f },
+		//{{-1,0,-4},1.f,{0,255,0},100,0.4f },
+		//{{1,0,-4},1.f,{0,0,255},100,0.4f }
 	};
 
 	std::vector<Light> lights = {
@@ -210,7 +210,7 @@ void update(const Input& input) {
 	else if (change) {
 		//Rasterize
 		Renderer::renderScene();
-		change = false;
+		//change = false;
 	}
 
 	if (timer.dtms < frameLimit) {
