@@ -6,7 +6,6 @@
 //TODO(Fahad):
 /*
 *	Optimizations:
-*		-Implement proper Frustum culling
 *		-Implement BVH ray tracing
 *		-Implement proper Occlusion culling
 *	Adding Features:

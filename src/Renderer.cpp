@@ -357,12 +357,14 @@ namespace Renderer {
 			}
 		}
 	}
-	void drawBox(Box box, Transform tf = {}) {
+	static std::vector<Triangle> clipTriangle(Triangle&);
+	static void drawTrianglesMultiThread(std::vector<Triangle>&, bool, unsigned int);
+	void drawBox(Box box, Transform tf = {}, bool inTriangle = true) {
 		//The tf transform is inverse camera tranform to convert world space box into
 		//camera space box
 		Colour red = { 255,0,0 };
 		//Front faces
-		Vector p[] = {
+		Vector p[8] = {
 			//Front Points
 			{ box.lowest.x, box.lowest.y, box.lowest.z },
 			{ box.lowest.x, box.highest.y, box.lowest.z },
@@ -375,25 +377,78 @@ namespace Renderer {
 			{ box.highest.x, box.lowest.y, box.highest.z }
 		};
 		int size = sizeof(p) / sizeof(p[0]);
+		Vector projected[8];
 		for (int i = 0; i < size; i++) {
 			p[i] = transformVertex(p[i], tf);
-			p[i] = projectVertex(p[i]);
+			projected[i] = projectVertex(p[i]);
+		}
+		if (inTriangle) {
+			Vector tris[12][3] = {
+				//Front
+				{p[3],p[2],p[1]},
+				{p[3],p[1],p[0]},
+				//back
+				{p[6],p[5],p[4]},
+				{p[7],p[6],p[4]},
+				//left
+				{p[0],p[5],p[4]},
+				{p[0],p[1],p[5]},
+				//right
+				{p[7],p[6],p[2]},
+				{p[7],p[2],p[3]},
+				//top 1,5,6,2
+				{p[2],p[6],p[5]},
+				{p[2],p[5],p[1]},
+				//Bottom 4,0,3,7
+				{p[7],p[3],p[0]},
+				{p[7],p[0],p[4]},
+
+			};
+			Triangle boxTris[12] = {
+				{tris[0],{0,0,-1},red},
+				{tris[1],{0,0,-1},red},
+				{tris[2],{0,0,1},red},
+				{tris[3],{0,0,1},red},
+				{tris[4],{-1,0,0},red},
+				{tris[5],{-1,0,0},red},
+				{tris[6],{1,0,0},red},
+				{tris[7],{1,0,0},red},
+				{tris[8],{0,1,0},red},
+				{tris[9],{0,1,0},red},
+				{tris[10],{0,-1,0},red},
+				{tris[11],{0,-1,0},red},
+			};
+			size_t size = 12;
+			std::vector<Triangle> triangles;
+			for (int i = 0; i < size; i++) {
+				triangles.push_back(boxTris[i]);
+			}
+			std::vector<Triangle> FinalTris;
+			for (Triangle& t : triangles) {
+				std::vector<Triangle> clippedTris = clipTriangle(t);
+				for(Triangle& ct : clippedTris)
+					FinalTris.push_back(ct);
+			}
+			for (Triangle& t : FinalTris) {
+				drawTriangle(t, true);
+			}
+			return;
 		}
 		//Front lines
-		drawLine(p[0], p[1], red);
-		drawLine(p[1], p[2], red);
-		drawLine(p[2], p[3], red);
-		drawLine(p[3], p[0], red);
+		drawLine(projected[0], projected[1], red);
+		drawLine(projected[1], projected[2], red);
+		drawLine(projected[2], projected[3], red);
+		drawLine(projected[3], projected[0], red);
 		//Back lines
-		drawLine(p[4], p[5], red);
-		drawLine(p[5], p[6], red);
-		drawLine(p[6], p[7], red);
-		drawLine(p[7], p[4], red);
+		drawLine(projected[4], projected[5], red);
+		drawLine(projected[5], projected[6], red);
+		drawLine(projected[6], projected[7], red);
+		drawLine(projected[7], projected[4], red);
 		//Side lines
-		drawLine(p[0], p[4], red);
-		drawLine(p[1], p[5], red);
-		drawLine(p[2], p[6], red);
-		drawLine(p[3], p[7], red);
+		drawLine(projected[0], projected[4], red);
+		drawLine(projected[1], projected[5], red);
+		drawLine(projected[2], projected[6], red);
+		drawLine(projected[3], projected[7], red);
 	}
 
 	internal float intersectRaySphere(Vector& O, Vector& D, Sphere& sphere) {
@@ -638,15 +693,14 @@ namespace Renderer {
 				float d1 = planeIntersection(planes[i], t.p[0]);
 				float d2 = planeIntersection(planes[i], t.p[1]);
 				float d3 = planeIntersection(planes[i], t.p[2]);
-				if ((d1 > 0.f) && (d2 > 0.f) && (d3 > 0.f)) {
+				if ((d1 >= 0.f) && (d2 >= 0.f) && (d3 >= 0.f)) {
 					planeClipped.push_back(t);
 				}
-				else if ((d1 <= 0.f) && (d2 <= 0.f) && (d3 <= 0.f)) {
-					return {};
+				else if ((d1 < 0.f) && (d2 < 0.f) && (d3 < 0.f)) {
+					continue;
 				}
 				else {
 					//Discard triangle if any point goes behind with near plane
-					if (i == 0) continue;
 					int inCount = 0;
 					bool isin[3] = { false,false,false };
 					if (d1 > 0.f) {
