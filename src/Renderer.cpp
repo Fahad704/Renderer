@@ -913,7 +913,7 @@ namespace Renderer {
 		}
 
 	}
-	internal void renderMesh(const Mesh& mesh, Transform transform) {
+	internal void renderMesh(const Mesh& mesh, Transform transform,bool multithread = true) {
 		std::vector<Triangle> tris = {};
 
 		for (const Triangle& triangle : mesh.triangles) {
@@ -958,10 +958,15 @@ namespace Renderer {
 		}
 		sceneSettings.triSeenCount += tris.size();
 		bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
-		//for (Triangle& tri : tris) {
-		//	drawTriangle(tri, drawWireframe);
-		//}
-		drawTrianglesMultiThread(tris, drawWireframe,12);
+		if (!multithread) {
+			for (Triangle& tri : tris) {
+				drawTriangle(tri, drawWireframe);
+			}
+		}
+		else {
+			if (tris.size())
+				drawTrianglesMultiThread(tris, drawWireframe, 12);
+		}
 	}
 	internal Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
 		std::pair<Object*, float> intersection = closestIntersection(O, D, tMin, tMax);

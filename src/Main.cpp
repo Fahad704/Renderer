@@ -181,8 +181,8 @@ void init() {
 }
 void update(const Input& input) {
 	//Start counting frame time
-	Timer timer;
 #define MULTITHREAD_RT 1
+	Timer timer;
 	handleInput(input);
 	if (rendMode && change) {
 		//Ray trace
@@ -212,9 +212,12 @@ void update(const Input& input) {
 		Renderer::renderScene();
 		//change = false;
 	}
-
+	timer.Stop();
 	if (timer.dtms < frameLimit) {
 		Sleep(frameLimit - timer.dtms);
+		timer.dtms += (frameLimit - timer.dtms);
 	}
+	std::cout << 1 / (timer.dtms * 0.001) << " FPS ("<<timer.dtms<<" ms)\n";
+	timer.dtms = 0;
 }//Limit frame rate to reduce power consumption
 #endif

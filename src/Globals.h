@@ -16,8 +16,8 @@ bool change = true;
 //true = raytracer , false = rasterizer
 bool rendMode = false;
 
-//1ms
-float frameLimit = 1;
+//144 fps
+float frameLimit = 6.94444444f;
 double FOV = 90;
 Transform camera(Vector{ 0,0,0 }, 1, {0,0,0});
 Scene scene = {};
