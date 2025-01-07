@@ -1,6 +1,7 @@
 #ifndef RENDERER_CPP
 #define RENDERER_CPP
 #include "Window.cpp"
+#include <unordered_map>
 #include <cassert>
 #define WHITE {255,255,255}
 namespace Renderer {
@@ -215,7 +216,6 @@ namespace Renderer {
 		mesh.initTriangles();
 		return mesh;
 	}
-	static Mesh sphereMesh = loadOBJ("../Models/Sphere.obj");
 	Vector canvasToViewport(float x, float y) {
 		return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 	}
@@ -345,6 +345,7 @@ namespace Renderer {
 						newTri.p[1] = transformVertex(t.p[1],camera,RotateOrder::RO_XYZ);
 						newTri.p[2] = transformVertex(t.p[2],camera,RotateOrder::RO_XYZ);
 						Vector N = newTri.getNormal();
+						Vector centroid = newTri.getCentroid();
 						N = N / length(N);
 						Vector R = P - camera.position;
 						R = R / length(R);
@@ -613,21 +614,121 @@ namespace Renderer {
 		}
 		return i;
 	}
-	
-	internal std::vector<Triangle> clipTriangle(Triangle& t) {
-		//TODO(Fahad):Add Proper clipping
-		Vector nearN = { 0,0,1 };
-		Vector rightN = { float(-1 / sqrt(2)),0,float(1 / sqrt(2)) };
-		Vector leftN = { float(1 / sqrt(2)),0,float(1 / sqrt(2)) };;
-		Vector upN = { 0,float(-1 / sqrt(2)),float(1 / sqrt(2)) };
-		Vector downN = { 0,float(1 / sqrt(2)),float(1 / sqrt(2)) };
-		//Intentionally used OR to temperorily fix lag
-		if (((dot(t.p[0], nearN) - d) < 0.f) || ((dot(t.p[1], nearN) - d) < 0.f) || ((dot(t.p[2], nearN) - d) < 0.f))return {};
-		if ((dot(t.p[0], leftN) < 0.f) && (dot(t.p[1], leftN) < 0.f) && (dot(t.p[2], leftN) < 0.f))return {};
-		if ((dot(t.p[0], rightN) < 0.f) && (dot(t.p[1], rightN) < 0.f) && (dot(t.p[2], rightN) < 0.f))return {};
-		if ((dot(t.p[0], upN) < 0.f) && (dot(t.p[1], upN) < 0.f) && (dot(t.p[2], upN) < 0.f))return {};
-		if ((dot(t.p[0], downN) < 0.f) && (dot(t.p[1], downN) < 0.f) && (dot(t.p[2], downN) < 0.f))return {};
-		return { t };
+	//returns a signed distance from the point to the plane
+	inline float planeIntersection(Plane& plane, Vector& point){
+		return ((dot(point, plane.normal)) + plane.offset);
+	}
+	float edgePlaneIntersection(Plane& plane, const Vector& A, const Vector& B) {
+		// P = A + t(B - A)
+		// <N,P> + D = 0
+		// <N,(A + t(B - A))> + D = 0
+		// <N,A> + t(<N,B - A>) + D = 0
+		// <N,A> + t(<N,B - A>) = -D
+		// <N,A> + t = -D / <N,(B - A)>
+		// t = -D - <N,A>/ <N,(B - A)>
+		return (-plane.offset - dot(plane.normal, A)) / dot(plane.normal, (B - A));
+	}
+	internal std::vector<Triangle> clipTriangle(Triangle& tri) {
+		//TODO(Fahad):Fix weird triangle colouring bug
+		std::vector<Triangle> triangles = {tri};
+		for (int i = 0; i < 5; i++) {
+			std::vector<Triangle> planeClipped = {};
+			for (Triangle& t : triangles) {
+
+				float d1 = planeIntersection(planes[i], t.p[0]);
+				float d2 = planeIntersection(planes[i], t.p[1]);
+				float d3 = planeIntersection(planes[i], t.p[2]);
+				if ((d1 > 0.f) && (d2 > 0.f) && (d3 > 0.f)) {
+					planeClipped.push_back(t);
+				}
+				else if ((d1 <= 0.f) && (d2 <= 0.f) && (d3 <= 0.f)) {
+					return {};
+				}
+				else {
+					//Discard triangle if any point goes behind with near plane
+					if (i == 0) continue;
+					int inCount = 0;
+					bool isin[3] = { false,false,false };
+					if (d1 > 0.f) {
+						inCount++;
+						isin[0] = true;
+					}
+					if (d2 > 0.f) {
+						inCount++;
+						isin[1] = true;
+					}
+					if (d3 > 0.f) {
+						inCount++;
+						isin[2] = true;
+					}
+					int invec[2] = { -1,-1 };
+					int outvec[2] = { -1,-1 };
+					int j = 0, k = 0;
+					for (int v = 0; v < 3; v++) {
+						if (isin[v]) {
+							invec[j] = v;
+							j++;
+						}
+						else {
+							outvec[k] = v;
+							k++;
+						}
+					}
+
+					if (inCount == 1) {
+
+						Vector A, B, C;
+						A = t.p[invec[0]];
+						B = t.p[outvec[0]];
+						C = t.p[outvec[1]];
+
+						float edgeIntAB = edgePlaneIntersection(planes[i], A, B);
+						float edgeIntAC = edgePlaneIntersection(planes[i], A, C);
+
+						B = A + (edgeIntAB * (B - A));
+						C = A + (edgeIntAC * (C - A));
+						
+						Vector p[3];
+						p[invec[0]] = A;
+						p[outvec[0]] = B;
+						p[outvec[1]] = C;
+						Triangle newTri(p, { 0,0,0 }, t.color, t.specular, t.reflectiveness);
+						newTri.normal = newTri.getNormal() / length(newTri.getNormal());
+						planeClipped.push_back(newTri);
+					}
+					else if (inCount == 2) {
+						Vector A, B, C;
+						A = t.p[invec[0]];
+						B = t.p[invec[1]];
+						C = t.p[outvec[0]];
+
+						float edgeIntAC = edgePlaneIntersection(planes[i], A, C);
+						float edgeIntBC = edgePlaneIntersection(planes[i], B, C);
+
+						Vector newB;
+						newB = B + (edgeIntBC * (C - B));
+						C = A + (edgeIntAC * (C - A));
+						Vector p1[3];
+						p1[invec[0]] = A;
+						p1[invec[1]] = B;
+						p1[outvec[0]] = newB;
+						Vector p2[3];
+						p2[invec[0]] = newB;
+						p2[invec[1]] = C;
+						p2[outvec[0]] = A;
+						Triangle newTri1(p1, { 0,0,0 }, t.color, t.specular, t.reflectiveness);
+						Triangle newTri2(p2, { 0,0,0 }, t.color, t.specular, t.reflectiveness);
+						newTri1.normal = newTri1.getNormal() / length(newTri1.getNormal());
+						newTri2.normal = newTri2.getNormal() / length(newTri2.getNormal());
+						planeClipped.push_back(newTri1);
+						planeClipped.push_back(newTri2);
+					}
+				}
+			}
+			triangles.clear();
+			triangles = planeClipped;
+		}
+		return { triangles };
 	}
 	internal void FXAAthr(int threadNum,int threadCount, float edgeThreshold = 0.f) {
 		int yCount = (renderState.height - 2) / threadCount;
@@ -675,58 +776,62 @@ namespace Renderer {
 			}
 		}
 	}
-	internal void FXAA() {
+	internal void FXAA(bool multiThread = true) {
 		float edgeThreshold = 0.f;
-		/*
-		for (int y = 1; y < (renderState.height - 1); y++) {
-			for (int x = 1; x < (renderState.width - 1); x++) {
-				Colour colorCenter = getPixel(x, y);
-				Colour colorTop = getPixel(x, y - 1);
-				Colour colorBottom = getPixel(x, y + 1);
-				Colour colorLeft = getPixel(x - 1, y);
-				Colour colorRight = getPixel(x + 1, y);
+		if (!multiThread) {
+			//Single Threaded
+			for (int y = 1; y < (renderState.height - 1); y++) {
+				for (int x = 1; x < (renderState.width - 1); x++) {
+					Colour colorCenter = getPixel(x, y);
+					Colour colorTop = getPixel(x, y - 1);
+					Colour colorBottom = getPixel(x, y + 1);
+					Colour colorLeft = getPixel(x - 1, y);
+					Colour colorRight = getPixel(x + 1, y);
 
-				float centerLuma = colorCenter.luminance();
-				float topLuma = colorTop.luminance();
-				float bottomLuma = colorBottom.luminance();
-				float leftLuma = colorLeft.luminance();
-				float rightLuma = colorRight.luminance();
+					float centerLuma = colorCenter.luminance();
+					float topLuma = colorTop.luminance();
+					float bottomLuma = colorBottom.luminance();
+					float leftLuma = colorLeft.luminance();
+					float rightLuma = colorRight.luminance();
 
-				float edgeHorizontal = std::abs(leftLuma - rightLuma);
-				float edgeVertical = std::abs(topLuma - bottomLuma);
+					float edgeHorizontal = std::abs(leftLuma - rightLuma);
+					float edgeVertical = std::abs(topLuma - bottomLuma);
 
-				bool isHorizontal = (edgeHorizontal >= edgeVertical);
+					bool isHorizontal = (edgeHorizontal >= edgeVertical);
 
-				Colour blendColour;
-				if (isHorizontal) {
-					blendColour.R = ((colorTop.R + colorBottom.R) * 0.5f);
-					blendColour.G = ((colorTop.G + colorBottom.G) * 0.5f);
-					blendColour.B = ((colorTop.B + colorBottom.B) * 0.5f);
-				}
-				else {
-					blendColour.R = ((colorLeft.R + colorRight.R) * 0.5f);
-					blendColour.G = ((colorLeft.G + colorRight.G) * 0.5f);
-					blendColour.B = ((colorLeft.B + colorRight.B) * 0.5f);
-				}
+					Colour blendColour;
+					if (isHorizontal) {
+						blendColour.R = ((colorTop.R + colorBottom.R) * 0.5f);
+						blendColour.G = ((colorTop.G + colorBottom.G) * 0.5f);
+						blendColour.B = ((colorTop.B + colorBottom.B) * 0.5f);
+					}
+					else {
+						blendColour.R = ((colorLeft.R + colorRight.R) * 0.5f);
+						blendColour.G = ((colorLeft.G + colorRight.G) * 0.5f);
+						blendColour.B = ((colorLeft.B + colorRight.B) * 0.5f);
+					}
 
-				bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
+					bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
 
-				if (isEdge) {
-					putPixelD(x, y, blendColour);
-				}
-				else {
-					putPixelD(x, y, colorCenter);
+					if (isEdge) {
+						putPixelD(x, y, blendColour);
+					}
+					else {
+						putPixelD(x, y, colorCenter);
+					}
 				}
 			}
 		}
-		*/
-		int threadCount = 12;
-		std::vector<std::thread> tObjs(threadCount);
-		for (int i = 0; i < threadCount; i++) {
-			tObjs[i] = std::thread(FXAAthr, i, threadCount,0.f);
-		}
-		for (int i = 0; i < threadCount; i++) {
-			tObjs[i].join();
+		else {
+			//Multi-Threaded
+			int threadCount = 12;
+			std::vector<std::thread> tObjs(threadCount);
+			for (int i = 0; i < threadCount; i++) {
+				tObjs[i] = std::thread(FXAAthr, i, threadCount, 0.f);
+			}
+			for (int i = 0; i < threadCount; i++) {
+				tObjs[i].join();
+			}
 		}
 	}
 	internal void drawTrianglesThr(std::vector<Triangle>& tris,size_t start,size_t end, bool drawWireframe) {
@@ -799,6 +904,9 @@ namespace Renderer {
 		}
 		sceneSettings.triSeenCount += tris.size();
 		bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
+		//for (Triangle& tri : tris) {
+		//	drawTriangle(tri, drawWireframe);
+		//}
 		drawTrianglesMultiThread(tris, drawWireframe,12);
 	}
 	internal Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
@@ -846,7 +954,7 @@ namespace Renderer {
 				Vector direction = canvasToViewport(x - (canvas.x / 2.f), (canvas.y / 2.f) - y);
 				direction = rotate(direction,camera.rotation,RotateOrder::RO_XYZ);
 				direction = direction / length(D);
-				Colour result = traceRay(camera.position, direction, 1, infinity, 0);
+				Colour result = traceRay(camera.position, direction, 1, infinity, 3);
 				putPixelD(x, y, result);
 			}
 		}
@@ -867,6 +975,7 @@ namespace Renderer {
 	}
 	void renderScene() {
 		clearScreen(0x646464);
+		static std::unordered_map<Sphere, Mesh> sphereMeshCache = {};
 		sceneSettings.triSeenCount = 0;
 		//Render meshes
 		for (Instance& ins : scene.instances) {
@@ -874,7 +983,14 @@ namespace Renderer {
 		}
 
 		for (Sphere& sphere : scene.spheres) {
-			Mesh sphereM = loadOBJ("../Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
+			Mesh sphereM;
+			if (sphereMeshCache.find(sphere) == sphereMeshCache.end()) {
+				sphereM = loadOBJ("../Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
+				sphereMeshCache[sphere] = sphereM;
+			}
+			else {
+				sphereM = sphereMeshCache[sphere];
+			}
 			Instance sphereIns(sphereM, (sphere.center + Vector{ 0,-0.2f,0 }), sphere.radius * 0.4f);
 			renderMesh(*sphereIns.mesh, sphereIns.transform);
 		}

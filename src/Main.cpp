@@ -156,9 +156,9 @@ void handleInput(const Input& input) {
 void init() {
 	//Spheres (currently only rendered in ray tracing)
 	std::vector<Sphere> spheres = {
-		//{{0,0,-3},1.f,{255,0,0},100,0.4f },
-		//{{-1,0,-4},1.f,{0,255,0},100,0.4f },
-		//{{1,0,-4},1.f,{0,0,255},100,0.4f }
+		{{0,0,-3},1.f,{255,0,0},100,0.4f },
+		{{-1,0,-4},1.f,{0,255,0},100,0.4f },
+		{{1,0,-4},1.f,{0,0,255},100,0.4f }
 	};
 
 	std::vector<Light> lights = {
@@ -172,9 +172,10 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
+
 	static Mesh cube = Renderer::loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,1000);
 	instances = {
-		{cube, {0,-0.8,3},1.f,{0,0,0}}
+		{cube, {0,0,3},1.f,{0,0,0}}
 	};
 
 	scene = { spheres,triangles,instances,lights };

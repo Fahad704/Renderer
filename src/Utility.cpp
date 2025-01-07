@@ -60,7 +60,7 @@ struct SceneSettings {
 	int triSeenCount;
 	DebugState debugState;
 	bool lockMouse;
-}sceneSettings = { true,true,0,DebugState::DS_BOUNDING_BOX, true };
+}sceneSettings = { true,true,0,DebugState::DS_OFF, true };
 enum LightType {
 	LT_POINT,
 	LT_DIRECTIONAL,
@@ -150,7 +150,7 @@ public:
 		this->B = B;
 	}
 
-	bool operator==(Colour& op) {
+	bool operator==(const Colour& op)const {
 		return (this->R == op.R && this->G == op.G && this->B == op.B);
 	}
 	Colour operator*(const float num) {
@@ -193,6 +193,8 @@ internal Colour hexToRGB(u32 hex) {
 u32 rgbtoHex(Colour RGB) {
 	return u32((RGB.R << 16) | (RGB.G << 8) | RGB.B);
 }
+
+
 enum class Type
 {
 	ST_BASE=0,
@@ -222,6 +224,44 @@ struct Sphere : Object{
 	virtual Type getType()
 	{
 		return Type::ST_SPHERE;
+	}
+	bool operator==(const Sphere& sphere) const {
+		return ((sphere.color == this->color) && (sphere.specular == this->specular) && (sphere.reflectiveness == this->reflectiveness));
+	}
+};
+
+template<typename T>
+inline void hashCombine(std::size_t& seed, const T& value) {
+	seed ^= (std::hash<T>()(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+}
+template<>
+struct std::hash<Vector> {
+	std::size_t operator()(const Vector& vec) const {
+		std::size_t seed = 0;
+		hashCombine(seed, vec.x);
+		hashCombine(seed, vec.y);
+		hashCombine(seed, vec.z);
+		return seed;
+	}
+};
+template<>
+struct std::hash<Colour> {
+	std::size_t operator()(const Colour& color)const {
+		return std::size_t(rgbtoHex(color));
+	}
+};
+
+//Custom Sphere Hashing
+template<>
+struct std::hash<Sphere>{
+	std::size_t operator()(const Sphere& sphere) const {
+		std::size_t seed = 0;
+		hashCombine(seed, sphere.center);
+		hashCombine(seed, sphere.radius);
+		hashCombine(seed, sphere.color);
+		hashCombine(seed, sphere.reflectiveness);
+		hashCombine(seed, sphere.specular);
+		return seed;
 	}
 };
 struct Triangle : Object {
@@ -260,6 +300,10 @@ struct Triangle : Object {
 	Vector getCentroid() {
 		return ((p[0] + p[1] + p[2])/3);
 	}
+};
+struct Plane {
+	Vector normal;
+	float offset;
 };
 struct Texture
 {
