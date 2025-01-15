@@ -130,6 +130,7 @@ input.buttons[b].isDown = isDown;\
 					process_messages(BUTTON_SPACE, VK_SPACE)
 					process_messages(BUTTON_ESC, VK_ESCAPE)
 					process_messages(BUTTON_SHIFT, VK_SHIFT)
+					process_messages(BUTTON_CTRL, VK_CONTROL)
 					process_messages(BUTTON_A, 'A')
 					process_messages(BUTTON_B, 'B')
 					process_messages(BUTTON_C, 'C')

@@ -419,57 +419,73 @@ enum class RotateOrder {
 	RO_YXZ = 0,
 	RO_XYZ
 };
-internal Vector rotate(const Vector& vec, const Vector& rotationP,RotateOrder ro = RotateOrder::RO_YXZ) {
+internal Vector rotate(const Vector& vec, const Vector& rotationP, RotateOrder ro = RotateOrder::RO_YXZ,bool cached = false) {
+	
+	static float sinx, siny, sinz, cosx, cosy, cosz;
+	static Vector lastRot = {0,0,0};
+
+	
+
 	if (rotationP == Vector{ 0,0,0 }) {
 		return vec;
 	}
 	Vector rotation = { float(rotationP.x * (PI * 2)) / 360.f,float(rotationP.y * (PI * 2)) / 360.f,float(rotationP.z * (PI * 2)) / 360.f };
+
+	if ((rotationP != lastRot) || (!cached)) {
+		lastRot = rotationP;
+		sinx = sin(rotation.x);
+		siny = sin(rotation.y);
+		sinz = sin(rotation.z);
+
+		cosx = cos(rotation.x);
+		cosy = cos(rotation.y);
+		cosz = cos(rotation.z);
+	}
+
 	Vector result = {};
 	if (ro == RotateOrder::RO_YXZ) {
 		//Yaw
 		Vector yrotated;
 		yrotated.y = vec.y;
-		yrotated.x = vec.x * std::cos(rotation.y) + vec.z * (-std::sin(rotation.y));
-		yrotated.z = vec.x * std::sin(rotation.y) + vec.z * std::cos(rotation.y);
+		yrotated.x = vec.x * cosy + vec.z * (-siny);
+		yrotated.z = vec.x * siny + vec.z * cosy;
 
 		//Pitch
 		Vector xrotated;
 		xrotated.x = yrotated.x;
-		xrotated.y = yrotated.y * std::cos(rotation.x) + yrotated.z * (-std::sin(rotation.x));
-		xrotated.z = yrotated.y * std::sin(rotation.x) + yrotated.z * std::cos(rotation.x);
+		xrotated.y = yrotated.y * cosx + yrotated.z * (-sinx);
+		xrotated.z = yrotated.y * sinx + yrotated.z * cosx;
 
 		//Roll
 		Vector zrotated;
 		zrotated.z = xrotated.z;
-		zrotated.x = xrotated.x * std::cos(rotation.z) + xrotated.y * (-std::sin(rotation.z));
-		zrotated.y = xrotated.x * std::sin(rotation.z) + xrotated.y * std::cos(rotation.z);
+		zrotated.x = xrotated.x * cosz + xrotated.y * (-sinz);
+		zrotated.y = xrotated.x * sinz + xrotated.y * cosz;
 
 		result = zrotated;
 	}
 	else if (ro == RotateOrder::RO_XYZ) {
 		Vector xrotated;
 		xrotated.x = vec.x;
-		xrotated.y = vec.y * std::cos(rotation.x) + vec.z * (-std::sin(rotation.x));
-		xrotated.z = vec.y * std::sin(rotation.x) + vec.z * std::cos(rotation.x);
+		xrotated.y = vec.y * cosx + vec.z * (-sinx);
+		xrotated.z = vec.y * sinx + vec.z * cosx;
 
 		Vector yrotated;
 		yrotated.y = xrotated.y;
-		yrotated.x = xrotated.x * std::cos(rotation.y) + xrotated.z * (-std::sin(rotation.y));
-		yrotated.z = xrotated.x * std::sin(rotation.y) + xrotated.z * std::cos(rotation.y);
+		yrotated.x = xrotated.x * cosy + xrotated.z * (-siny);
+		yrotated.z = xrotated.x * siny + xrotated.z * cosy;
 
 		Vector zrotated;
 		zrotated.z = yrotated.z;
-		zrotated.x = yrotated.x * std::cos(rotation.z) + yrotated.y * (-std::sin(rotation.z));
-		zrotated.y = yrotated.x * std::sin(rotation.z) + yrotated.y * (std::cos(rotation.z));
+		zrotated.x = yrotated.x * cosz + yrotated.y * (-sinz);
+		zrotated.y = yrotated.x * sinz + yrotated.y * (cosz);
 
 		result = zrotated;
 	}
 	return result;
 }
-internal Vector transformVertex(Vector vec, const Transform& tf,RotateOrder ro = RotateOrder::RO_YXZ) {
-	Vector rotated = rotate(vec, tf.rotation,ro);
-	Vector translated = (rotated * tf.scale) + tf.position;
-	return translated;
+inline Vector transformVertex(Vector vec, const Transform& tf,RotateOrder ro = RotateOrder::RO_YXZ) {
+	return ((rotate(vec, tf.rotation, ro) * tf.scale) + tf.position);
 }
 struct Instance {
 	Mesh* mesh;

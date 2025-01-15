@@ -22,9 +22,15 @@
 */
 //frame delta time
 double fdt=0.06;
+float totalFrameTime=0.f;
+int frameCount=0;
 void handleInput(const Input& input) {
+	const float sensitivity = 1.2f;
 	Vector mouseDiff = sceneSettings.lockMouse ? getMouseDiff() : 0;
-	float speed = 2.f;
+	mouseDiff = mouseDiff * sensitivity;
+	const float defSpeed = 2.f;
+	const float boostSpeed = 10.f;
+	float speed = defSpeed;
 	Vector velocity = { 0.0,0.0,0.0 };
 	if (isDown(BUTTON_ESC)) {
 		running = false;
@@ -40,13 +46,18 @@ void handleInput(const Input& input) {
 	if (isDown(BUTTON_D)) {
 		velocity = velocity + Vector{1.0,0,0};
 	}
-	if (isDown(BUTTON_SHIFT))
+	if (isDown(BUTTON_CTRL))
 		velocity = velocity + Vector{0,-1.0,0};
 	if (isDown(BUTTON_SPACE)) {
 		velocity = velocity + Vector{0,1.0,0};
 	}
 	
-	
+	if (isDown(BUTTON_SHIFT)) {
+		speed = boostSpeed;
+	}
+	else {
+		speed = defSpeed;
+	}
 
 	//Normalize move vector and move the Camera
 	if (!(velocity == Vector{ 0,0,0 })) {
@@ -153,7 +164,7 @@ void handleInput(const Input& input) {
 	}
 }
 void init() {
-	//Spheres (currently only rendered in ray tracing)
+	//Spheres
 	std::vector<Sphere> spheres = {
 		{{0,0,-3},1.f,{255,0,0},100,0.4f },
 		{{-1,0,-4},1.f,{0,255,0},100,0.4f },
@@ -171,17 +182,15 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-
-	static Mesh cube = Renderer::loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,1000);
+	static Mesh model = Renderer::loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,-1.f);
 	instances = {
-		{cube, {0,0,3},1.f,{0,0,0}}
+		{model, {0,-1,3},1.f,{0,0,0}},
 	};
 
 	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
 	//Start counting frame time
-#define MULTITHREAD_RT 1
 	Timer timer;
 	handleInput(input);
 	if (rendMode && change) {
@@ -189,7 +198,7 @@ void update(const Input& input) {
 		Renderer::clearScreen(0x000000);
 		//Ray tracing with 12 threads
 		//it is still slow
-#if MULTITHREAD_RT
+#if 1
 		size_t threadCount = 12;
 		std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
@@ -210,14 +219,17 @@ void update(const Input& input) {
 	else if (change) {
 		//Rasterize
 		Renderer::renderScene();
-		//change = false;
 	}
+	//Limit frame rate to reduce power consumption
 	timer.Stop();
 	if (timer.dtms < frameLimit) {
 		Sleep(frameLimit - timer.dtms);
 		timer.dtms += (frameLimit - timer.dtms);
 	}
-	std::cout << 1 / (timer.dtms * 0.001) << " FPS ("<<timer.dtms<<" ms)\n";
+	//FPS count
+	totalFrameTime += (timer.dtms * 0.001);
+	frameCount++;
+	std::cout << "CUR : "<< 1 / (timer.dtms * 0.001) << " AVG : " << (1 / (totalFrameTime / frameCount)) << "\n";
 	timer.dtms = 0;
-}//Limit frame rate to reduce power consumption
+}
 #endif

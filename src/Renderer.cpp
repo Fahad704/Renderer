@@ -384,16 +384,16 @@ namespace Renderer {
 		}
 		if (inTriangle) {
 			Vector tris[12][3] = {
-				//Front
+				//Front 0,1,2,3
 				{p[3],p[2],p[1]},
 				{p[3],p[1],p[0]},
-				//back
+				//back 4,5,6,7
 				{p[6],p[5],p[4]},
 				{p[7],p[6],p[4]},
-				//left
-				{p[0],p[5],p[4]},
+				//left 4,5,1,0
 				{p[0],p[1],p[5]},
-				//right
+				{p[0],p[5],p[4]},
+				//right 3,2,6,5
 				{p[7],p[6],p[2]},
 				{p[7],p[2],p[3]},
 				//top 1,5,6,2
@@ -556,10 +556,6 @@ namespace Renderer {
 		}
 		return true;
 	}
-	internal std::vector<Triangle> getBVHTris(Instance& instance) {
-		//TODO(Fahad):implement BVH
-		return {};
-	}
 	internal std::pair<Object*, float> closestIntersection(Vector O, Vector D, float tMin, float tMax) {
 		float closestT = infinity;
 		Object* closestObject = nullptr;
@@ -605,9 +601,9 @@ namespace Renderer {
 			for (Triangle& triangle : triangles)
 			{
 				Triangle tri;
-				tri.p[0] = transformVertex(triangle.p[0], instance.transform);
-				tri.p[1] = transformVertex(triangle.p[1], instance.transform);
-				tri.p[2] = transformVertex(triangle.p[2], instance.transform);
+				tri.p[0] = transformVertex(triangle.p[0],instance.transform);
+				tri.p[1] = transformVertex(triangle.p[1],instance.transform);
+				tri.p[2] = transformVertex(triangle.p[2],instance.transform);
 
 				if (camera.rotation.x != 0) {
 					std::cout << "";
@@ -700,7 +696,6 @@ namespace Renderer {
 					continue;
 				}
 				else {
-					//Discard triangle if any point goes behind with near plane
 					int inCount = 0;
 					bool isin[3] = { false,false,false };
 					if (d1 > 0.f) {
@@ -746,8 +741,7 @@ namespace Renderer {
 						p[invec[0]] = A;
 						p[outvec[0]] = B;
 						p[outvec[1]] = C;
-						Triangle newTri(p, { 0,0,0 }, t.color, t.specular, t.reflectiveness);
-						newTri.normal = newTri.getNormal() / length(newTri.getNormal());
+						Triangle newTri(p, (t.normal / length(t.normal)), t.color, t.specular, t.reflectiveness);
 						planeClipped.push_back(newTri);
 					}
 					else if (inCount == 2) {
@@ -770,10 +764,8 @@ namespace Renderer {
 						p2[invec[0]] = newB;
 						p2[invec[1]] = C;
 						p2[outvec[0]] = A;
-						Triangle newTri1(p1, { 0,0,0 }, t.color, t.specular, t.reflectiveness);
-						Triangle newTri2(p2, { 0,0,0 }, t.color, t.specular, t.reflectiveness);
-						newTri1.normal = newTri1.getNormal() / length(newTri1.getNormal());
-						newTri2.normal = newTri2.getNormal() / length(newTri2.getNormal());
+						Triangle newTri1(p1, (t.normal / length(t.normal)), t.color, t.specular, t.reflectiveness);
+						Triangle newTri2(p2, (t.normal / length(t.normal)), t.color, t.specular, t.reflectiveness);
 						planeClipped.push_back(newTri1);
 						planeClipped.push_back(newTri2);
 					}

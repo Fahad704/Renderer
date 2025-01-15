@@ -7,6 +7,7 @@
 Vector canvas(720, 720);
 //less = more FOV , more = lesser FOV
 const float d = 0.52f;
+const float farDist = 100.f;
 Vector D = {1,1,1};
 float vpWidth = 1.f;
 float vpHeight = 1.f;
@@ -23,9 +24,11 @@ Transform camera(Vector{ 0,0,0 }, 1, {0,0,0});
 Scene scene = {};
 //temp
 Triangle tempTri;
-Plane planes[5] = {
+Plane planes[6] = {
 	//Near
-	{ {0, 0, 1},d },
+	{ {0, 0, 1},-d },
+	//far
+	{ {0, 0, -1},farDist },
 	//Right
 	{ {float(-1 / sqrt(2)),0,float(1 / sqrt(2))},0.f },
 	//Left
