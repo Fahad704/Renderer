@@ -23,7 +23,8 @@ This project is inspired by Gabriel Gambetta's *Computer Graphics From Scratch* 
 
 ### Controls
 - **W, A, S, D**: Move the camera.
-- **Space/Shift**: Move the camera up/down.
+- **Space/CTRL**: Move the camera up/down.
+- **SHIFT**: Increase moving speed.
 - **Mouse**: Rotate the camera.
 - **Key Bindings**:
   - `R`: Toggle ray tracing/rasterization.
@@ -47,19 +48,24 @@ This project is inspired by Gabriel Gambetta's *Computer Graphics From Scratch* 
 
 ### Build Instructions
 Clone the repository:
-```bash
+```batch
 git clone https://github.com/Fahad704/Renderer.git
 cd Renderer
 ```
-
+#### Using Cmake
+```batch
+mkdir build
+cd build
+cmake ..
+```
 #### Using GCC and Iconv
-```bash
+```batch
 cd src
 Build.bat
 ```
 
 #### Without Iconv
-```bash
+```batch
 cd src
 build-no-icon.bat
 ```
@@ -111,4 +117,3 @@ Contributions are welcome! To get started:
 
 ## Acknowledgments
 - **Gabriel Gambetta**: For inspiration through *Computer Graphics From Scratch*.
-- **ChatGPT** : Readme written by *ChatGPT*.
