@@ -1,9 +1,12 @@
+.gitignore
 Debug/
 x64/
 Release/
 bin/*.exe
 int/*.o
+build/*
 *.vcxproj.filters
+*.vcxproj
 *.aps
 *.user
 *.sln
