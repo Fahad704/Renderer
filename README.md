@@ -58,6 +58,7 @@ mkdir build
 cd build
 cmake ..
 cmake --build . --config Release
+Release\Renderer.exe
 ```
 #### Using GCC and Iconv
 ```batch
