@@ -53,23 +53,31 @@ git clone https://github.com/Fahad704/Renderer.git
 cd Renderer
 ```
 #### Using Cmake
+##### Generating build files
 ```batch
 mkdir build
 cd build
 cmake ..
+
+```
+##### Building and running
+```batch
 cmake --build . --config Release
 Release\Renderer.exe
+
 ```
 #### Using GCC and Iconv
 ```batch
 cd src
 Build.bat
+
 ```
 
 #### Without Iconv
 ```batch
 cd src
 build-no-icon.bat
+
 ```
 
 #### Using Visual Studio
@@ -81,6 +89,7 @@ After building, run the executable from the `bin` directory:
 ```bash
 cd bin
 Renderer.exe
+
 ```
 
 ## Sample Outputs
