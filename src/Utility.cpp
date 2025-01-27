@@ -409,7 +409,7 @@ struct Transform {
 		scale = 0;
 		rotation = 0;
 	}
-	Transform(Vector position, float scale, Vector rotation) {
+	Transform(const Vector& position,const float scale,const Vector& rotation) {
 		this->position = position;
 		this->scale = scale;
 		this->rotation = rotation;
@@ -491,7 +491,7 @@ struct Instance {
 	Mesh* mesh;
 	Transform transform;
 	Box boundingBox;
-	Instance(Mesh& mesh , Vector position = { 0,0,0 },float scale = 1,Vector rotation = {0,0,0}) {
+	Instance(Mesh& mesh ,const Vector& position = { 0,0,0 },float scale = 1,const Vector& rotation = {0,0,0}) {
 		this->mesh = &mesh;
 		transform.position = position;
 		transform.scale = scale;

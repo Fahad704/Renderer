@@ -132,80 +132,81 @@ namespace Renderer {
 			{"v ", VERTEX_MODE},
 			{"vt", TEXTURE_MODE},
 			{"vn", NORMAL_MODE},
-			{"f ", FACE_MODE} };
+			{"f ", FACE_MODE}
+		};
 		while (std::getline(OBJFile, line))
 		{
 			std::string m = line.substr(0, 2);
 			mode = map[m];
 			switch (mode)
 			{
-			case VERTEX_MODE:
-			{
-				std::istringstream iss(line.substr(2));
-				float x = 0, y = 0, z = 0;
-				iss >> x >> y >> z;
-				vertexes.push_back({ x,y,z });
-			}
-			break;
-			case TEXTURE_MODE:
-			{
-				std::istringstream iss(line.substr(3));
-				float u, v, w;
-				iss >> u >> v >> w;
-				Texture newtext({ u, v, w });
-				texture.push_back(newtext);
-			}
-			break;
-			case NORMAL_MODE:
-			{
-				std::istringstream iss(line.substr(3));
-				float x, y, z;
-				iss >> x >> y >> z;
-				Vector newnorm(x, y, z);
-				normals.push_back(newnorm);
-			}
-			break;
-			case FACE_MODE:
-			{
-				std::istringstream iss(line.substr(2));
-				std::string s[3];
-				iss >> s[0] >> s[1] >> s[2];
-				Index index[3];
-
-				for (int i = 0; i < 3; i++)
+				case VERTEX_MODE:
 				{
-					std::string str = "";
-					int ind[3] = {};
-					int k = 0;
-					for (int j = 0; j < s[i].length(); j++)
-					{
-						if (s[i][j] == '/')
-						{
-							if (str.length())
-							{
-								std::istringstream iss(str);
-								iss >> ind[k];
-							}
-							else {
-								ind[k] = -1;//no index
-							}
-							str = "";
-							k++;
-							continue;
-						}
-						str += s[i][j];
-					}
-					index[i] = { ind[0],ind[1],ind[2] };
+					std::istringstream iss(line.substr(2));
+					float x = 0, y = 0, z = 0;
+					iss >> x >> y >> z;
+					vertexes.push_back({ x,y,z });
 				}
-				Face newface = { index[0],index[1],index[2] };
-				faces.push_back(newface);
-			}
-			break;
-			default:
-			{
-				continue;
-			}
-			break;
+				break;
+				case TEXTURE_MODE:
+				{
+					std::istringstream iss(line.substr(3));
+					float u, v, w;
+					iss >> u >> v >> w;
+					Texture newtext({ u, v, w });
+					texture.push_back(newtext);
+				}
+				break;
+				case NORMAL_MODE:
+				{
+					std::istringstream iss(line.substr(3));
+					float x, y, z;
+					iss >> x >> y >> z;
+					Vector newnorm(x, y, z);
+					normals.push_back(newnorm);
+				}
+				break;
+				case FACE_MODE:
+				{
+					std::istringstream iss(line.substr(2));
+					std::string s[3];
+					iss >> s[0] >> s[1] >> s[2];
+					Index index[3];
+
+					for (int i = 0; i < 3; i++)
+					{
+						std::string str = "";
+						int ind[3] = {};
+						int k = 0;
+						for (int j = 0; j < s[i].length(); j++)
+						{
+							if (s[i][j] == '/')
+							{
+								if (str.length())
+								{
+									std::istringstream isstr(str);
+									isstr >> ind[k];
+								}
+								else {
+									ind[k] = -1;//no index
+								}
+								str = "";
+								k++;
+								continue;
+							}
+							str += s[i][j];
+						}
+						index[i] = { ind[0],ind[1],ind[2] };
+					}
+					Face newface = { index[0],index[1],index[2] };
+					faces.push_back(newface);
+				}
+				break;
+				default:
+				{
+					continue;
+				}
+				break;
 			}
 		}
 		OBJFile.close();
@@ -244,6 +245,8 @@ namespace Renderer {
 		Vector p1 = projectVertex(t.p[0]);
 		Vector p2 = projectVertex(t.p[1]);
 		Vector p3 = projectVertex(t.p[2]);
+		Vector N = t.getNormal();
+		N = N / length(N);
 		p1.z = t.p[0].z;
 		p2.z = t.p[1].z;
 		p3.z = t.p[2].z;
@@ -280,9 +283,11 @@ namespace Renderer {
 		interpolate(p2.x, p2.y, p3.x, p3.y, x12);
 		interpolate(p1.x, p1.y, p3.x, p3.y, x02);
 
-		interpolate(p1.z, p1.y, p2.z, p2.y, z01);
-		interpolate(p2.z, p2.y, p3.z, p3.y, z12);
-		interpolate(p1.z, p1.y, p3.z, p3.y, z02);
+		interpolate(1/p1.z, p1.y, 1/p2.z, p2.y, z01);
+		interpolate(1/p2.z, p2.y, 1/p3.z, p3.y, z12);
+		interpolate(1/p1.z, p1.y, 1/p3.z, p3.y, z02);
+		
+
 
 		//concatenate short sides in 0-1
 		for (const float& val : x12) {
@@ -328,14 +333,14 @@ namespace Renderer {
 			for (int x = int(xL); x < int(xR); x++) {
 				//Per Fragment
 				float z = zSegment[x - int(xL)];
-				Vector T = canvasToViewport((x * z) / d, (y * z) / d);
-				T.z = z;
+				Vector T = canvasToViewport((x * (1 / z)) / d, (y * (1 / z)) / d);
+				T.z = 1/z;
 				if (isIn(float(x), float(-canvas.x / 2.f), float(canvas.x / 2.f)) && isIn(float(y), float(-canvas.y / 2.f), float(canvas.y / 2.f))) {
 					int nx = int(x + (renderState.width / 2.0));
 					int ny = int((renderState.height / (float)2.f) - y);
 					//Pointer to depth buffer
 					float* dep = ((float*)(depth)) + (ny * renderState.width) + nx;
-					if (1 / z > (*dep)) {
+					if (z > (*dep)) {
 						//Point in camera space
 						Vector P = T;
 						//Camera space to world space
@@ -351,14 +356,14 @@ namespace Renderer {
 						R = R / length(R);
 						float light = computeLight(P, N, R, t.specular, false);
 						putPixel(x, y, (color * light));
-						*dep = 1 / z;
+						*dep = z;
 					}
 				}
 			}
 		}
 	}
 	static std::vector<Triangle> clipTriangle(Triangle&);
-	static void drawTrianglesMultiThread(std::vector<Triangle>&, bool, unsigned int);
+	static void drawTrianglesMultiThread(std::vector<Triangle>, bool, unsigned int);
 	void drawBox(Box box, Transform tf = {}, bool inTriangle = true) {
 		//The tf transform is inverse camera tranform to convert world space box into
 		//camera space box
@@ -825,7 +830,7 @@ namespace Renderer {
 	internal void FXAA(bool multiThread = true) {
 		float edgeThreshold = 0.f;
 		if (!multiThread) {
-			//Single Threaded
+			//Single Threaded FXAA
 			for (int y = 1; y < (renderState.height - 1); y++) {
 				for (int x = 1; x < (renderState.width - 1); x++) {
 					Colour colorCenter = getPixel(x, y);
@@ -869,7 +874,7 @@ namespace Renderer {
 			}
 		}
 		else {
-			//Multi-Threaded
+			//Multi-Threaded FXAA
 			int threadCount = 12;
 			std::vector<std::thread> tObjs(threadCount);
 			for (int i = 0; i < threadCount; i++) {
@@ -880,32 +885,34 @@ namespace Renderer {
 			}
 		}
 	}
-	internal void drawTrianglesThr(std::vector<Triangle>& tris,size_t start,size_t end, bool drawWireframe) {
-		for (int i = start; i < end; ++i) {
+	internal void drawTrianglesThr(std::vector<Triangle> tris,size_t start,size_t end, bool drawWireframe) {
+		for (int i = start; i < end; i++) {
 			drawTriangle(tris[i], drawWireframe);
 		}
 	}
-	internal void drawTrianglesMultiThread(std::vector<Triangle>& tris,bool drawWireframe,unsigned int numThreads) {
+	internal void drawTrianglesMultiThread(std::vector<Triangle> tris,bool drawWireframe,unsigned int numThreads) {
 		size_t totalTriangles = tris.size();
 
-		std::vector<std::thread> threads;
+		std::vector<std::thread> threads(numThreads);
 
 		size_t trisPerThread = totalTriangles / numThreads;
 		size_t remainingTriangles = totalTriangles % numThreads;
 
 		size_t start = 0;
 		for (unsigned int i = 0; i < numThreads; i++) {
-			size_t end = start + trisPerThread + (i < remainingTriangles ? 1 : 0);
-			threads.emplace_back(drawTrianglesThr, std::ref(tris), start, end, drawWireframe);
+			//distributing remaining triangles equally to starting n threads
+			//where n is the number of remaining triangles
+			size_t end = start + trisPerThread + ((i < remainingTriangles)? 1 : 0);
+			threads[i] = std::thread(drawTrianglesThr, tris, start, end, drawWireframe);
 			start = end;
 		}
 
-		for (std::thread& thread : threads) {
-			thread.join();
+		for (int i = 0; i < numThreads; i++) {
+			threads[i].join();
 		}
 
 	}
-	internal void renderMesh(const Mesh& mesh, Transform transform,bool multithread = true) {
+	internal void renderMesh(const Mesh& mesh, Transform transform,bool multithread = false) {
 		std::vector<Triangle> tris = {};
 
 		for (const Triangle& triangle : mesh.triangles) {
@@ -958,6 +965,7 @@ namespace Renderer {
 		else {
 			if (tris.size())
 				drawTrianglesMultiThread(tris, drawWireframe, 12);
+
 		}
 	}
 	internal Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
@@ -1036,7 +1044,7 @@ namespace Renderer {
 		for (Sphere& sphere : scene.spheres) {
 			Mesh sphereM;
 			if (sphereMeshCache.find(sphere) == sphereMeshCache.end()) {
-				sphereM = loadOBJ("../Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
+				sphereM = loadOBJ("../res/Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
 				sphereMeshCache[sphere] = sphereM;
 			}
 			else {

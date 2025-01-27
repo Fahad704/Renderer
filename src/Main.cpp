@@ -24,38 +24,45 @@
 double fdt=0.06;
 float totalFrameTime=0.f;
 int frameCount=0;
+const float defSpeed = 2.f;
+float speed = defSpeed;
+const float boostSpeed = (5 * defSpeed);
 void handleInput(const Input& input) {
 	const float sensitivity = 1.2f;
 	Vector mouseDiff = sceneSettings.lockMouse ? getMouseDiff() : 0;
 	mouseDiff = mouseDiff * sensitivity;
-	const float defSpeed = 2.f;
-	const float boostSpeed = 10.f;
-	float speed = defSpeed;
-	Vector velocity = { 0.0,0.0,0.0 };
+	Vector velocity = { 0.f,0.f,0.f };
 	if (isDown(BUTTON_ESC)) {
 		running = false;
 	}
 	//Movement events
 	if (isDown(BUTTON_W))
-		velocity = velocity + Vector{0,0,1.0};
+		velocity = velocity + Vector{0,0,1.f};
 	if (isDown(BUTTON_A)) 
-		velocity = velocity + Vector{-1.0,0,0};
+		velocity = velocity + Vector{-1.f,0,0};
 	
 	if (isDown(BUTTON_S))
-		velocity = velocity + Vector{0,0,-1.0};
+		velocity = velocity + Vector{0,0,-1.f};
 	if (isDown(BUTTON_D)) {
-		velocity = velocity + Vector{1.0,0,0};
+		velocity = velocity + Vector{1.f,0,0};
 	}
 	if (isDown(BUTTON_CTRL))
-		velocity = velocity + Vector{0,-1.0,0};
+		velocity = velocity + Vector{0,-1.f,0};
 	if (isDown(BUTTON_SPACE)) {
-		velocity = velocity + Vector{0,1.0,0};
+		velocity = velocity + Vector{0,1.f,0};
 	}
 	
 	if (isDown(BUTTON_SHIFT)) {
-		speed = boostSpeed;
+		speed += 10 * fdt;
+		if (speed > boostSpeed) {
+			speed = boostSpeed;
+		}
 	}
 	else {
+		speed -= 10 * fdt;
+		if (speed < defSpeed) {
+			speed = defSpeed;
+		}
 		speed = defSpeed;
 	}
 
@@ -168,7 +175,8 @@ void init() {
 	std::vector<Sphere> spheres = {
 		{{0,0,-3},1.f,{255,0,0},100,0.4f },
 		{{-1,0,-4},1.f,{0,255,0},100,0.4f },
-		{{1,0,-4},1.f,{0,0,255},100,0.4f }
+		{{1,0,-4},1.f,{0,0,255},100,0.4f },
+		{{2,1,0},0.1f,{0,0,255},100,0.4f }
 	};
 
 	std::vector<Light> lights = {
@@ -182,9 +190,9 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("../Models/cube.obj", { 255,255,255 }, 0.f,-1.f);
+	static Mesh model = Renderer::loadOBJ("../res/Models/DemonSkull.obj", { 255,255,255 }, 0.f,-1.f);
 	instances = {
-		{model, {0,-1,3},1.f,{0,0,0}},
+		{model, {0,-200,50},1.f,{0,180,0}},
 	};
 
 	scene = { spheres,triangles,instances,lights };
@@ -229,7 +237,7 @@ void update(const Input& input) {
 	//FPS count
 	totalFrameTime += (timer.dtms * 0.001);
 	frameCount++;
-	std::cout << "CUR : "<< 1 / (timer.dtms * 0.001) << " AVG : " << (1 / (totalFrameTime / frameCount)) << "\n";
+	std::cout << "CUR : " << 1 / (timer.dtms * 0.001) << " AVG : " << (1 / (totalFrameTime / frameCount)) << " FRAMETIME: " << (timer.dtms) << "ms\n";
 	timer.dtms = 0;
 }
 #endif
