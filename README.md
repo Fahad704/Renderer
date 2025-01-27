@@ -57,6 +57,7 @@ cd Renderer
 mkdir build
 cd build
 cmake ..
+cmake --build . --config Release
 ```
 #### Using GCC and Iconv
 ```batch
