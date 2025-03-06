@@ -190,9 +190,9 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("../res/Models/DemonSkull.obj", { 255,255,255 }, 0.f,-1.f);
+	static Mesh model = Renderer::loadOBJ("../res/Models/cube.obj", { 255,255,255 }, 0.f,-1.f);
 	instances = {
-		{model, {0,-200,50},1.f,{0,180,0}},
+		{model, {0,0,5},1.f,{0,0,0}},
 	};
 
 	scene = { spheres,triangles,instances,lights };

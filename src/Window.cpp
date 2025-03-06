@@ -101,7 +101,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	HDC hdc = GetDC(window);
 	ShowCursor(false);
 	SetCursorPos(0, 0);
-	SetWindowPos(window, NULL,1000,100, renderState.width, renderState.height, NULL);
+	SetWindowPos(window, NULL,800,100, renderState.width, renderState.height, NULL);
 	Input input = {};
 
 	init();
@@ -184,6 +184,18 @@ input.buttons[b].isDown = isDown;\
 
 		//Draw buffer
 		//TODO(Fahad) find a better way to display buffer to the screen
+		if(sceneSettings.renderMode == RenderMode::RM_DEPTH){
+			for(int y=0;y<renderState.height;y++){
+				for(int x=0;x<renderState.width;x++){
+					float* value = (((float *)depth) + x + (y * renderState.width));
+					if(!value){
+						std::cout<<"Value is NULLPTR\n";
+					}
+					Colour color = {(unsigned char)((*value)*255),(unsigned char)((*value)*255),(unsigned char)((*value)*255)};
+					Renderer::putPixelD(x,y,color);
+				}
+			}
+		}
 		StretchDIBits(hdc, 0, renderState.height-1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 	}
 	ReleaseDC(window, hdc);

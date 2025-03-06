@@ -54,13 +54,18 @@ enum class DebugState {
 	DS_BOUNDING_BOX,
 	DS_TRIANGLE
 };
+enum class RenderMode{
+	RM_COLOR=0,
+	RM_DEPTH
+};
 struct SceneSettings {
 	bool bfc;
 	bool antiAliasing;
 	int triSeenCount;
 	DebugState debugState;
 	bool lockMouse;
-}sceneSettings = { true,true,0,DebugState::DS_OFF, true };
+	RenderMode renderMode;
+}sceneSettings = { true,true,0,DebugState::DS_OFF, true ,RenderMode::RM_COLOR};
 enum LightType {
 	LT_POINT,
 	LT_DIRECTIONAL,
