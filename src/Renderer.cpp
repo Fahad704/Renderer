@@ -912,7 +912,7 @@ namespace Renderer {
 		}
 
 	}
-	internal void renderMesh(const Mesh& mesh, Transform transform,bool multithread = false) {
+	internal void renderMesh(const Mesh& mesh, Transform transform,bool multithread = true) {
 		std::vector<Triangle> tris = {};
 
 		for (const Triangle& triangle : mesh.triangles) {
