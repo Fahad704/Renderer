@@ -15,9 +15,7 @@
 #include <time.h>
 #include "Window.cpp"
 #include "Vector.h"
-#include "Matrix4.cpp"
 #define infinity 2000000000
-
 typedef unsigned int u32;
 typedef unsigned char u8;
 #define internal static

@@ -33,6 +33,18 @@ namespace Renderer {
 		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
 		*pixel = hexColor;
 	}
+	internal void renderDepthBuffer() {
+		for (int y = 0; y < renderState.height; y++) {
+			for (int x = 0; x < renderState.width; x++) {
+				float* value = (((float*)depth) + x + (y * renderState.width));
+				if (!value) {
+					std::cout << "Value is NULLPTR\n";
+				}
+				Colour color = { (unsigned char)((*value) * 255),(unsigned char)((*value) * 255),(unsigned char)((*value) * 255) };
+				Renderer::putPixelD(x, y, color);
+			}
+		}
+	}
 	internal Colour getPixel(int x, int y) {
 		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
 		Colour result = hexToRGB(*pixel);
@@ -1044,7 +1056,7 @@ namespace Renderer {
 		for (Sphere& sphere : scene.spheres) {
 			Mesh sphereM;
 			if (sphereMeshCache.find(sphere) == sphereMeshCache.end()) {
-				sphereM = loadOBJ("../res/Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
+				sphereM = loadOBJ("res/Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
 				sphereMeshCache[sphere] = sphereM;
 			}
 			else {

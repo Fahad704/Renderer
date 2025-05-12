@@ -7,23 +7,24 @@
 * ------------------------------------------------------------------
 */
 #include <Windows.h>
-struct Window {
-	HWND handle;
-	HDC dc;
-};
+#include "Platform_common.h"
 struct RenderState {
 	int height;
 	int width;
 	void* memory;
 	BITMAPINFO bitmapinfo;
 };
-
+struct Window {
+	HWND handle;
+	HDC dc;
+	Input input;
+};
 void* depth;
-static RenderState renderState;
 static Window window = {};
+static RenderState renderState;
 #include "Utility.cpp"
-#include "Platform_common.h"
-global_variable bool running = true;
+
+static bool running = true;
 void init();
 void update(const Input&);
 #include "Globals.h"
@@ -33,7 +34,7 @@ void update(const Input&);
 #define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
 #define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
 #include "Main.cpp"
-void clearScreen(u32);
+//void clearScreen(u32);
 LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	LRESULT result = 0;
 	switch (uMsg) {
@@ -108,110 +109,106 @@ void initWindow() {
 	SetCursorPos(0, 0);
 	SetWindowPos(window.handle, NULL, 800, 100, renderState.width, renderState.height, NULL);
 }
+void handleEvents(Input& input) {
+	MSG message;
+	for (int i = 0; i < BUTTON_COUNT; i++) {
+		input.buttons[i].changed = false;
+	}
+	//Message loop
+	while (PeekMessage(&message, window.handle, 0, 0, PM_REMOVE)) {
+		switch (message.message) {
+		case WM_KEYUP:
+		case WM_KEYDOWN: {
+			u32 vk_code = (u32)message.wParam;
+			bool isDown = ((message.lParam & (1 << 31)) == 0);
+#define process_messages(b,vk)\
+case vk:{\
+input.buttons[b].changed = (isDown != input.buttons[b].isDown);\
+input.buttons[b].isDown = isDown;\
+}break;
+			switch (vk_code) {
+				process_messages(BUTTON_UP, VK_UP)
+					process_messages(BUTTON_DOWN, VK_DOWN)
+					process_messages(BUTTON_LEFT, VK_LEFT)
+					process_messages(BUTTON_RIGHT, VK_RIGHT)
+					process_messages(BUTTON_SPACE, VK_SPACE)
+					process_messages(BUTTON_ESC, VK_ESCAPE)
+					process_messages(BUTTON_SHIFT, VK_SHIFT)
+					process_messages(BUTTON_CTRL, VK_CONTROL)
+					process_messages(BUTTON_A, 'A')
+					process_messages(BUTTON_B, 'B')
+					process_messages(BUTTON_C, 'C')
+					process_messages(BUTTON_D, 'D')
+					process_messages(BUTTON_F, 'F')
+					process_messages(BUTTON_G, 'G')
+					process_messages(BUTTON_L, 'L')
+					process_messages(BUTTON_M, 'M')
+					process_messages(BUTTON_N, 'N')
+					process_messages(BUTTON_P, 'P')
+					process_messages(BUTTON_Q, 'Q')
+					process_messages(BUTTON_R, 'R')
+					process_messages(BUTTON_S, 'S')
+					process_messages(BUTTON_T, 'T')
+					process_messages(BUTTON_V, 'V')
+					process_messages(BUTTON_W, 'W')
+					process_messages(BUTTON_X, 'X')
+					process_messages(BUTTON_Z, 'Z')
+			}
+		}break;
+		case WM_LBUTTONDOWN: {
+			input.buttons[MOUSE_BUTTON_LEFT].changed = !(input.buttons[MOUSE_BUTTON_LEFT].isDown);
+			input.buttons[MOUSE_BUTTON_LEFT].isDown = true;
+
+		}break;
+		case WM_LBUTTONUP: {
+			input.buttons[MOUSE_BUTTON_LEFT].changed = input.buttons[MOUSE_BUTTON_LEFT].isDown;
+			input.buttons[MOUSE_BUTTON_LEFT].isDown = false;
+
+		}break;
+		case WM_RBUTTONDOWN: {
+			input.buttons[MOUSE_BUTTON_RIGHT].changed = !(input.buttons[MOUSE_BUTTON_RIGHT].isDown);
+			input.buttons[MOUSE_BUTTON_RIGHT].isDown = true;
+
+		}break;
+		case WM_RBUTTONUP: {
+			input.buttons[MOUSE_BUTTON_RIGHT].changed = input.buttons[MOUSE_BUTTON_RIGHT].isDown;
+			input.buttons[MOUSE_BUTTON_RIGHT].isDown = false;
+
+		}break;
+		default: {
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
+		}
+	}
+}
+void deleteWindow() {
+	DestroyWindow(window.handle);
+	ReleaseDC(window.handle, window.dc);
+}
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 
 	//Random seed
 	srand(u32(time(NULL)));
 	
 	initWindow();
-
-	Input input = {};
-
 	init();
+
 	while (running) {
 
-		MSG message;
-		for (int i = 0; i < BUTTON_COUNT; i++) {
-			input.buttons[i].changed = false;
-		}
-		//Message loop
-		while (PeekMessage(&message, window.handle, 0, 0, PM_REMOVE)) {
-			switch (message.message) {
-			case WM_KEYUP:
-			case WM_KEYDOWN: {
-				u32 vk_code = (u32)message.wParam;
-				bool isDown = ((message.lParam & (1 << 31)) == 0);
-#define process_messages(b,vk)\
-case vk:{\
-input.buttons[b].changed = (isDown != input.buttons[b].isDown);\
-input.buttons[b].isDown = isDown;\
-}break;
-				switch (vk_code) {
-					process_messages(BUTTON_UP, VK_UP)
-						process_messages(BUTTON_DOWN, VK_DOWN)
-						process_messages(BUTTON_LEFT, VK_LEFT)
-						process_messages(BUTTON_RIGHT, VK_RIGHT)
-						process_messages(BUTTON_SPACE, VK_SPACE)
-						process_messages(BUTTON_ESC, VK_ESCAPE)
-						process_messages(BUTTON_SHIFT, VK_SHIFT)
-						process_messages(BUTTON_CTRL, VK_CONTROL)
-						process_messages(BUTTON_A, 'A')
-						process_messages(BUTTON_B, 'B')
-						process_messages(BUTTON_C, 'C')
-						process_messages(BUTTON_D, 'D')
-						process_messages(BUTTON_F, 'F')
-						process_messages(BUTTON_G, 'G')
-						process_messages(BUTTON_L, 'L')
-						process_messages(BUTTON_M, 'M')
-						process_messages(BUTTON_N, 'N')
-						process_messages(BUTTON_P, 'P')
-						process_messages(BUTTON_Q, 'Q')
-						process_messages(BUTTON_R, 'R')
-						process_messages(BUTTON_S, 'S')
-						process_messages(BUTTON_T, 'T')
-						process_messages(BUTTON_V, 'V')
-						process_messages(BUTTON_W, 'W')
-						process_messages(BUTTON_X, 'X')
-						process_messages(BUTTON_Z, 'Z')
-				}
-			}break;
-			case WM_LBUTTONDOWN: {
-				input.buttons[MOUSE_BUTTON_LEFT].changed = !(input.buttons[MOUSE_BUTTON_LEFT].isDown);
-				input.buttons[MOUSE_BUTTON_LEFT].isDown = true;
+		handleEvents(window.input);
 
-			}break;
-			case WM_LBUTTONUP: {
-				input.buttons[MOUSE_BUTTON_LEFT].changed = input.buttons[MOUSE_BUTTON_LEFT].isDown;
-				input.buttons[MOUSE_BUTTON_LEFT].isDown = false;
-
-			}break;
-			case WM_RBUTTONDOWN: {
-				input.buttons[MOUSE_BUTTON_RIGHT].changed = !(input.buttons[MOUSE_BUTTON_RIGHT].isDown);
-				input.buttons[MOUSE_BUTTON_RIGHT].isDown = true;
-
-			}break;
-			case WM_RBUTTONUP: {
-				input.buttons[MOUSE_BUTTON_RIGHT].changed = input.buttons[MOUSE_BUTTON_RIGHT].isDown;
-				input.buttons[MOUSE_BUTTON_RIGHT].isDown = false;
-
-			}break;
-			default: {
-				TranslateMessage(&message);
-				DispatchMessage(&message);
-			}
-			}
-		}
 		//Update Loop
-		update(input);
+		update(window.input);
 
-
-		//Draw buffer
-		//TODO(Fahad) find a better way to display buffer to the screen
 		if (sceneSettings.renderMode == RenderMode::RM_DEPTH) {
-			for (int y = 0; y < renderState.height; y++) {
-				for (int x = 0; x < renderState.width; x++) {
-					float* value = (((float*)depth) + x + (y * renderState.width));
-					if (!value) {
-						std::cout << "Value is NULLPTR\n";
-					}
-					Colour color = { (unsigned char)((*value) * 255),(unsigned char)((*value) * 255),(unsigned char)((*value) * 255) };
-					Renderer::putPixelD(x, y, color);
-				}
-			}
+			Renderer::renderDepthBuffer();
 		}
+		//Swap buffers
 		StretchDIBits(window.dc, 0, renderState.height - 1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 	}
-	ReleaseDC(window.handle, window.dc);
+
+	deleteWindow();
 	return 0;
 }
 #endif

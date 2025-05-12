@@ -9,6 +9,7 @@
 *		-Implement BVH ray tracing
 *		-Implement proper Occlusion culling
 *	Adding Features:
+*		-Add better logging
 *		-Add matrix transformation for renderer
 *		-interpolated normals(Rasterizer)
 *		-read and display textures(Rasterizer)
@@ -112,8 +113,8 @@ void handleInput(const Input& input) {
 	}
 	//Change ray tracing to rasterization and vise versa
 	if (pressed(BUTTON_R)) {
-		rendMode = !rendMode;
-		if (rendMode) {
+		rayTraceMode = !rayTraceMode;
+		if (rayTraceMode) {
 			std::cout << "\nRay tracing turned on\n";
 		}
 		else {
@@ -164,6 +165,9 @@ void handleInput(const Input& input) {
 		ShowCursor(sceneSettings.lockMouse);
 		sceneSettings.lockMouse = !sceneSettings.lockMouse;
 	}
+	if (pressed(BUTTON_M)) {
+		sceneSettings.renderMode = ((sceneSettings.renderMode == RenderMode::RM_DEPTH) ? RenderMode::RM_COLOR : RenderMode::RM_DEPTH);
+	}
 	//Move according to mouse difference
 	if (mouseDiff != Vector{ 0,0,0 }) {
 		camera.rotation.y -= mouseDiff.x * fdt;
@@ -191,7 +195,7 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("../res/Models/cube.obj", { 255,255,255 }, 0.f, -1.f);
+	static Mesh model = Renderer::loadOBJ("res/Models/cube.obj", { 255,255,255 }, 0.f, -1.f);
 	instances = {
 		{model, {0,0,5},1.f,{0,0,0}},
 	};
@@ -202,12 +206,10 @@ void update(const Input& input) {
 	//Start counting frame time
 	Timer timer;
 	handleInput(input);
-	if (rendMode && change) {
+	if (rayTraceMode && change) {
 		//Ray trace
 		Renderer::clearScreen(0x000000);
 		//Ray tracing with 12 threads
-		//it is still slow
-#if 1
 		size_t threadCount = 12;
 		std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
@@ -217,9 +219,6 @@ void update(const Input& input) {
 		for (size_t i = 0; i < tObjs.size(); i++) {
 			tObjs[i].join();
 		}
-#else
-		Renderer::rayTrace();
-#endif
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			Renderer::FXAA();
 		}

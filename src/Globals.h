@@ -15,7 +15,7 @@ float vpHeight = 1.f;
 //Especially for Ray tracer
 bool change = true;
 //true = raytracer , false = rasterizer
-bool rendMode = false;
+bool rayTraceMode = false;
 
 //144 fps
 float frameLimit = 6.94444444f;
