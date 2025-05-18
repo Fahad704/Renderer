@@ -97,29 +97,8 @@ void swap(T& a, T& b) {
 	a = b;
 	b = c;
 }
-void clamp(float& num, float min_limit, float max_limit) {
-	if (num < min_limit) {
-		num = min_limit;
-		return;
-	}
-	else if (num > max_limit) {
-		num = max_limit;
-		return;
-	}
-	return;
-}
-void clamp(u32& num, u32 min_limit, u32 max_limit) {
-	if (num < min_limit) {
-		num = min_limit;
-		return;
-	}
-	else if (num > max_limit) {
-		num = max_limit;
-		return;
-	}
-	return;
-}
-void clamp(int& num, int min_limit, int max_limit) {
+template <typename T>
+void clamp(T& num, T min_limit, T max_limit) {
 	if (num < min_limit) {
 		num = min_limit;
 		return;

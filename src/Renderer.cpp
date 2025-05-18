@@ -295,11 +295,15 @@ namespace Renderer {
 		interpolate(p2.x, p2.y, p3.x, p3.y, x12);
 		interpolate(p1.x, p1.y, p3.x, p3.y, x02);
 
-		interpolate(1 / p1.z, p1.y, 1 / p2.z, p2.y, z01);
-		interpolate(1 / p2.z, p2.y, 1 / p3.z, p3.y, z12);
-		interpolate(1 / p1.z, p1.y, 1 / p3.z, p3.y, z02);
-
-
+		float z0 = (1.f / p1.z);
+		clamp(z0, 0.f, 1.f);
+		float z1 = (1.f / p2.z);
+		clamp(z1, 0.f, 1.f);
+		float z2 = (1.f / p3.z);
+		clamp(z2, 0.f, 1.f);
+		interpolate(z0, p1.y, z1, p2.y, z01);
+		interpolate(z1, p2.y, z2, p3.y, z12);
+		interpolate(z0, p1.y, z2, p3.y, z02);
 
 		//concatenate short sides in 0-1
 		for (const float& val : x12) {
@@ -643,7 +647,7 @@ namespace Renderer {
 	internal Vector reflectRay(const Vector& R, Vector& N) {
 		return (2 * (N * dot(R, N)) - R);
 	}
-	internal float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rt = true) {
+	internal float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows = true) {
 		float i = 0.f;
 		for (const Light& light : scene.lights) {
 			//L = direction of the light
@@ -661,7 +665,7 @@ namespace Renderer {
 					L = (light.pos - P);
 					tMax = length(L);
 				}
-				float shadowT = rt ? closestIntersection(P, L, 0.000001, tMax).second : infinity;
+				float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, tMax).second : infinity;
 				if (shadowT != infinity) {
 					continue;
 				}
@@ -1070,9 +1074,9 @@ namespace Renderer {
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			FXAA();
 		}
-		//Draw Bounding boxes
-		for (Instance& ins : scene.instances) {
-			if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {
+		if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {
+			//Draw Bounding boxes
+			for (Instance& ins : scene.instances) {
 				Box box = ins.getBoundingBox();
 				box.highest = box.highest - camera.position;
 				box.lowest = box.lowest - camera.position;
@@ -1080,6 +1084,7 @@ namespace Renderer {
 				drawBox(box, ttf);
 			}
 		}
+
 	}
 };
 #endif

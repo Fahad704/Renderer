@@ -8,31 +8,16 @@
 */
 #include <Windows.h>
 #include "Platform_common.h"
-struct RenderState {
-	int height;
-	int width;
-	void* memory;
-	BITMAPINFO bitmapinfo;
-};
-struct Window {
-	HWND handle;
-	HDC dc;
-	Input input;
-};
+#include "Window.h"
 void* depth;
 static Window window = {};
 static RenderState renderState;
 #include "Utility.cpp"
 
 static bool running = true;
-void init();
-void update(const Input&);
 #include "Globals.h"
 #include "Renderer.cpp"
 #include "Resource.h"
-#define isDown(b) input.buttons[b].isDown
-#define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
-#define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
 #include "Main.cpp"
 //void clearScreen(u32);
 LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

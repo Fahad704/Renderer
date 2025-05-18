@@ -237,7 +237,7 @@ void update(const Input& input) {
 	//FPS count
 	totalFrameTime += (timer.dtms * 0.001);
 	frameCount++;
-	//std::cout << "CUR : " << 1 / (timer.dtms * 0.001) << " AVG : " << (1 / (totalFrameTime / frameCount)) << " FRAMETIME: " << (timer.dtms) << "ms\n";
+	std::cout << "CUR : " << 1 / (timer.dtms * 0.001) << " AVG : " << (1 / (totalFrameTime / frameCount)) << " FRAMETIME: " << (timer.dtms) << "ms\n";
 	timer.dtms = 0;
 }
 #endif
