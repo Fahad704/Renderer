@@ -1,6 +1,7 @@
 #ifndef RENDERER_CPP
 #define RENDERER_CPP
 #include "Window.cpp"
+#include "Logging.h"
 #include <unordered_map>
 #include <cassert>
 #define WHITE {255,255,255}
@@ -37,9 +38,6 @@ namespace Renderer {
 		for (int y = 0; y < renderState.height; y++) {
 			for (int x = 0; x < renderState.width; x++) {
 				float* value = (((float*)depth) + x + (y * renderState.width));
-				if (!value) {
-					std::cout << "Value is NULLPTR\n";
-				}
 				Colour color = { (unsigned char)((*value) * 255),(unsigned char)((*value) * 255),(unsigned char)((*value) * 255) };
 				Renderer::putPixelD(x, y, color);
 			}
@@ -63,7 +61,7 @@ namespace Renderer {
 		std::ofstream ofs;
 		ofs.open(filename);
 		if (!ofs.is_open()) {
-			std::cout << "Failed to open file : " << filename << "\n";
+			LOG_ERROR("Failed to open file : " << filename << "\n");
 			return;
 		}
 		ofs << "P3\n" << renderState.width << ' ' << renderState.height << "\n255\n";
@@ -73,7 +71,7 @@ namespace Renderer {
 				ofs << (u32)color.R << ' ' << (u32)color.G << ' ' << (u32)color.B << '\n';
 			}
 		}
-		std::cout << "Exported to PPM successfully : " << filename << "\n";
+		LOG_SUCCESS("Exported to PPM successfully : " << filename << "\n");
 		ofs.close();
 	}
 	internal void drawLine(Vector a, Vector b, Colour color) {
@@ -136,7 +134,7 @@ namespace Renderer {
 		OBJFile.open(filename);
 		if (!OBJFile)
 		{
-			std::cout << "Cannot open file " << filename << "\n";
+			LOG_ERROR("Cannot open file " << filename << "\n");
 			return {};
 		}
 		std::unordered_map<std::string, Modes> map = {
@@ -222,6 +220,7 @@ namespace Renderer {
 			}
 		}
 		OBJFile.close();
+		LOG_SUCCESS("Loaded "<< filename << "\n");
 		Mesh mesh = { vertexes,normals,texture,faces };
 		mesh.color = color;
 		mesh.specular = specular;
@@ -253,7 +252,7 @@ namespace Renderer {
 			x += aspectratio;
 		}
 	}
-	internal void drawTriangle(Triangle& t, bool wireframe = false) {
+	internal void drawTriangle(Triangle& t, bool wireframe = true) {
 		Vector p1 = projectVertex(t.p[0]);
 		Vector p2 = projectVertex(t.p[1]);
 		Vector p3 = projectVertex(t.p[2]);
@@ -625,10 +624,6 @@ namespace Renderer {
 				tri.p[0] = transformVertex(triangle.p[0], instance.transform);
 				tri.p[1] = transformVertex(triangle.p[1], instance.transform);
 				tri.p[2] = transformVertex(triangle.p[2], instance.transform);
-
-				if (camera.rotation.x != 0) {
-					std::cout << "";
-				}
 
 				Vector normal = tri.getNormal();
 				if (dot(normal, D) > 0) {
@@ -1038,7 +1033,7 @@ namespace Renderer {
 		clearScreen(0x000000);
 		for (float y = 0; y < renderState.height; y++) {
 			int scanlineDone = y + 1;
-			std::cout << "\rScanlines Done:" << scanlineDone << '/' << (renderState.width) << ':' << int((scanlineDone / (renderState.width)) * 100) << "%" << std::flush;
+			LOG_INFO("\rScanlines Done:" << scanlineDone << '/' << (renderState.width) << ':' << int((scanlineDone / (renderState.width)) * 100) << "%" << std::flush);
 			for (float x = 0; x < renderState.width; x++) {
 				D = canvasToViewport(x - (canvas.x / 2), (canvas.y / 2) - y);
 				D = rotate(D, camera.rotation, RotateOrder::RO_XYZ);

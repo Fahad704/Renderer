@@ -41,7 +41,6 @@ public:
 		long long duration = end - start;
 		dtms = (double(duration) * 0.001);
 
-		//std::cout << std::fixed << (1.f / (dtms * 0.001)) << " FPS (" << dtms << "ms)\n";
 	}
 private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimePoint;

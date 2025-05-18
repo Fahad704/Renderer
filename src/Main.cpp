@@ -2,6 +2,7 @@
 #define MAIN_CPP
 
 #include "Renderer.cpp"
+#include "Logging.h"
 
 //TODO(Fahad):
 /*
@@ -9,7 +10,6 @@
 *		-Implement BVH ray tracing
 *		-Implement proper Occlusion culling
 *	Adding Features:
-*		-Add better logging
 *		-Add matrix transformation for renderer
 *		-interpolated normals(Rasterizer)
 *		-read and display textures(Rasterizer)
@@ -76,38 +76,42 @@ void handleInput(const Input& input) {
 		camera.position = camera.position + (velocity * fdt);
 	}
 	if (pressed(BUTTON_L)) {
-		std::cout << "\nPosition : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n";
-		std::cout << "Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n";
+		LOG_INFO("STATS:\n");
+		LOG_INFO("---\n");
+		LOG_INFO("Position : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n");
+		LOG_INFO("Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n");
 		int c = 1;
-		std::cout << "Model count " << scene.instances.size() << "\n\n";
+		LOG_INFO("Model count " << scene.instances.size() << "\n\n");
 		int totalTris = 0;
 		for (const Instance& instance : scene.instances)
 		{
-			std::cout << "Model " << c << ":\n";
-			std::cout << "Triangle count : " << instance.mesh->triangles.size() << "\n";
-			std::cout << "Face count : " << instance.mesh->faces.size() << "\n";
-			std::cout << "Normal count : " << instance.mesh->normals.size() << "\n\n";
+			LOG_INFO("Model " << c << ":\n");
+			LOG_INFO("Triangle count : " << instance.mesh->triangles.size() << "\n");
+			LOG_INFO("Face count : " << instance.mesh->faces.size() << "\n");
+			LOG_INFO("Normal count : " << instance.mesh->normals.size() << "\n");
 			totalTris += instance.mesh->triangles.size();
 			c++;
 		}
-		std::cout << "Total triangle count :" << totalTris << '\n';
+		LOG_INFO("Total triangle count :" << totalTris << '\n');
+		LOG_INFO("NIGGER!!");
+		LOG_INFO("---\n");
 	}
 
 	//Show triangles of the mesh
 	if (pressed(BUTTON_T)) {
-		if (sceneSettings.debugState != DebugState::DS_TRIANGLE)std::cout << "\nDebug state set to wireframe triangle\n";
+		if (sceneSettings.debugState != DebugState::DS_TRIANGLE)LOG_INFO("Debug state set to wireframe triangle\n");
 		sceneSettings.debugState = DebugState::DS_TRIANGLE;
 		change = true;
 	}
 	//Show bounding box of the mesh
 	if (pressed(BUTTON_B)) {
-		if (sceneSettings.debugState != DebugState::DS_BOUNDING_BOX)std::cout << "\nDebug state set to bounding box\n";
+		if (sceneSettings.debugState != DebugState::DS_BOUNDING_BOX)LOG_INFO("Debug state set to bounding box\n");
 		sceneSettings.debugState = DebugState::DS_BOUNDING_BOX;
 		change = true;
 	}
 	//Turn off Debug view
 	if (pressed(BUTTON_V)) {
-		if (sceneSettings.debugState != DebugState::DS_OFF)std::cout << "\nVisual debugging off\n";
+		if (sceneSettings.debugState != DebugState::DS_OFF)LOG_INFO("Visual debugging off\n");
 		sceneSettings.debugState = DebugState::DS_OFF;
 		change = true;
 	}
@@ -115,10 +119,10 @@ void handleInput(const Input& input) {
 	if (pressed(BUTTON_R)) {
 		rayTraceMode = !rayTraceMode;
 		if (rayTraceMode) {
-			std::cout << "\nRay tracing turned on\n";
+			LOG_INFO("Ray tracing turned on\n");
 		}
 		else {
-			std::cout << "\nRay tracing turned off\n";
+			LOG_INFO("Ray tracing turned off\n");
 		}
 		change = true;
 	}
@@ -128,10 +132,11 @@ void handleInput(const Input& input) {
 	//Backface culling toggle
 	if (pressed(BUTTON_C)) {
 		sceneSettings.bfc = !sceneSettings.bfc;
-		if (sceneSettings.bfc)
-			std::cout << "\nBackface culling turned on\n";
+		if (sceneSettings.bfc) {
+			LOG_INFO("Backface culling turned on\n");
+		}
 		else
-			std::cout << "\nBackface culling turned off\n";
+			LOG_INFO("Backface culling turned off\n");
 		change = true;
 	}
 	//Reset camera Position and rotation
@@ -154,10 +159,10 @@ void handleInput(const Input& input) {
 		//Anti aliasing
 		sceneSettings.antiAliasing = !sceneSettings.antiAliasing;
 		if (sceneSettings.antiAliasing) {
-			std::cout << "\nAnti aliasing turned on.\n";
+			LOG_INFO("Anti aliasing turned on.\n");
 		}
 		else {
-			std::cout << "\nAnti aliasing turned off.\n";
+			LOG_INFO("Anti aliasing turned off.\n");
 		}
 		change = true;
 	}
@@ -237,7 +242,7 @@ void update(const Input& input) {
 	//FPS count
 	totalFrameTime += (timer.dtms * 0.001);
 	frameCount++;
-	std::cout << "CUR : " << 1 / (timer.dtms * 0.001) << " AVG : " << (1 / (totalFrameTime / frameCount)) << " FRAMETIME: " << (timer.dtms) << "ms\n";
+	printLive("CUR : " + std::to_string(1.f / (timer.dtms * 0.001)) + " AVG : " + std::to_string(1 / (totalFrameTime / frameCount)) + " FRAMETIME: " + std::to_string(timer.dtms) + "ms");
 	timer.dtms = 0;
 }
 #endif

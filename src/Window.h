@@ -8,6 +8,7 @@ struct RenderState {
 	int height;
 	int width;
 	void* memory;
+	float* ambientOcclusion;
 	BITMAPINFO bitmapinfo;
 };
 struct Window {
