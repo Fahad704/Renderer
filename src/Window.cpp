@@ -6,6 +6,7 @@
 * This file handles all the windowing and windows api specific tasks
 * ------------------------------------------------------------------
 */
+#define NOMINMAX
 #include <Windows.h>
 #include "Platform_common.h"
 #include "Window.h"
@@ -70,8 +71,11 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	}
 	return result;
 }
+void swapBuffers() {
+	StretchDIBits(window.dc, 0, renderState.height - 1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
+}
 void initWindow() {
-
+	LOG_INFO("Initializing Window");
 	//Get instance
 	HINSTANCE moduleHandle = GetModuleHandle(NULL);
 
@@ -93,10 +97,19 @@ void initWindow() {
 
 	//Create Window 
 	window.handle = CreateWindow(window_class.lpszClassName, L"Renderer!", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, moduleHandle, 0);
+
+	if (!window.handle) {
+		LOG_ERROR("Could not create a window\n");
+	}
+
 	window.dc = GetDC(window.handle);
 	ShowCursor(false);
 	SetCursorPos(0, 0);
 	SetWindowPos(window.handle, NULL, 800, 100, renderState.width, renderState.height, NULL);
+
+	//Renderer::clearScreen(0x000000);
+	Renderer::drawNoise();
+	swapBuffers();
 }
 void handleEvents(Input& input) {
 	MSG message;
@@ -175,14 +188,15 @@ void deleteWindow() {
 	DestroyWindow(window.handle);
 	ReleaseDC(window.handle, window.dc);
 }
+
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
-
 	//Random seed
+	Timer timer;
 	srand(u32(time(NULL)));
-	
 	initWindow();
+	timer.Stop();
+	LOG_INFO("Initialization took "<<timer.dtms<<" ms\n");
 	init();
-
 	while (running) {
 
 		handleEvents(window.input);
@@ -194,7 +208,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 			Renderer::renderDepthBuffer();
 		}
 		//Swap buffers
-		StretchDIBits(window.dc, 0, renderState.height - 1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
+		swapBuffers();
 	}
 
 	deleteWindow();

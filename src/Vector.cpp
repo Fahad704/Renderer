@@ -52,3 +52,6 @@ float dot(const Vector& first, const Vector& second) {
 float length(const Vector& vec) {
 	return sqrt((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z));
 }
+Vector normalize(const Vector& vec) {
+	return (vec / length(vec));
+}

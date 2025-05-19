@@ -2,6 +2,7 @@
 #define RENDERER_CPP
 #include "Window.cpp"
 #include "Logging.h"
+#include <algorithm>
 #include <unordered_map>
 #include <cassert>
 #define WHITE {255,255,255}
@@ -54,6 +55,14 @@ namespace Renderer {
 		for (int i = int(y); i < y + size; i++) {
 			for (int j = int(x); j < x + size; j++) {
 				putPixel(j, i, color);
+			}
+		}
+	}
+	void drawNoise() {
+		for (int y = -(canvas.y / 2.f); y < (canvas.y / 2.f); y++) {
+			for (int x = -(canvas.x / 2.f); x < (canvas.x / 2.f); x++) {
+				Colour color = { u8(rand() % 256),u8(rand() % 256) , u8(rand() % 256) };
+				putPixel(x, y, color);
 			}
 		}
 	}
@@ -116,6 +125,7 @@ namespace Renderer {
 	}
 	Mesh loadOBJ(std::string filename, Colour color = { 0,0,0 }, float reflectiveness = 0, float specular = -1)
 	{
+		LOG_INFO("Loading " << filename);
 		std::vector<Vector> vertexes = {};
 		std::vector<Vector> normals = {};
 		std::vector<Texture> texture = {};
@@ -220,7 +230,7 @@ namespace Renderer {
 			}
 		}
 		OBJFile.close();
-		LOG_SUCCESS("Loaded "<< filename << "\n");
+		LOG_SUCCESS("Loaded "<< filename );
 		Mesh mesh = { vertexes,normals,texture,faces };
 		mesh.color = color;
 		mesh.specular = specular;
@@ -256,8 +266,8 @@ namespace Renderer {
 		Vector p1 = projectVertex(t.p[0]);
 		Vector p2 = projectVertex(t.p[1]);
 		Vector p3 = projectVertex(t.p[2]);
-		Vector N = t.getNormal();
-		N = N / length(N);
+		//Vector N = t.getNormal();
+		//N = N / length(N);
 		p1.z = t.p[0].z;
 		p2.z = t.p[1].z;
 		p3.z = t.p[2].z;
@@ -295,11 +305,11 @@ namespace Renderer {
 		interpolate(p1.x, p1.y, p3.x, p3.y, x02);
 
 		float z0 = (1.f / p1.z);
-		clamp(z0, 0.f, 1.f);
+		clamp(z0, 0.0001f, 1.f);
 		float z1 = (1.f / p2.z);
-		clamp(z1, 0.f, 1.f);
+		clamp(z1, 0.0001f, 1.f);
 		float z2 = (1.f / p3.z);
-		clamp(z2, 0.f, 1.f);
+		clamp(z2, 0.0001f, 1.f);
 		interpolate(z0, p1.y, z1, p2.y, z01);
 		interpolate(z1, p2.y, z2, p3.y, z12);
 		interpolate(z0, p1.y, z2, p3.y, z02);
@@ -337,46 +347,50 @@ namespace Renderer {
 			}
 		}
 
+		//Camera space to world space
+		Triangle newTri;
+		newTri.p[0] = transformVertex(t.p[0], camera, RotateOrder::RO_XYZ);
+		newTri.p[1] = transformVertex(t.p[1], camera, RotateOrder::RO_XYZ);
+		newTri.p[2] = transformVertex(t.p[2], camera, RotateOrder::RO_XYZ);
+		Vector N = newTri.getNormal();
+		N = N / length(N);
+		//Vector centroid = newTri.getCentroid();
 		for (int y = int(p1.y); y < int(p3.y); y++) {
+			int ny = int((renderState.height / (float)2.f) - y);
+			float zL = 1.f / zLeft[y - int(p1.y)];
+			float zR = 1.f / zRight[y - int(p1.y)];
 			float xL = xLeft[y - int(p1.y)];
 			float xR = xRight[y - int(p1.y)];
-
 			std::vector<float> zSegment = {};
-			interpolate(zLeft[y - int(p1.y)], xL, zRight[y - int(p1.y)], xR, zSegment);
-
-
+			interpolate(zL, xL, zR, xR, zSegment);
 			for (int x = int(xL); x < int(xR); x++) {
 				//Per Fragment
 				float z = zSegment[x - int(xL)];
-				Vector T = canvasToViewport((x * (1 / z)) / d, (y * (1 / z)) / d);
-				T.z = 1 / z;
+				float invZ = 1.f / z;
+
+				Vector T = canvasToViewport((x * z) / d, (y * z) / d);
+				T.z = z;
 				if (isIn(float(x), float(-canvas.x / 2.f), float(canvas.x / 2.f)) && isIn(float(y), float(-canvas.y / 2.f), float(canvas.y / 2.f))) {
 					int nx = int(x + (renderState.width / 2.0));
-					int ny = int((renderState.height / (float)2.f) - y);
 					//Pointer to depth buffer
 					float* dep = ((float*)(depth)) + (ny * renderState.width) + nx;
-					if (z > (*dep)) {
+					if (invZ > (*dep)) {
 						//Point in camera space
 						Vector P = T;
 						//Camera space to world space
 						P = transformVertex(P, camera, RotateOrder::RO_XYZ);
-						Triangle newTri;
-						newTri.p[0] = transformVertex(t.p[0], camera, RotateOrder::RO_XYZ);
-						newTri.p[1] = transformVertex(t.p[1], camera, RotateOrder::RO_XYZ);
-						newTri.p[2] = transformVertex(t.p[2], camera, RotateOrder::RO_XYZ);
-						Vector N = newTri.getNormal();
-						Vector centroid = newTri.getCentroid();
-						N = N / length(N);
+
 						Vector R = P - camera.position;
 						R = R / length(R);
 						float light = computeLight(P, N, R, t.specular, false);
 						putPixel(x, y, (color * light));
-						*dep = z;
+						*dep = invZ;
 					}
 				}
 			}
 		}
 	}
+
 	static std::vector<Triangle> clipTriangle(Triangle&);
 	static void drawTrianglesMultiThread(std::vector<Triangle>, bool, unsigned int);
 	void drawBox(Box box, Transform tf = {}, bool inTriangle = true) {
@@ -975,7 +989,7 @@ namespace Renderer {
 		}
 		else {
 			if (tris.size())
-				drawTrianglesMultiThread(tris, drawWireframe, 12);
+				drawTrianglesMultiThread(tris, drawWireframe, std::thread::hardware_concurrency());
 
 		}
 	}

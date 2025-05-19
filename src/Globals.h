@@ -7,7 +7,7 @@
 Vector canvas(720, 720);
 //less = more FOV , more = lesser FOV
 const float d = 0.52f;
-const float farDist = 100.f;
+const float farDist = 1000.f;
 Vector D = { 1,1,1 };
 float vpWidth = 1.f;
 float vpHeight = 1.f;

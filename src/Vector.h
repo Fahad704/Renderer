@@ -25,4 +25,5 @@ struct Vector {
 	friend Vector cross(const Vector&, const Vector&);
 	friend float dot(const Vector&, const Vector&);
 	friend float length(const Vector&);
+	friend Vector normalize(const Vector&);
 };

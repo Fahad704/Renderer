@@ -30,6 +30,6 @@ void printLive(const std::string& message) {
 }
 #define CLEARLINE "\r" << std::string(100,' ') << "\r"
 #define LOG_INFO(x) std::cout << CLEARLINE <<"["<<APPNAME<<"]:"<<x;
-#define LOG_WARN(x) std::cout << CLEARLINE << yellow <<"["<<APPNAME<<"]:[WARN]:"<< x << white;
-#define LOG_ERROR(x) std::cout << CLEARLINE << red <<"["<<APPNAME<<"]:[ERROR]:"<< x << white;
-#define LOG_SUCCESS(x) std::cout << CLEARLINE << green <<"["<<APPNAME<<"]:"<< x << white;
+#define LOG_WARN(x) std::cout << CLEARLINE << yellow <<"["<<APPNAME<<"]:[WARN]:"<< x << white << "\n";
+#define LOG_ERROR(x) std::cout << CLEARLINE << red <<"["<<APPNAME<<"]:[ERROR]:"<< x << white << "\n";
+#define LOG_SUCCESS(x) std::cout << CLEARLINE << green <<"["<<APPNAME<<"]:"<< x << white << "\n";

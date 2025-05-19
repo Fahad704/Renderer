@@ -200,9 +200,9 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("res/Models/cube.obj", { 255,255,255 }, 0.f, -1.f);
+	static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255,255,255 }, 0.3f, 100.f);
 	instances = {
-		{model, {0,0,5},1.f,{0,0,0}},
+		{model, {0,0,0},0.1f,{0,0,0}},
 	};
 
 	scene = { spheres,triangles,instances,lights };
@@ -214,8 +214,8 @@ void update(const Input& input) {
 	if (rayTraceMode && change) {
 		//Ray trace
 		Renderer::clearScreen(0x000000);
-		//Ray tracing with 12 threads
-		size_t threadCount = 12;
+		//Ray tracing multithreaded
+		size_t threadCount = std::thread::hardware_concurrency();
 		std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
 		{

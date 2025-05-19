@@ -1,4 +1,5 @@
 #pragma once
+#define NOMINMAX
 #include <Windows.h>
 #include "Platform_common.h"
 #define isDown(b) input.buttons[b].isDown
