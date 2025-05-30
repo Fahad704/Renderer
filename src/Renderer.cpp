@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <unordered_map>
 #include <cassert>
+#include <string>
+#define internal static
 #define WHITE {255,255,255}
 namespace Renderer {
 	internal float computeLight(Vector&, Vector&, const Vector, float, bool);
@@ -12,11 +14,10 @@ namespace Renderer {
 	internal void clearScreen(u32 color) {
 		u32* pixel = (u32*)renderState.memory;
 		float* dep = (float*)depth;
-		for (int y = 0; y < renderState.height; y++) {
-			for (int x = 0; x < renderState.width; x++) {
-				*pixel++ = color;
-				*dep++ = 0;
-			}
+		int bufferSize = renderState.width * renderState.height;
+		for (int i = 0; i < bufferSize;i++) {
+			*pixel++ = color;
+			*dep++ = 0;
 		}
 	}
 	//Put pixel (x and y specify viewport coordinates)
@@ -83,6 +84,26 @@ namespace Renderer {
 		LOG_SUCCESS("Exported to PPM successfully : " << filename << "\n");
 		ofs.close();
 	}
+	
+	internal void exportToPPM(const std::string& filename, u32* buffer, int width, int height) {
+		Timer timer;
+		std::ofstream ofs;
+		ofs.open(filename);
+		if (!ofs.is_open()) {
+			LOG_ERROR("Failed to open file : "<<filename<<"\n");
+			return;
+		}
+		ofs << "P3\n" << width << ' ' << height << "\n255\n";
+		int bufferSize = width * height;
+		for (int i = 0; i < bufferSize; i++) {
+			u32 currentColor = buffer[i];
+			ofs << ((currentColor >> 16) & 0xFF) << ' ' << ((currentColor >> 8) & 0xFF) << ' ' << (currentColor & 0xFF) << '\n';
+		}
+		ofs.close();
+		timer.Stop();
+		LOG_SUCCESS("buffer exported to ppm successfully : "<<filename << " took:" << timer.dtms << "ms\n");
+	}
+
 	internal void drawLine(Vector a, Vector b, Colour color) {
 		float dy = b.y - a.y;
 		float dx = b.x - a.x;
@@ -123,8 +144,10 @@ namespace Renderer {
 			}
 		}
 	}
+	
 	Mesh loadOBJ(std::string filename, Colour color = { 0,0,0 }, float reflectiveness = 0, float specular = -1)
 	{
+		Timer timer;
 		LOG_INFO("Loading " << filename);
 		std::vector<Vector> vertexes = {};
 		std::vector<Vector> normals = {};
@@ -147,28 +170,27 @@ namespace Renderer {
 			LOG_ERROR("Cannot open file " << filename << "\n");
 			return {};
 		}
-		std::unordered_map<std::string, Modes> map = {
+		/*std::unordered_map<std::string, Modes> map = {
 			{"# ", NONE},
 			{"v ", VERTEX_MODE},
 			{"vt", TEXTURE_MODE},
 			{"vn", NORMAL_MODE},
 			{"f ", FACE_MODE}
-		};
+		};*/
 		while (std::getline(OBJFile, line))
 		{
 			std::string m = line.substr(0, 2);
-			mode = map[m];
+			/*mode = map[m];
 			switch (mode)
-			{
-			case VERTEX_MODE:
+			{*/
+			if(m == "v ")
 			{
 				std::istringstream iss(line.substr(2));
 				float x = 0, y = 0, z = 0;
 				iss >> x >> y >> z;
 				vertexes.push_back({ x,y,z });
 			}
-			break;
-			case TEXTURE_MODE:
+			else if(m == "vt")
 			{
 				std::istringstream iss(line.substr(3));
 				float u, v, w;
@@ -176,8 +198,7 @@ namespace Renderer {
 				Texture newtext({ u, v, w });
 				texture.push_back(newtext);
 			}
-			break;
-			case NORMAL_MODE:
+			else if(m == "vn")
 			{
 				std::istringstream iss(line.substr(3));
 				float x, y, z;
@@ -185,8 +206,7 @@ namespace Renderer {
 				Vector newnorm(x, y, z);
 				normals.push_back(newnorm);
 			}
-			break;
-			case FACE_MODE:
+			else if(m == "f ")
 			{
 				std::istringstream iss(line.substr(2));
 				std::string s[3];
@@ -221,21 +241,18 @@ namespace Renderer {
 				Face newface = { index[0],index[1],index[2] };
 				faces.push_back(newface);
 			}
-			break;
-			default:
-			{
+			else {
 				continue;
-			}
-			break;
 			}
 		}
 		OBJFile.close();
-		LOG_SUCCESS("Loaded "<< filename );
 		Mesh mesh = { vertexes,normals,texture,faces };
 		mesh.color = color;
 		mesh.specular = specular;
 		mesh.reflectiveness = reflectiveness;
 		mesh.initTriangles();
+		timer.Stop();
+		LOG_SUCCESS("Loaded "<< filename << ":" << timer.dtms <<"ms");
 		return mesh;
 	}
 	Vector canvasToViewport(float x, float y) {

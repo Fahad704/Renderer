@@ -62,7 +62,7 @@ struct SceneSettings {
 	DebugState debugState;
 	bool lockMouse;
 	RenderMode renderMode;
-}sceneSettings = { true,true,0,DebugState::DS_OFF, true ,RenderMode::RM_COLOR };
+}sceneSettings = { true,false,0,DebugState::DS_OFF, true ,RenderMode::RM_COLOR };
 enum LightType {
 	LT_POINT,
 	LT_DIRECTIONAL,
@@ -359,7 +359,7 @@ struct Mesh {
 			triangle.p[1] = v2;
 			triangle.p[2] = v3;
 			triangle.color = this->color;
-			triangle.normal = face.index[0].norm;
+			triangle.normal = normals.at(face.index[0].norm);
 			triangles.push_back(triangle);
 		}
 		for (const Vector& vertex : vertices) {

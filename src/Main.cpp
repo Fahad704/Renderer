@@ -10,6 +10,7 @@
 *		-Implement BVH ray tracing
 *		-Implement proper Occlusion culling
 *	Adding Features:
+*		-Frametime graph
 *		-Add matrix transformation for renderer
 *		-interpolated normals(Rasterizer)
 *		-read and display textures(Rasterizer)
@@ -93,7 +94,6 @@ void handleInput(const Input& input) {
 			c++;
 		}
 		LOG_INFO("Total triangle count :" << totalTris << '\n');
-		LOG_INFO("NIGGER!!");
 		LOG_INFO("---\n");
 	}
 
@@ -127,8 +127,8 @@ void handleInput(const Input& input) {
 		change = true;
 	}
 	//Exporting an image
-	if (pressed(BUTTON_P))
-		Renderer::exportToPPM("Image.ppm");
+	if (isDown(BUTTON_P))
+		Renderer::exportToPPM("Image.ppm",(u32*)renderState.memory,renderState.width,renderState.height);
 	//Backface culling toggle
 	if (pressed(BUTTON_C)) {
 		sceneSettings.bfc = !sceneSettings.bfc;
@@ -200,11 +200,10 @@ void init() {
 	std::vector<Triangle> triangles = {};
 	std::vector<Instance> instances = {};
 
-	static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255,255,255 }, 0.3f, 100.f);
+	static Mesh model = Renderer::loadOBJ("res/Models/cube.obj", { 255,255,255 }, 0.3f, 100.f);
 	instances = {
-		{model, {0,0,0},0.1f,{0,0,0}},
+		{model, {0,0,5},1.f,{0,0,0}},
 	};
-
 	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
@@ -215,8 +214,8 @@ void update(const Input& input) {
 		//Ray trace
 		Renderer::clearScreen(0x000000);
 		//Ray tracing multithreaded
-		size_t threadCount = std::thread::hardware_concurrency();
-		std::vector<std::thread> tObjs(threadCount);
+		static size_t threadCount = std::thread::hardware_concurrency();
+		static std::vector<std::thread> tObjs(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
 		{
 			tObjs[i] = std::thread(Renderer::rayTraceThr, i, threadCount);

@@ -18,7 +18,7 @@ static RenderState renderState;
 static bool running = true;
 #include "Globals.h"
 #include "Renderer.cpp"
-#include "Resource.h"
+#include "resource.h"
 #include "Main.cpp"
 //void clearScreen(u32);
 LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -210,7 +210,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 		//Swap buffers
 		swapBuffers();
 	}
-
 	deleteWindow();
 	return 0;
 }
