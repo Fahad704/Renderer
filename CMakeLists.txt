@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Renderer)
 
-add_executable(Renderer WIN32 src/Window.cpp src/Vector.cpp)
+file(GLOB SOURCES src/*.cpp)
+add_executable(Renderer WIN32 ${SOURCES})
 
 target_link_libraries(Renderer user32 kernel32)
 
