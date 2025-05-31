@@ -1,7 +1,7 @@
 
 # Renderer
 
-**Renderer** is a C++ application for rendering 3D models using either a **ray tracer** or a **rasterizer**, designed to learn the graphics pipeline and Windows API. It supports rendering OBJ files with basic lighting and includes features for visualization and debugging.
+**Renderer** is a C++ application for rendering 3D models using either a **ray tracer** or a **rasterizer**, a project to learn the graphics pipeline and Windows API. It supports rendering OBJ files, with basic lighting and includes features for visualization and debugging.
 
 This project is inspired by Gabriel Gambetta's *Computer Graphics From Scratch* and includes custom implementations.
 
