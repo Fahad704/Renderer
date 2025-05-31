@@ -1,28 +1,29 @@
 #pragma once
 #include <iostream>
 #include <Windows.h>
+#include "Typedefs.h"
 #define APPNAME "Renderer"
-void setConsoleAttribute(WORD attribute) {
+inline void setConsoleAttribute(WORD attribute) {
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(handle, attribute);
 }
-std::ostream& red(std::ostream& os) {
+inline std::ostream& red(std::ostream& os) {
 	setConsoleAttribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
 	return os;
 }
-std::ostream& yellow(std::ostream& os) {
+inline std::ostream& yellow(std::ostream& os) {
 	setConsoleAttribute(FOREGROUND_RED | FOREGROUND_GREEN);
 	return os;
 }
-std::ostream& white(std::ostream& os) {
+inline std::ostream& white(std::ostream& os) {
 	setConsoleAttribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 	return os;
 }
-std::ostream& green(std::ostream& os) {
+inline std::ostream& green(std::ostream& os) {
 	setConsoleAttribute(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 	return os;
 }
-void printLive(const std::string& message) {
+inline void printLive(const std::string& message) {
 	static std::string lastLine;
 	int pad = std::max<int>(0, lastLine.size() - message.size());
 	std::cout << "\r" << message << std::string(pad, ' ')<< std::flush;

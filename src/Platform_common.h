@@ -1,5 +1,4 @@
-#ifndef PLATFORM_COMMON_H
-#define PLATFORM_COMMON_H
+#pragma once
 //this says platform common but there is only one platform lol
 enum Buttons {
 	BUTTON_SHIFT,
@@ -40,4 +39,3 @@ struct Button_state {
 struct Input {
 	Button_state buttons[BUTTON_COUNT];
 };
-#endif

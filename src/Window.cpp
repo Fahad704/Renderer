@@ -1,5 +1,3 @@
-#ifndef WINDOW_CPP
-#define WINDOW_CPP
 #define _CRT_SECURE_NO_WARNINGS
 /*
 * ------------------------------------------------------------------
@@ -7,20 +5,38 @@
 * ------------------------------------------------------------------
 */
 #define NOMINMAX
-#include <Windows.h>
-#include "Platform_common.h"
-#include "Window.h"
-void* depth;
-static Window window = {};
-static RenderState renderState;
-#include "Utility.cpp"
 
-static bool running = true;
-#include "Globals.h"
-#include "Renderer.cpp"
+#include "Window.h"
+#include "Renderer.h"
+#include "Main.h"
+#include "Platform_common.h"
 #include "resource.h"
-#include "Main.cpp"
 //void clearScreen(u32);
+void turnConsoleOff() {
+	FreeConsole();
+	std::fclose(stdout);
+}
+Vector getMouseDiff() {
+	static POINT prevPoint = { 0,0 };
+	POINT mousePoint;
+	RECT rectangle;
+	GetWindowRect(window.handle, &rectangle);
+	int windowX = rectangle.left;
+	int windowY = rectangle.top;
+
+	GetCursorPos(&mousePoint);
+	Vector mousePrev = { float(prevPoint.x) - windowX, float(prevPoint.y) - windowY };
+	if (sceneSettings.lockMouse) {
+		prevPoint = { long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)) };
+		SetCursorPos(long(windowX + (renderState.width * 0.5f)), long(windowY + (renderState.height * 0.5f)));
+	}
+	else {
+		prevPoint = mousePoint;
+	}
+	Vector mouseNow = { float(mousePoint.x) - windowX,float(mousePoint.y) - windowY };
+	Vector mouseDiff = mouseNow - mousePrev;
+	return mouseDiff;
+}
 LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	LRESULT result = 0;
 	switch (uMsg) {
@@ -213,4 +229,3 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	deleteWindow();
 	return 0;
 }
-#endif

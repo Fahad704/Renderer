@@ -1,28 +1,17 @@
-#ifndef RENDERER_CPP
-#define RENDERER_CPP
-#include "Window.cpp"
-#include "Logging.h"
-#include <algorithm>
-#include <unordered_map>
-#include <cassert>
-#include <string>
-#define internal static
-#define WHITE {255,255,255}
+#include "Renderer.h"
 namespace Renderer {
-	internal float computeLight(Vector&, Vector&, const Vector, float, bool);
-	internal Vector reflectRay(const Vector&, Vector&);
-	internal void clearScreen(u32 color) {
+	void clearScreen(u32 color) {
 		u32* pixel = (u32*)renderState.memory;
 		float* dep = (float*)depth;
 		int bufferSize = renderState.width * renderState.height;
-		for (int i = 0; i < bufferSize;i++) {
+		for (int i = 0; i < bufferSize; i++) {
 			*pixel++ = color;
 			*dep++ = 0;
 		}
 	}
 	//Put pixel (x and y specify viewport coordinates)
 	//this means x=0,y=0 will be on center
-	internal void putPixel(int x, int y, Colour color) {
+	void putPixel(int x, int y, Colour color) {
 		u32 hexColor = rgbtoHex(color);
 		x += renderState.width / 2;
 		y = (renderState.height / 2) - y;
@@ -31,26 +20,26 @@ namespace Renderer {
 	}
 	//put pixel Direct (x and y specify buffer value)
 	//x=0,y=0 will be on top left
-	internal void putPixelD(int x, int y, Colour color) {
+	void putPixelD(int x, int y, Colour color) {
 		u32 hexColor = rgbtoHex(color);
 		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
 		*pixel = hexColor;
 	}
-	internal void renderDepthBuffer() {
+	void renderDepthBuffer() {
 		for (int y = 0; y < renderState.height; y++) {
 			for (int x = 0; x < renderState.width; x++) {
 				float* value = (((float*)depth) + x + (y * renderState.width));
 				Colour color = { (unsigned char)((*value) * 255),(unsigned char)((*value) * 255),(unsigned char)((*value) * 255) };
-				Renderer::putPixelD(x, y, color);
+				putPixelD(x, y, color);
 			}
 		}
 	}
-	internal Colour getPixel(int x, int y) {
+	Colour getPixel(int x, int y) {
 		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
 		Colour result = hexToRGB(*pixel);
 		return result;
 	}
-	internal void drawSquare(float x, float y, int size, Colour color) {
+	void drawSquare(float x, float y, int size, Colour color) {
 		x -= size * 0.5f;
 		y -= size * 0.5f;
 		for (int i = int(y); i < y + size; i++) {
@@ -67,7 +56,7 @@ namespace Renderer {
 			}
 		}
 	}
-	internal void exportToPPM(const std::string& filename) {
+	void exportToPPM(const std::string& filename) {
 		std::ofstream ofs;
 		ofs.open(filename);
 		if (!ofs.is_open()) {
@@ -84,13 +73,13 @@ namespace Renderer {
 		LOG_SUCCESS("Exported to PPM successfully : " << filename << "\n");
 		ofs.close();
 	}
-	
-	internal void exportToPPM(const std::string& filename, u32* buffer, int width, int height) {
+
+	void exportToPPM(const std::string& filename, u32* buffer, int width, int height) {
 		Timer timer;
 		std::ofstream ofs;
 		ofs.open(filename);
 		if (!ofs.is_open()) {
-			LOG_ERROR("Failed to open file : "<<filename<<"\n");
+			LOG_ERROR("Failed to open file : " << filename << "\n");
 			return;
 		}
 		ofs << "P3\n" << width << ' ' << height << "\n255\n";
@@ -101,10 +90,10 @@ namespace Renderer {
 		}
 		ofs.close();
 		timer.Stop();
-		LOG_SUCCESS("buffer exported to ppm successfully : "<<filename << " took:" << timer.dtms << "ms\n");
+		LOG_SUCCESS("buffer exported to ppm successfully : " << filename << " took:" << timer.dtms << "ms\n");
 	}
 
-	internal void drawLine(Vector a, Vector b, Colour color) {
+	void drawLine(Vector a, Vector b, Colour color) {
 		float dy = b.y - a.y;
 		float dx = b.x - a.x;
 		if (abs(dx) > abs(dy)) {
@@ -144,8 +133,8 @@ namespace Renderer {
 			}
 		}
 	}
-	
-	Mesh loadOBJ(std::string filename, Colour color = { 0,0,0 }, float reflectiveness = 0, float specular = -1)
+
+	Mesh loadOBJ(std::string filename, Colour color, float reflectiveness, float specular)
 	{
 		Timer timer;
 		LOG_INFO("Loading " << filename);
@@ -183,14 +172,14 @@ namespace Renderer {
 			/*mode = map[m];
 			switch (mode)
 			{*/
-			if(m == "v ")
+			if (m == "v ")
 			{
 				std::istringstream iss(line.substr(2));
 				float x = 0, y = 0, z = 0;
 				iss >> x >> y >> z;
 				vertexes.push_back({ x,y,z });
 			}
-			else if(m == "vt")
+			else if (m == "vt")
 			{
 				std::istringstream iss(line.substr(3));
 				float u, v, w;
@@ -198,7 +187,7 @@ namespace Renderer {
 				Texture newtext({ u, v, w });
 				texture.push_back(newtext);
 			}
-			else if(m == "vn")
+			else if (m == "vn")
 			{
 				std::istringstream iss(line.substr(3));
 				float x, y, z;
@@ -206,7 +195,7 @@ namespace Renderer {
 				Vector newnorm(x, y, z);
 				normals.push_back(newnorm);
 			}
-			else if(m == "f ")
+			else if (m == "f ")
 			{
 				std::istringstream iss(line.substr(2));
 				std::string s[3];
@@ -252,7 +241,7 @@ namespace Renderer {
 		mesh.reflectiveness = reflectiveness;
 		mesh.initTriangles();
 		timer.Stop();
-		LOG_SUCCESS("Loaded "<< filename << ":" << timer.dtms <<"ms");
+		LOG_SUCCESS("Loaded " << filename << ":" << timer.dtms << "ms");
 		return mesh;
 	}
 	Vector canvasToViewport(float x, float y) {
@@ -266,7 +255,7 @@ namespace Renderer {
 		std::pair<float, float> result = viewportToCanvas(float((v.x * d) / v.z), float((v.y * d) / v.z));
 		return { result.first,result.second ,d };
 	}
-	internal void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr) {
+	void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr) {
 		float dx = x1 - x0;
 		float dy = y1 - y0;
 		float aspectratio = (dy != 0) ? (dx / dy) : 0;
@@ -279,7 +268,7 @@ namespace Renderer {
 			x += aspectratio;
 		}
 	}
-	internal void drawTriangle(Triangle& t, bool wireframe = true) {
+	void drawTriangle(Triangle& t, bool wireframe) {
 		Vector p1 = projectVertex(t.p[0]);
 		Vector p2 = projectVertex(t.p[1]);
 		Vector p3 = projectVertex(t.p[2]);
@@ -408,9 +397,9 @@ namespace Renderer {
 		}
 	}
 
-	static std::vector<Triangle> clipTriangle(Triangle&);
-	static void drawTrianglesMultiThread(std::vector<Triangle>, bool, unsigned int);
-	void drawBox(Box box, Transform tf = {}, bool inTriangle = true) {
+	std::vector<Triangle> clipTriangle(Triangle&);
+	void drawTrianglesMultiThread(std::vector<Triangle>, bool, unsigned int);
+	void drawBox(Box box, Transform tf, bool inTriangle) {
 		//The tf transform is inverse camera tranform to convert world space box into
 		//camera space box
 		Colour red = { 255,0,0 };
@@ -502,7 +491,7 @@ namespace Renderer {
 		drawLine(projected[3], projected[7], red);
 	}
 
-	internal float intersectRaySphere(Vector& O, Vector& D, Sphere& sphere) {
+	float intersectRaySphere(Vector& O, Vector& D, Sphere& sphere) {
 		float r = sphere.radius;
 		Vector CO = O - sphere.center;
 
@@ -513,23 +502,23 @@ namespace Renderer {
 		float discriminant = (b * b) - (4 * a * c);
 
 		if (discriminant < 0) {
-			return infinity;
+			return INFINITY_V;
 		}
 		float t = (-b - sqrt(discriminant)) / (2 * a);
 		return t;
 	}
-	internal float intersectRayTriangle(Vector O, Vector D, Triangle triangle)
+	float intersectRayTriangle(Vector O, Vector D, Triangle triangle)
 	{
 		float t = 0;
 		Vector N = triangle.getNormal();
 		float NdotRay = dot(N, D);
 		if (NdotRay > 0)
-			return infinity;
+			return INFINITY_V;
 		float d = -dot(N, triangle.p[0]);
 		t = -(dot(N, O) + d) / NdotRay;
 		if (t < 0)
-			return infinity;
-
+			return INFINITY_V;
+	   		
 		Vector P = O + (t * D);
 
 		Vector C;
@@ -540,7 +529,7 @@ namespace Renderer {
 		C = cross(edge, pLine);
 
 		if (dot(N, C) < 0)
-			return infinity; //Point is outside/Rightside edge 0;
+			return INFINITY_V; //Point is outside/Rightside edge 0;
 
 		//edge 1
 		edge = triangle.p[2] - triangle.p[1];
@@ -548,7 +537,7 @@ namespace Renderer {
 		C = cross(edge, pLine);
 
 		if (dot(N, C) < 0)
-			return infinity; //Point is outside/Rightside edge 1;
+			return INFINITY_V; //Point is outside/Rightside edge 1;
 
 		//edge 2
 		edge = triangle.p[0] - triangle.p[2];
@@ -556,11 +545,11 @@ namespace Renderer {
 		C = cross(edge, pLine);
 
 		if (dot(N, C) < 0)
-			return infinity; //Point is outside/Rightside edge 2;
+			return INFINITY_V; //Point is outside/Rightside edge 2;
 
 		return t;
 	}
-	internal bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
+	bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
 	{
 		Vector invDir = 1.0f / D;
 		float tmin, tmax, tymin, tymax, tzmin, tzmax;
@@ -607,8 +596,8 @@ namespace Renderer {
 		}
 		return true;
 	}
-	internal std::pair<Object*, float> closestIntersection(Vector O, Vector D, float tMin, float tMax) {
-		float closestT = infinity;
+	std::pair<Object*, float> closestIntersection(Vector O, Vector D, float tMin, float tMax) {
+		float closestT = INFINITY_V;
 		Object* closestObject = nullptr;
 		//Sphere intersection
 		for (Sphere& sphere : scene.spheres) {
@@ -670,10 +659,10 @@ namespace Renderer {
 		}
 		return { closestObject,closestT };
 	}
-	internal Vector reflectRay(const Vector& R, Vector& N) {
+	Vector reflectRay(const Vector& R, Vector& N) {
 		return (2 * (N * dot(R, N)) - R);
 	}
-	internal float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows = true) {
+	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows) {
 		float i = 0.f;
 		for (const Light& light : scene.lights) {
 			//L = direction of the light
@@ -685,14 +674,14 @@ namespace Renderer {
 			else {
 				if (light.type == LT_DIRECTIONAL) {
 					L = { -light.direction.x,-light.direction.y,-light.direction.z };
-					tMax = infinity;
+					tMax = INFINITY_V;
 				}
 				else if (light.type == LT_POINT) {
 					L = (light.pos - P);
 					tMax = length(L);
 				}
-				float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, tMax).second : infinity;
-				if (shadowT != infinity) {
+				float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, tMax).second : INFINITY_V;
+				if (shadowT != INFINITY_V) {
 					continue;
 				}
 				//Diffuse reflection
@@ -726,7 +715,7 @@ namespace Renderer {
 		// t = -D - <N,A>/ <N,(B - A)>
 		return (-plane.offset - dot(plane.normal, A)) / dot(plane.normal, (B - A));
 	}
-	internal std::vector<Triangle> clipTriangle(Triangle& tri) {
+	std::vector<Triangle> clipTriangle(Triangle& tri) {
 		//TODO(Fahad):Fix weird triangle colouring bug
 		std::vector<Triangle> triangles = { tri };
 		for (int i = 0; i < 5; i++) {
@@ -823,7 +812,7 @@ namespace Renderer {
 		}
 		return { triangles };
 	}
-	internal void FXAAthr(int threadNum, int threadCount, float edgeThreshold = 0.f) {
+	void FXAAthr(int threadNum, int threadCount, float edgeThreshold) {
 		int yCount = (renderState.height - 2) / threadCount;
 		int ymin = (threadNum * yCount) + 1;
 		int ymax = ymin + yCount;
@@ -869,7 +858,7 @@ namespace Renderer {
 			}
 		}
 	}
-	internal void FXAA(bool multiThread = true) {
+	void FXAA(bool multiThread) {
 		float edgeThreshold = 0.f;
 		if (!multiThread) {
 			//Single Threaded FXAA
@@ -927,12 +916,12 @@ namespace Renderer {
 			}
 		}
 	}
-	internal void drawTrianglesThr(std::vector<Triangle> tris, size_t start, size_t end, bool drawWireframe) {
+	void drawTrianglesThr(std::vector<Triangle> tris, size_t start, size_t end, bool drawWireframe) {
 		for (int i = start; i < end; i++) {
 			drawTriangle(tris[i], drawWireframe);
 		}
 	}
-	internal void drawTrianglesMultiThread(std::vector<Triangle> tris, bool drawWireframe, unsigned int numThreads) {
+	void drawTrianglesMultiThread(std::vector<Triangle> tris, bool drawWireframe, unsigned int numThreads) {
 		size_t totalTriangles = tris.size();
 
 		std::vector<std::thread> threads(numThreads);
@@ -954,7 +943,7 @@ namespace Renderer {
 		}
 
 	}
-	internal void renderMesh(const Mesh& mesh, Transform transform, bool multithread = true) {
+	void renderMesh(const Mesh& mesh, Transform transform, bool multithread) {
 		std::vector<Triangle> tris = {};
 
 		for (const Triangle& triangle : mesh.triangles) {
@@ -1010,12 +999,12 @@ namespace Renderer {
 
 		}
 	}
-	internal Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
+	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
 		std::pair<Object*, float> intersection = closestIntersection(O, D, tMin, tMax);
 		Object* closestObject = intersection.first;
 		float closestT = intersection.second;
 		Colour bgColor = { 100,100,100 };
-		if (closestT == infinity) {
+		if (closestT == INFINITY_V) {
 			return bgColor;
 		}
 
@@ -1041,7 +1030,7 @@ namespace Renderer {
 		}
 
 		Vector R = reflectRay(-D, N);
-		Colour reflectedColor = traceRay(P, R, 0.001, infinity, recursionLimit - 1);
+		Colour reflectedColor = traceRay(P, R, 0.001, INFINITY_V, recursionLimit - 1);
 
 		return (localColor * (1.f - r)) + (reflectedColor * r);
 	}
@@ -1055,7 +1044,7 @@ namespace Renderer {
 				Vector direction = canvasToViewport(x - (canvas.x / 2.f), (canvas.y / 2.f) - y);
 				direction = rotate(direction, camera.rotation, RotateOrder::RO_XYZ);
 				direction = direction / length(D);
-				Colour result = traceRay(camera.position, direction, 1, infinity, 3);
+				Colour result = traceRay(camera.position, direction, 1, INFINITY_V, 3);
 				putPixelD(x, y, result);
 			}
 		}
@@ -1069,7 +1058,7 @@ namespace Renderer {
 				D = canvasToViewport(x - (canvas.x / 2), (canvas.y / 2) - y);
 				D = rotate(D, camera.rotation, RotateOrder::RO_XYZ);
 				D = D / length(D);
-				Colour result = traceRay(camera.position, D, 1, infinity, 3);
+				Colour result = traceRay(camera.position, D, 1, INFINITY_V, 3);
 				putPixelD(x, y, result);
 			}
 		}
@@ -1113,4 +1102,3 @@ namespace Renderer {
 
 	}
 };
-#endif

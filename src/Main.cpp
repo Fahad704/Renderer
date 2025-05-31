@@ -1,8 +1,5 @@
-#ifndef MAIN_CPP
-#define MAIN_CPP
-
-#include "Renderer.cpp"
-#include "Logging.h"
+#include "Main.h"
+#include "Renderer.h"
 
 //TODO(Fahad):
 /*
@@ -244,4 +241,3 @@ void update(const Input& input) {
 	printLive("CUR : " + std::to_string(1.f / (timer.dtms * 0.001)) + " AVG : " + std::to_string(1 / (totalFrameTime / frameCount)) + " FRAMETIME: " + std::to_string(timer.dtms) + "ms");
 	timer.dtms = 0;
 }
-#endif

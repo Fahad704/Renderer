@@ -1,7 +1,11 @@
 #pragma once
 #define NOMINMAX
 #include <Windows.h>
+#include "Vector.h"
+#include "Timer.h"
+#include "Typedefs.h"
 #include "Platform_common.h"
+//#include "SceneSettings.h"
 #define isDown(b) input.buttons[b].isDown
 #define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
 #define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
@@ -17,3 +21,9 @@ struct Window {
 	HDC dc;
 	Input input;
 };
+void turnConsoleOff();
+Vector getMouseDiff();
+LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void swapBuffers();
+void initWindow();
+void deleteWindow();
