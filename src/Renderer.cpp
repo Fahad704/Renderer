@@ -29,6 +29,7 @@ namespace Renderer {
 		for (int y = 0; y < renderState.height; y++) {
 			for (int x = 0; x < renderState.width; x++) {
 				float* value = (((float*)depth) + x + (y * renderState.width));
+				clamp(*value, 0.f, 1.f);
 				Colour color = { (unsigned char)((*value) * 255),(unsigned char)((*value) * 255),(unsigned char)((*value) * 255) };
 				putPixelD(x, y, color);
 			}
@@ -142,15 +143,6 @@ namespace Renderer {
 		std::vector<Vector> normals = {};
 		std::vector<Texture> texture = {};
 		std::vector<Face> faces = {};
-		enum Modes
-		{
-			NONE,
-			VERTEX_MODE,
-			TEXTURE_MODE,
-			NORMAL_MODE,
-			FACE_MODE
-		};
-		Modes mode;
 		std::ifstream OBJFile;
 		std::string line;
 		OBJFile.open(filename);
@@ -159,19 +151,9 @@ namespace Renderer {
 			LOG_ERROR("Cannot open file " << filename << "\n");
 			return {};
 		}
-		/*std::unordered_map<std::string, Modes> map = {
-			{"# ", NONE},
-			{"v ", VERTEX_MODE},
-			{"vt", TEXTURE_MODE},
-			{"vn", NORMAL_MODE},
-			{"f ", FACE_MODE}
-		};*/
 		while (std::getline(OBJFile, line))
 		{
 			std::string m = line.substr(0, 2);
-			/*mode = map[m];
-			switch (mode)
-			{*/
 			if (m == "v ")
 			{
 				std::istringstream iss(line.substr(2));
@@ -197,6 +179,8 @@ namespace Renderer {
 			}
 			else if (m == "f ")
 			{
+				//---Only works for 3 Vertices faces---
+				
 				std::istringstream iss(line.substr(2));
 				std::string s[3];
 				iss >> s[0] >> s[1] >> s[2];
@@ -272,8 +256,6 @@ namespace Renderer {
 		Vector p1 = projectVertex(t.p[0]);
 		Vector p2 = projectVertex(t.p[1]);
 		Vector p3 = projectVertex(t.p[2]);
-		//Vector N = t.getNormal();
-		//N = N / length(N);
 		p1.z = t.p[0].z;
 		p2.z = t.p[1].z;
 		p3.z = t.p[2].z;
@@ -311,11 +293,8 @@ namespace Renderer {
 		interpolate(p1.x, p1.y, p3.x, p3.y, x02);
 
 		float z0 = (1.f / p1.z);
-		clamp(z0, 0.0001f, 1.f);
 		float z1 = (1.f / p2.z);
-		clamp(z1, 0.0001f, 1.f);
 		float z2 = (1.f / p3.z);
-		clamp(z2, 0.0001f, 1.f);
 		interpolate(z0, p1.y, z1, p2.y, z01);
 		interpolate(z1, p2.y, z2, p3.y, z12);
 		interpolate(z0, p1.y, z2, p3.y, z02);
@@ -363,16 +342,16 @@ namespace Renderer {
 		//Vector centroid = newTri.getCentroid();
 		for (int y = int(p1.y); y < int(p3.y); y++) {
 			int ny = int((renderState.height / (float)2.f) - y);
-			float zL = 1.f / zLeft[y - int(p1.y)];
-			float zR = 1.f / zRight[y - int(p1.y)];
+			float zL = zLeft[y - int(p1.y)];
+			float zR = zRight[y - int(p1.y)];
 			float xL = xLeft[y - int(p1.y)];
 			float xR = xRight[y - int(p1.y)];
 			std::vector<float> zSegment = {};
 			interpolate(zL, xL, zR, xR, zSegment);
 			for (int x = int(xL); x < int(xR); x++) {
 				//Per Fragment
-				float z = zSegment[x - int(xL)];
-				float invZ = 1.f / z;
+				float invZ = zSegment[x - int(xL)];
+				float z = (1.f / invZ);
 
 				Vector T = canvasToViewport((x * z) / d, (y * z) / d);
 				T.z = z;
@@ -397,8 +376,6 @@ namespace Renderer {
 		}
 	}
 
-	std::vector<Triangle> clipTriangle(Triangle&);
-	void drawTrianglesMultiThread(std::vector<Triangle>, bool, unsigned int);
 	void drawBox(Box box, Transform tf, bool inTriangle) {
 		//The tf transform is inverse camera tranform to convert world space box into
 		//camera space box
@@ -716,9 +693,8 @@ namespace Renderer {
 		return (-plane.offset - dot(plane.normal, A)) / dot(plane.normal, (B - A));
 	}
 	std::vector<Triangle> clipTriangle(Triangle& tri) {
-		//TODO(Fahad):Fix weird triangle colouring bug
 		std::vector<Triangle> triangles = { tri };
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 6; i++) {
 			std::vector<Triangle> planeClipped = {};
 			for (Triangle& t : triangles) {
 
@@ -1084,7 +1060,31 @@ namespace Renderer {
 			Instance sphereIns(sphereM, (sphere.center + Vector{ 0,-0.2f,0 }), sphere.radius * 0.4f);
 			renderMesh(*sphereIns.mesh, sphereIns.transform);
 		}
+		for (Triangle& striangle : scene.triangles) {
+			//world space to camera space
+			Vector csvert[3];
+			csvert[0] = striangle.p[0] - camera.position;
+			csvert[1] = striangle.p[1] - camera.position;
+			csvert[2] = striangle.p[2] - camera.position;
 
+			csvert[0] = rotate(csvert[0], -camera.rotation);
+			csvert[1] = rotate(csvert[1], -camera.rotation);
+			csvert[2] = rotate(csvert[2], -camera.rotation);
+
+			Vector PO = -csvert[0];
+
+			Triangle triangle(csvert, striangle.normal, striangle.color, striangle.specular, striangle.reflectiveness);
+
+			if (dot(PO, triangle.getNormal()) > 0.f) {
+				continue;
+			}
+
+			std::vector<Triangle> clippedTris = clipTriangle(triangle);
+
+			for (Triangle& tri : clippedTris) {
+				drawTriangle(tri, (sceneSettings.debugState == DebugState::DS_TRIANGLE));
+			}
+		}
 		//Apply AA
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			FXAA();

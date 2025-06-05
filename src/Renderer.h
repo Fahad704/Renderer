@@ -5,7 +5,6 @@
 #include "Transform.h"
 #include "Hash.h"
 #include "Utility.h"
-//#include "SceneSettings.h"
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
@@ -42,11 +41,9 @@ namespace Renderer {
 	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows = true);
 	float planeIntersection(Plane& plane, Vector& point);
 	float edgePlaneIntersection(Plane& plane, const Vector& A, const Vector& B);
-	std::vector<Triangle> clipTriangle(Triangle& tri);
 	void FXAAthr(int threadNum, int threadCount, float edgeThreshold = 0.f);
 	void FXAA(bool multiThread = true);
 	void drawTrianglesThr(std::vector<Triangle> tris, size_t start, size_t end, bool drawWireframe);
-	void drawTrianglesMultiThread(std::vector<Triangle> tris, bool drawWireframe, unsigned int numThreads);
 	void renderMesh(const Mesh& mesh, Transform transform, bool multithread = true);
 	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit);
 	void rayTraceThr(int threadNum, int threadCount);

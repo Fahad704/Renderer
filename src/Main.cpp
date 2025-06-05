@@ -7,17 +7,12 @@
 *		-Implement BVH ray tracing
 *		-Implement proper Occlusion culling
 *	Adding Features:
-*		-Frametime graph
 *		-Add matrix transformation for renderer
 *		-interpolated normals(Rasterizer)
 *		-read and display textures(Rasterizer)
 *		-render according to material(Rasterizer)
+*		-Frametime graph
 *		-Add some ui
-*	Code Refactoring:
-*		-Make better file structure
-*		-Abstract Windowing into classes
-*		-Make the structure API like for the renderer
-*
 */
 //frame delta time
 double fdt = 0.06;
@@ -193,12 +188,24 @@ void init() {
 		{LT_DIRECTIONAL,{0,0,0},{1,-4,4},0.2f},
 		{LT_DIRECTIONAL,{0,0,0},{-1,-1,4},0.2f},
 	};
+	//Floor Triangles
+	Vector p1[3] = {
+		{ 100,0,-100 },
+		{ 100,0,100 },
+		{ -100,0,100 },
+	};
+	Vector p2[3] = {
+		{-100,0,100},
+		{-100,0,-100},
+		{100,0,-100}
+	};
+	std::vector<Triangle> triangles = {
+		{ p1,{0,1,0},{255,0,255},-1.f,0.f},
+		{ p2,{0,1,0},{255,0,255},-1.f,0.f}
+	};
 
-	std::vector<Triangle> triangles = {};
-	std::vector<Instance> instances = {};
-
-	static Mesh model = Renderer::loadOBJ("res/Models/cube.obj", { 255,255,255 }, 0.3f, 100.f);
-	instances = {
+	static Mesh model = Renderer::loadOBJ("res/Models/cube.obj", { 255,255,255 }, 0.f, 100.f);
+	std::vector<Instance> instances = {
 		{model, {0,0,5},1.f,{0,0,0}},
 	};
 	scene = { spheres,triangles,instances,lights };

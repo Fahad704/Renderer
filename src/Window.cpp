@@ -53,6 +53,7 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	}break;
 	case WM_SIZE: {
 		RECT rect;
+		RECT clientRect;
 		GetClientRect(hWnd, &rect);
 		renderState.width = rect.right - rect.left;
 		renderState.height = rect.bottom - rect.top;
@@ -110,9 +111,20 @@ void initWindow() {
 	//Create console
 	AllocConsole();
 	std::freopen("CONOUT$", "w", stdout);
+	int clientWidth = 720;
+	int clientHeight = 720;
+
+	RECT rect = {0,0,clientWidth,clientHeight};
+	DWORD style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+	BOOL hasMenu = FALSE;
+
+	AdjustWindowRect(&rect, style, hasMenu);
+
+	int windowWidth = rect.right - rect.left;
+	int windowHeight = rect.bottom - rect.top;
 
 	//Create Window 
-	window.handle = CreateWindow(window_class.lpszClassName, L"Renderer!", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 720, 720, 0, 0, moduleHandle, 0);
+	window.handle = CreateWindow(window_class.lpszClassName, L"Renderer!",style, CW_USEDEFAULT, CW_USEDEFAULT, windowWidth, windowHeight, 0, 0, moduleHandle, 0);
 
 	if (!window.handle) {
 		LOG_ERROR("Could not create a window\n");
