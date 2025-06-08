@@ -3,13 +3,14 @@
 Window window = {};
 void* depth;
 RenderState renderState;
+std::vector<std::thread> threads;
 bool running = true;
 SceneSettings sceneSettings = { true,false,0,DebugState::DS_OFF, true ,RenderMode::RM_COLOR };
 Vector canvas(720, 720);
 Vector D = { 1,1,1 };
 float vpWidth = 1.f;
 float vpHeight = 1.f;
-//only rendering when frame change to make sure my cpu doesn't explode
+//only ray tracing when frame change to make sure my cpu doesn't explode
 //Especially for Ray tracer
 bool change = true;
 //true = raytracer , false = rasterizer

@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <cassert>
 #include <string>
+#include <string_view>
 #include <sstream>
 #include <thread>
 #define WHITE {255,255,255}
@@ -21,7 +22,7 @@ namespace Renderer {
 	void renderDepthBuffer();
 	void drawSquare(float x, float y, int size, Colour color);
 	void drawNoise();
-	void exportToPPM(const std::string& filename);
+	void printPPM(const std::string& filename);
 	void exportToPPM(const std::string& filename, u32* buffer, int width, int height);
 	void drawLine(Vector a, Vector b, Colour color);
 	Mesh loadOBJ(std::string filename, Colour color = { 0,0,0 }, float reflectiveness = 0, float specular = -1);

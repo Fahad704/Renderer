@@ -119,8 +119,9 @@ void handleInput(const Input& input) {
 		change = true;
 	}
 	//Exporting an image
-	if (isDown(BUTTON_P))
-		Renderer::exportToPPM("Image.ppm",(u32*)renderState.memory,renderState.width,renderState.height);
+	if (pressed(BUTTON_P)) {
+		Renderer::printPPM("Image.ppm");
+	}
 	//Backface culling toggle
 	if (pressed(BUTTON_C)) {
 		sceneSettings.bfc = !sceneSettings.bfc;
@@ -175,10 +176,10 @@ void handleInput(const Input& input) {
 void init() {
 	//Spheres
 	std::vector<Sphere> spheres = {
-		{{0,0,-3},1.f,{255,0,0},100,0.4f },
+		/*{{0,0,-3},1.f,{255,0,0},100,0.4f },
 		{{-1,0,-4},1.f,{0,255,0},100,0.4f },
 		{{1,0,-4},1.f,{0,0,255},100,0.4f },
-		{{2,1,0},0.1f,{0,0,255},100,0.4f }
+		{{2,1,0},0.1f,{0,0,255},100,0.4f }*/
 	};
 
 	std::vector<Light> lights = {
@@ -188,25 +189,13 @@ void init() {
 		{LT_DIRECTIONAL,{0,0,0},{1,-4,4},0.2f},
 		{LT_DIRECTIONAL,{0,0,0},{-1,-1,4},0.2f},
 	};
-	//Floor Triangles
-	Vector p1[3] = {
-		{ 100,0,-100 },
-		{ 100,0,100 },
-		{ -100,0,100 },
-	};
-	Vector p2[3] = {
-		{-100,0,100},
-		{-100,0,-100},
-		{100,0,-100}
-	};
-	std::vector<Triangle> triangles = {
-		{ p1,{0,1,0},{255,0,255},-1.f,0.f},
-		{ p2,{0,1,0},{255,0,255},-1.f,0.f}
-	};
+	std::vector<Triangle> triangles = {};
 
+	static Mesh surfaceModel = Renderer::loadOBJ("res/Models/surface.obj", { 0,255,255 }, 0.f, 100.f);
 	static Mesh model = Renderer::loadOBJ("res/Models/cube.obj", { 255,255,255 }, 0.f, 100.f);
 	std::vector<Instance> instances = {
-		{model, {0,0,5},1.f,{0,0,0}},
+		{model, {0,1,5},1.f,{0,0,0}},
+		{surfaceModel, {0,0,0},1.f,{0,180,0}}
 	};
 	scene = { spheres,triangles,instances,lights };
 }

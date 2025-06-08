@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include <string_view>
 namespace Renderer {
 	void clearScreen(u32 color) {
 		u32* pixel = (u32*)renderState.memory;
@@ -57,22 +58,16 @@ namespace Renderer {
 			}
 		}
 	}
-	void exportToPPM(const std::string& filename) {
-		std::ofstream ofs;
-		ofs.open(filename);
-		if (!ofs.is_open()) {
-			LOG_ERROR("Failed to open file : " << filename << "\n");
-			return;
+	void printPPM(const std::string& filename) {
+		u32 sbsize = (renderState.width * renderState.height) * sizeof(u32);
+		u32* buffer = (u32*)malloc(sbsize);
+		if (buffer) {
+			memcpy((void*)buffer, renderState.memory, sbsize);
+			threads.push_back(std::thread(Renderer::exportToPPM,"Image.ppm", buffer, renderState.width, renderState.height));
 		}
-		ofs << "P3\n" << renderState.width << ' ' << renderState.height << "\n255\n";
-		for (int y = 0; y < renderState.height; y++) {
-			for (int x = 0; x < renderState.width; x++) {
-				Colour color = getPixel(x, y);
-				ofs << (u32)color.R << ' ' << (u32)color.G << ' ' << (u32)color.B << '\n';
-			}
+		else {
+			LOG_WARN("Failed to allocate a buffer");
 		}
-		LOG_SUCCESS("Exported to PPM successfully : " << filename << "\n");
-		ofs.close();
 	}
 
 	void exportToPPM(const std::string& filename, u32* buffer, int width, int height) {
@@ -91,6 +86,7 @@ namespace Renderer {
 		}
 		ofs.close();
 		timer.Stop();
+		free(buffer);
 		LOG_SUCCESS("buffer exported to ppm successfully : " << filename << " took:" << timer.dtms << "ms\n");
 	}
 
@@ -140,9 +136,13 @@ namespace Renderer {
 		Timer timer;
 		LOG_INFO("Loading " << filename);
 		std::vector<Vector> vertexes = {};
+		//vertexes.reserve(1024);
 		std::vector<Vector> normals = {};
+		//normals.reserve(1024);
 		std::vector<Texture> texture = {};
+		//texture.reserve(1024);
 		std::vector<Face> faces = {};
+		//faces.reserve(1024);
 		std::ifstream OBJFile;
 		std::string line;
 		OBJFile.open(filename);
@@ -151,68 +151,62 @@ namespace Renderer {
 			LOG_ERROR("Cannot open file " << filename << "\n");
 			return {};
 		}
+		std::istringstream iss;
 		while (std::getline(OBJFile, line))
 		{
-			std::string m = line.substr(0, 2);
-			if (m == "v ")
+			std::string_view sv(line);
+			if (sv._Starts_with("v "))
 			{
-				std::istringstream iss(line.substr(2));
 				float x = 0, y = 0, z = 0;
-				iss >> x >> y >> z;
+				sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z);
 				vertexes.push_back({ x,y,z });
 			}
-			else if (m == "vt")
+			else if (sv._Starts_with("vt"))
 			{
-				std::istringstream iss(line.substr(3));
 				float u, v, w;
-				iss >> u >> v >> w;
+				sscanf_s(line.c_str(), "vt %f %f %f", &u, &v, &w);
 				Texture newtext({ u, v, w });
 				texture.push_back(newtext);
 			}
-			else if (m == "vn")
+			else if (sv._Starts_with("vn"))
 			{
-				std::istringstream iss(line.substr(3));
 				float x, y, z;
-				iss >> x >> y >> z;
+				sscanf_s(line.c_str(), "vn %f %f %f", &x, &y, &z);
 				Vector newnorm(x, y, z);
 				normals.push_back(newnorm);
 			}
-			else if (m == "f ")
+			else if (sv._Starts_with("f "))
 			{
 				//---Only works for 3 Vertices faces---
-				
-				std::istringstream iss(line.substr(2));
-				std::string s[3];
-				iss >> s[0] >> s[1] >> s[2];
-				Index index[3];
-
-				for (int i = 0; i < 3; i++)
+				int v[3] = {};
+				int t[3] = {};
+				int n[3] = {};
+				Face newface = {};
+				if (sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
+					&v[0], &t[0], &n[0],
+					&v[1], &t[1], &n[1],
+					&v[2], &t[2], &n[2]) == 9)
 				{
-					std::string str = "";
-					int ind[3] = {};
-					int k = 0;
-					for (int j = 0; j < s[i].length(); j++)
-					{
-						if (s[i][j] == '/')
-						{
-							if (str.length())
-							{
-								std::istringstream isstr(str);
-								isstr >> ind[k];
-							}
-							else {
-								ind[k] = -1;//no index
-							}
-							str = "";
-							k++;
-							continue;
-						}
-						str += s[i][j];
-					}
-					index[i] = { ind[0],ind[1],ind[2] };
+					newface = {
+						Index{v[0],t[0],n[0]},
+						Index{v[1],t[1],n[1]},
+						Index{v[2],t[2],n[2]}
+					};
+					faces.push_back(newface);
 				}
-				Face newface = { index[0],index[1],index[2] };
-				faces.push_back(newface);
+				else if (sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d",
+					&v[0], &n[0],
+					&v[1], &n[1],
+					&v[2], &n[2]) == 6) 
+				{
+					LOG_INFO("Format is v//n\n");
+					newface = {
+						Index{v[0],-1,n[0]},
+						Index{v[1],-1,n[1]},
+						Index{v[2],-1,n[2]}
+					};
+					faces.push_back(newface);
+				}
 			}
 			else {
 				continue;
@@ -367,7 +361,7 @@ namespace Renderer {
 
 						Vector R = P - camera.position;
 						R = R / length(R);
-						float light = computeLight(P, N, R, t.specular, false);
+						float light = computeLight(P, N, R, t.specular, true);
 						putPixel(x, y, (color * light));
 						*dep = invZ;
 					}
