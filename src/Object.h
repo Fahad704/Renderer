@@ -11,8 +11,8 @@ enum class Type
 };
 struct Object {
 	Colour color;
-	float specular;
-	float reflectiveness;
+	float specular = -1.f;
+	float reflectiveness = 0.f;
 	virtual Type getType()
 	{
 		return Type::ST_BASE;

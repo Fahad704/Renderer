@@ -5,6 +5,7 @@
 #include "Transform.h"
 #include "Hash.h"
 #include "Utility.h"
+#include "Typedefs.h"
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
@@ -45,7 +46,7 @@ namespace Renderer {
 	void FXAAthr(int threadNum, int threadCount, float edgeThreshold = 0.f);
 	void FXAA(bool multiThread = true);
 	void drawTrianglesThr(std::vector<Triangle> tris, size_t start, size_t end, bool drawWireframe);
-	void renderMesh(const Mesh& mesh, Transform transform, bool multithread = true);
+	void renderMesh(const Mesh& mesh, Transform& transform, bool multithread = true);
 	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit);
 	void rayTraceThr(int threadNum, int threadCount);
 	void rayTrace();

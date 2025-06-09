@@ -19,28 +19,22 @@ enum class RotateOrder {
 	RO_YXZ = 0,
 	RO_XYZ
 };
-INTERNAL_W Vector rotate(const Vector& vec, const Vector& rotationP, RotateOrder ro = RotateOrder::RO_YXZ, bool cached = false) {
+INTERNAL_W Vector rotate(const Vector& vec, const Vector& rotationP, RotateOrder ro = RotateOrder::RO_YXZ) {
 
-	static float sinx, siny, sinz, cosx, cosy, cosz;
-	static Vector lastRot = { 0,0,0 };
-
-
+	float sinx, siny, sinz, cosx, cosy, cosz;
 
 	if (rotationP == Vector{ 0,0,0 }) {
 		return vec;
 	}
 	Vector rotation = { float(rotationP.x * (PI * 2)) / 360.f,float(rotationP.y * (PI * 2)) / 360.f,float(rotationP.z * (PI * 2)) / 360.f };
 
-	if ((rotationP != lastRot) || (!cached)) {
-		lastRot = rotationP;
-		sinx = sin(rotation.x);
-		siny = sin(rotation.y);
-		sinz = sin(rotation.z);
+	sinx = sin(rotation.x);
+	siny = sin(rotation.y);
+	sinz = sin(rotation.z);
 
-		cosx = cos(rotation.x);
-		cosy = cos(rotation.y);
-		cosz = cos(rotation.z);
-	}
+	cosx = cos(rotation.x);
+	cosy = cos(rotation.y);
+	cosz = cos(rotation.z);
 
 	Vector result = {};
 	if (ro == RotateOrder::RO_YXZ) {

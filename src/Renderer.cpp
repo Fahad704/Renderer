@@ -72,22 +72,24 @@ namespace Renderer {
 
 	void exportToPPM(const std::string& filename, u32* buffer, int width, int height) {
 		Timer timer;
-		std::ofstream ofs;
-		ofs.open(filename);
-		if (!ofs.is_open()) {
+		FILE* file;
+		fopen_s(&file,filename.c_str(), "w");
+		if (!file) {
 			LOG_ERROR("Failed to open file : " << filename << "\n");
 			return;
 		}
-		ofs << "P3\n" << width << ' ' << height << "\n255\n";
+		std::string output = "";
+		output += ("P3\n" + std::to_string(width) + ' ' + std::to_string(height) + "\n255\n");
 		int bufferSize = width * height;
 		for (int i = 0; i < bufferSize; i++) {
 			u32 currentColor = buffer[i];
-			ofs << ((currentColor >> 16) & 0xFF) << ' ' << ((currentColor >> 8) & 0xFF) << ' ' << (currentColor & 0xFF) << '\n';
+			output += std::string((std::to_string((currentColor >> 16) & 0xFF)) + ' ' + std::to_string((currentColor >> 8) & 0xFF) + ' ' + std::to_string(currentColor & 0xFF) + '\n');
 		}
-		ofs.close();
+		fwrite(output.data(), sizeof(char), output.length(), file);
+		fclose(file);
 		timer.Stop();
 		free(buffer);
-		LOG_SUCCESS("buffer exported to ppm successfully : " << filename << " took:" << timer.dtms << "ms\n");
+		LOG_SUCCESS(("Exported to " + filename + " took:" + std::to_string(timer.dtms) + "ms\n"));
 	}
 
 	void drawLine(Vector a, Vector b, Colour color) {
@@ -136,13 +138,13 @@ namespace Renderer {
 		Timer timer;
 		LOG_INFO("Loading " << filename);
 		std::vector<Vector> vertexes = {};
-		//vertexes.reserve(1024);
+		vertexes.reserve(1024);
 		std::vector<Vector> normals = {};
-		//normals.reserve(1024);
+		normals.reserve(1024);
 		std::vector<Texture> texture = {};
-		//texture.reserve(1024);
+		texture.reserve(1024);
 		std::vector<Face> faces = {};
-		//faces.reserve(1024);
+		faces.reserve(1024);
 		std::ifstream OBJFile;
 		std::string line;
 		OBJFile.open(filename);
@@ -197,15 +199,18 @@ namespace Renderer {
 				else if (sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d",
 					&v[0], &n[0],
 					&v[1], &n[1],
-					&v[2], &n[2]) == 6) 
+					&v[2], &n[2]) == 6)
 				{
-					LOG_INFO("Format is v//n\n");
 					newface = {
 						Index{v[0],-1,n[0]},
 						Index{v[1],-1,n[1]},
 						Index{v[2],-1,n[2]}
 					};
 					faces.push_back(newface);
+				}
+				else {
+					LOG_ERROR(("Unsupported face format :" + filename+"\n"));
+					return {};
 				}
 			}
 			else {
@@ -361,7 +366,7 @@ namespace Renderer {
 
 						Vector R = P - camera.position;
 						R = R / length(R);
-						float light = computeLight(P, N, R, t.specular, true);
+						float light = computeLight(P, N, R, t.specular, false);
 						putPixel(x, y, (color * light));
 						*dep = invZ;
 					}
@@ -887,7 +892,7 @@ namespace Renderer {
 		}
 	}
 	void drawTrianglesThr(std::vector<Triangle> tris, size_t start, size_t end, bool drawWireframe) {
-		for (int i = start; i < end; i++) {
+		for (size_t i = start; i < end; i++) {
 			drawTriangle(tris[i], drawWireframe);
 		}
 	}
@@ -913,48 +918,50 @@ namespace Renderer {
 		}
 
 	}
-	void renderMesh(const Mesh& mesh, Transform transform, bool multithread) {
+	void getDrawableTriangles(const Triangle& triangle,const Transform& transform,std::vector<Triangle>& tris) {
+		Vector moved[3];
+		//Model space to world space
+		moved[0] = transformVertex(triangle.p[0], transform);
+		moved[1] = transformVertex(triangle.p[1], transform);
+		moved[2] = transformVertex(triangle.p[2], transform);
+
+		//World space to camera space
+		moved[0] = moved[0] - camera.position;
+		moved[1] = moved[1] - camera.position;
+		moved[2] = moved[2] - camera.position;
+
+		moved[0] = rotate(moved[0], -camera.rotation);
+		moved[1] = rotate(moved[1], -camera.rotation);
+		moved[2] = rotate(moved[2], -camera.rotation);
+
+		const bool backFaceCulling = sceneSettings.bfc;
+		Triangle newTri;
+		Vector PO = -moved[0];
+		newTri.p[0] = moved[0];
+		newTri.p[1] = moved[1];
+		newTri.p[2] = moved[2];
+		Vector normal = newTri.getNormal();
+		normal = normal / length(normal);
+
+		//Backface culling
+		if (!(dot(normal, PO) > 0.f) && backFaceCulling) {
+			return;
+		}
+		newTri.color = triangle.color;
+
+		//Frustum culling
+		std::vector<Triangle> clippedTris = clipTriangle(newTri);
+
+		//Save the drawable triangles in a vector
+		for (const Triangle& ct : clippedTris) {
+			tris.push_back(ct);
+		}
+	}
+	void renderMesh(const Mesh& mesh, Transform& transform, bool multithread) {
+		unsigned int trisCount = mesh.triangles.size();
 		std::vector<Triangle> tris = {};
-
 		for (const Triangle& triangle : mesh.triangles) {
-			Vector moved[3];
-			//Model space to world space
-			moved[0] = transformVertex(triangle.p[0], transform);
-			moved[1] = transformVertex(triangle.p[1], transform);
-			moved[2] = transformVertex(triangle.p[2], transform);
-
-
-			//World space to camera space
-			moved[0] = moved[0] - camera.position;
-			moved[1] = moved[1] - camera.position;
-			moved[2] = moved[2] - camera.position;
-
-			moved[0] = rotate(moved[0], -camera.rotation);
-			moved[1] = rotate(moved[1], -camera.rotation);
-			moved[2] = rotate(moved[2], -camera.rotation);
-
-			const bool backFaceCulling = sceneSettings.bfc;
-			Triangle newTri;
-			Vector PO = -moved[0];
-			newTri.p[0] = moved[0];
-			newTri.p[1] = moved[1];
-			newTri.p[2] = moved[2];
-			Vector normal = newTri.getNormal();
-			normal = normal / length(normal);
-
-			//Backface culling
-			if (!(dot(normal, PO) > 0.f) && backFaceCulling) {
-				continue;
-			}
-			newTri.color = triangle.color;
-
-			//Frustum culling
-			std::vector<Triangle> clippedTris = clipTriangle(newTri);
-
-			//Save the triangles to be rendered in a vector
-			for (const Triangle& ct : clippedTris) {
-				tris.push_back(ct);
-			}
+			getDrawableTriangles(triangle, transform, tris);
 		}
 		sceneSettings.triSeenCount += tris.size();
 		bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
@@ -1041,9 +1048,10 @@ namespace Renderer {
 		for (Instance& ins : scene.instances) {
 			renderMesh(*ins.mesh, ins.transform);
 		}
-
+		//Render spheres
 		for (Sphere& sphere : scene.spheres) {
 			Mesh sphereM;
+			//cache spheres if not already
 			if (sphereMeshCache.find(sphere) == sphereMeshCache.end()) {
 				sphereM = loadOBJ("res/Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
 				sphereMeshCache[sphere] = sphereM;
@@ -1054,28 +1062,12 @@ namespace Renderer {
 			Instance sphereIns(sphereM, (sphere.center + Vector{ 0,-0.2f,0 }), sphere.radius * 0.4f);
 			renderMesh(*sphereIns.mesh, sphereIns.transform);
 		}
+		//Render scene triangles
 		for (Triangle& striangle : scene.triangles) {
-			//world space to camera space
-			Vector csvert[3];
-			csvert[0] = striangle.p[0] - camera.position;
-			csvert[1] = striangle.p[1] - camera.position;
-			csvert[2] = striangle.p[2] - camera.position;
-
-			csvert[0] = rotate(csvert[0], -camera.rotation);
-			csvert[1] = rotate(csvert[1], -camera.rotation);
-			csvert[2] = rotate(csvert[2], -camera.rotation);
-
-			Vector PO = -csvert[0];
-
-			Triangle triangle(csvert, striangle.normal, striangle.color, striangle.specular, striangle.reflectiveness);
-
-			if (dot(PO, triangle.getNormal()) > 0.f) {
-				continue;
-			}
-
-			std::vector<Triangle> clippedTris = clipTriangle(triangle);
-
-			for (Triangle& tri : clippedTris) {
+			std::vector<Triangle> drawableTris = {};
+			getDrawableTriangles(striangle, { {0,0,0},1.f,{0,0,0} }, drawableTris);
+			
+			for (Triangle& tri : drawableTris) {
 				drawTriangle(tri, (sceneSettings.debugState == DebugState::DS_TRIANGLE));
 			}
 		}
