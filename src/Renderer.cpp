@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include <string_view>
+#include <functional>
 namespace Renderer {
 	void clearScreen(u32 color) {
 		u32* pixel = (u32*)renderState.memory;
@@ -132,7 +133,14 @@ namespace Renderer {
 			}
 		}
 	}
-
+	static bool compare(const char* str1, const char* str2, u32 size) {
+		for (int i = 0; i < size; i++) {
+			if (str1[i] != str2[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
 	Mesh loadOBJ(std::string filename, Colour color, float reflectiveness, float specular)
 	{
 		Timer timer;
@@ -156,28 +164,28 @@ namespace Renderer {
 		std::istringstream iss;
 		while (std::getline(OBJFile, line))
 		{
-			std::string_view sv(line);
-			if (sv._Starts_with("v "))
+			
+			if (compare(line.c_str(),"v ",2))
 			{
 				float x = 0, y = 0, z = 0;
 				sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z);
 				vertexes.push_back({ x,y,z });
 			}
-			else if (sv._Starts_with("vt"))
+			else if (compare(line.c_str(), "vt", 2))
 			{
 				float u, v, w;
 				sscanf_s(line.c_str(), "vt %f %f %f", &u, &v, &w);
 				Texture newtext({ u, v, w });
 				texture.push_back(newtext);
 			}
-			else if (sv._Starts_with("vn"))
+			else if (compare(line.c_str(), "vn", 2))
 			{
 				float x, y, z;
 				sscanf_s(line.c_str(), "vn %f %f %f", &x, &y, &z);
 				Vector newnorm(x, y, z);
 				normals.push_back(newnorm);
 			}
-			else if (sv._Starts_with("f "))
+			else if (compare(line.c_str(), "f ", 2))
 			{
 				//---Only works for 3 Vertices faces---
 				int v[3] = {};
@@ -891,9 +899,9 @@ namespace Renderer {
 			}
 		}
 	}
-	void drawTrianglesThr(std::vector<Triangle> tris, size_t start, size_t end, bool drawWireframe) {
+	void drawTrianglesThr(std::vector<Triangle>* tris, size_t start, size_t end, bool drawWireframe) {
 		for (size_t i = start; i < end; i++) {
-			drawTriangle(tris[i], drawWireframe);
+			drawTriangle(((*tris)[i]), drawWireframe);
 		}
 	}
 	void drawTrianglesMultiThread(std::vector<Triangle> tris, bool drawWireframe, unsigned int numThreads) {
@@ -909,7 +917,7 @@ namespace Renderer {
 			//distributing remaining triangles equally to starting n threads
 			//where n is the number of remaining triangles
 			size_t end = start + trisPerThread + ((i < remainingTriangles) ? 1 : 0);
-			threads[i] = std::thread(drawTrianglesThr, tris, start, end, drawWireframe);
+			threads[i] = std::thread(drawTrianglesThr, &tris, start, end, drawWireframe);
 			start = end;
 		}
 
@@ -918,7 +926,7 @@ namespace Renderer {
 		}
 
 	}
-	void getDrawableTriangles(const Triangle& triangle,const Transform& transform,std::vector<Triangle>& tris) {
+	void modelSpaceToDrawable(const Triangle& triangle, const Transform& transform, std::vector<Triangle>& outTris) {
 		Vector moved[3];
 		//Model space to world space
 		moved[0] = transformVertex(triangle.p[0], transform);
@@ -954,15 +962,49 @@ namespace Renderer {
 
 		//Save the drawable triangles in a vector
 		for (const Triangle& ct : clippedTris) {
-			tris.push_back(ct);
+			outTris.push_back(ct);
+		}
+	}
+	void modelSpaceToDrawableThr(std::vector<Triangle>* inTris,const Transform& transform,std::vector<Triangle>* outTris, u32 start, u32 end) {
+		for (int i = start; i < end;i++) {
+			Triangle triangle = inTris->at(i);
+			modelSpaceToDrawable(triangle, transform, *outTris);
+		}
+	}
+	
+	void getDrawableTriangles(std::vector<Triangle>& inTris,const Transform& transform,std::vector<Triangle>& outTris, bool multithread) {
+		if (!multithread) {
+			for (const Triangle& triangle : inTris) {
+				modelSpaceToDrawable(triangle, transform, outTris);
+			}
+		}
+		else {
+			const u32 threadSize = std::thread::hardware_concurrency();
+			u32 triPerThread = inTris.size() / threadSize;
+			u32 remainingTris = inTris.size() % threadSize;
+			std::vector<std::thread> triProcessThr(threadSize);
+			std::vector<std::vector<Triangle>> outTrisArr(threadSize);
+			u32 start = 0;
+			for (u32 i = 0; i < threadSize; i++) {
+				u32 end = start + triPerThread + ((i < remainingTris) ? 1 : 0);
+				triProcessThr[i] = std::thread(Renderer::modelSpaceToDrawableThr, &inTris, (transform), &outTrisArr[i], start, end);
+				start = end;
+			}
+			for (u32 i = 0; i < threadSize; i++) {
+				triProcessThr[i].join();
+			}
+			for (const std::vector<Triangle>& tris : outTrisArr) {
+				for (const Triangle& triangle : tris) {
+					outTris.push_back(triangle);
+				}
+			}
 		}
 	}
 	void renderMesh(const Mesh& mesh, Transform& transform, bool multithread) {
 		unsigned int trisCount = mesh.triangles.size();
+		std::vector<Triangle> meshTriangles = mesh.triangles;
 		std::vector<Triangle> tris = {};
-		for (const Triangle& triangle : mesh.triangles) {
-			getDrawableTriangles(triangle, transform, tris);
-		}
+		getDrawableTriangles(meshTriangles,transform,tris);
 		sceneSettings.triSeenCount += tris.size();
 		bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
 		if (!multithread) {
@@ -1065,7 +1107,7 @@ namespace Renderer {
 		//Render scene triangles
 		for (Triangle& striangle : scene.triangles) {
 			std::vector<Triangle> drawableTris = {};
-			getDrawableTriangles(striangle, { {0,0,0},1.f,{0,0,0} }, drawableTris);
+			modelSpaceToDrawable(striangle, { {0,0,0},1.f,{0,0,0} }, drawableTris);
 			
 			for (Triangle& tri : drawableTris) {
 				drawTriangle(tri, (sceneSettings.debugState == DebugState::DS_TRIANGLE));

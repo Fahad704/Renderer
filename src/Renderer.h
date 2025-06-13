@@ -43,9 +43,11 @@ namespace Renderer {
 	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows = true);
 	float planeIntersection(Plane& plane, Vector& point);
 	float edgePlaneIntersection(Plane& plane, const Vector& A, const Vector& B);
+	void getDrawableTriangles(std::vector<Triangle>& inTris,const Transform& transform, std::vector<Triangle>& outTris, bool multithread = true);
+	void modelSpaceToDrawableThr(std::vector<Triangle>* inTris,const Transform& transform, std::vector<Triangle>* outTris, u32 start , u32 end);
 	void FXAAthr(int threadNum, int threadCount, float edgeThreshold = 0.f);
 	void FXAA(bool multiThread = true);
-	void drawTrianglesThr(std::vector<Triangle> tris, size_t start, size_t end, bool drawWireframe);
+	void drawTrianglesThr(std::vector<Triangle>* tris, size_t start, size_t end, bool drawWireframe);
 	void renderMesh(const Mesh& mesh, Transform& transform, bool multithread = true);
 	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit);
 	void rayTraceThr(int threadNum, int threadCount);

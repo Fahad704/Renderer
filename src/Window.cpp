@@ -133,7 +133,7 @@ void initWindow() {
 	window.dc = GetDC(window.handle);
 	ShowCursor(false);
 	SetCursorPos(0, 0);
-	SetWindowPos(window.handle, NULL, 800, 100, renderState.width, renderState.height, NULL);
+	SetWindowPos(window.handle, NULL, 800, 100, renderState.width, renderState.height, 0);
 
 	//Renderer::clearScreen(0x000000);
 	Renderer::drawNoise();

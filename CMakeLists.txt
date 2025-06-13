@@ -12,7 +12,7 @@ set(WINDOWS_SUBSYTEM "WINDOWS")
 target_compile_definitions(Renderer PRIVATE 
 	_UNICODE
 	 UNICODE
-	$<$<CONFIG:Release>:NDEBUG>
+	 NDEBUG
 )
 
-target_compile_options(Renderer PUBLIC $<$<CONFIG:Release>:-O3>)
+target_compile_options(Renderer PUBLIC -O3)

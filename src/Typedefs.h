@@ -1,5 +1,7 @@
 #pragma once
-#define NOMINMAX
+#ifndef NOMINMAX
+#define NOMINMAX 1
+#endif
 #define INFINITY_V 2000000000
 typedef unsigned int u32;
 typedef unsigned char u8;

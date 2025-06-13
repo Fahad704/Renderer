@@ -70,11 +70,11 @@ void handleInput(const Input& input) {
 	}
 	if (pressed(BUTTON_L)) {
 		LOG_INFO("STATS:\n");
-		LOG_INFO("---\n");
 		LOG_INFO("Position : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n");
 		LOG_INFO("Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n");
 		int c = 1;
-		LOG_INFO("Model count " << scene.instances.size() << "\n\n");
+		LOG_INFO("Model count " << scene.instances.size() << "\n");
+		LOG_INFO("---\n");
 		int totalTris = 0;
 		for (const Instance& instance : scene.instances)
 		{
@@ -85,8 +85,9 @@ void handleInput(const Input& input) {
 			totalTris += instance.mesh->triangles.size();
 			c++;
 		}
-		LOG_INFO("Total triangle count :" << totalTris << '\n');
 		LOG_INFO("---\n");
+		LOG_INFO("Total triangle count :" << totalTris << '\n');
+		LOG_INFO(("Triangle seen :" + std::to_string(sceneSettings.triSeenCount) + "\n"));
 	}
 
 	//Show triangles of the mesh
@@ -194,7 +195,7 @@ void init() {
 
 	static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255,255,255 }, 0.f, 100.f);
 	std::vector<Instance> instances = {
-		{model, {0,0,0},.1f,{0,0,0}},
+		{model, {0,0,0},0.1f,{0,0,0}}
 	};
 	scene = { spheres,triangles,instances,lights };
 }
