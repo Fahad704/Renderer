@@ -3,7 +3,8 @@
 Window window = {};
 void* depth;
 RenderState renderState;
-std::vector<std::thread> threads;
+std::vector<std::thread> ppmThreads;
+std::mutex* pixelLocks;
 bool running = true;
 SceneSettings sceneSettings = { true,false,0,DebugState::DS_OFF, true ,RenderMode::RM_COLOR };
 Vector canvas(720, 720);
@@ -19,7 +20,9 @@ bool rayTraceMode = false;
 //144 fps
 float frameLimit = 6.94444444f;
 double FOV = 90;
+//sponza ideal camera
 Transform camera(Vector{ 78,54,-3 }, 1, { 0,-270,0 });
+//Transform camera(Vector{ 0,0,0 }, 1, { 0,0,0 });
 Scene scene = {};
 //temp
 Triangle tempTri;

@@ -68,6 +68,9 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		//AO buffer
 		if (renderState.ambientOcclusion)VirtualFree(renderState.ambientOcclusion, 0 , MEM_RELEASE);
 		renderState.ambientOcclusion = (float *)VirtualAlloc(0, screenRes * sizeof(float), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+		//pixelLock buffer
+		if (pixelLocks)VirtualFree(pixelLocks, 0, MEM_RELEASE);
+		pixelLocks = (std::mutex*)VirtualAlloc(0, screenRes * (sizeof(std::mutex)), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
 		renderState.bitmapinfo.bmiHeader.biSize = sizeof(renderState.bitmapinfo.bmiHeader);
 		renderState.bitmapinfo.bmiHeader.biWidth = renderState.width;

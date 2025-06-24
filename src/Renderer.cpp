@@ -17,15 +17,17 @@ namespace Renderer {
 		u32 hexColor = rgbtoHex(color);
 		x += renderState.width / 2;
 		y = (renderState.height / 2) - y;
-		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
-		*pixel = hexColor;
+		u32 idx = x + (y * renderState.width);
+		std::lock_guard<std::mutex> lock(pixelLocks[idx]);
+		((u32*)renderState.memory)[idx] = hexColor;
 	}
 	//put pixel Direct (x and y specify buffer value)
 	//x=0,y=0 will be on top left
 	void putPixelD(int x, int y, Colour color) {
 		u32 hexColor = rgbtoHex(color);
-		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
-		*pixel = hexColor;
+		u32 idx = x + (y * renderState.width);
+		std::lock_guard<std::mutex> lock(pixelLocks[idx]);
+		((u32*)renderState.memory)[idx] = hexColor;
 	}
 	void renderDepthBuffer() {
 		for (int y = 0; y < renderState.height; y++) {
@@ -64,7 +66,7 @@ namespace Renderer {
 		u32* buffer = (u32*)malloc(sbsize);
 		if (buffer) {
 			memcpy((void*)buffer, renderState.memory, sbsize);
-			threads.push_back(std::thread(Renderer::exportToPPM,"Image.ppm", buffer, renderState.width, renderState.height));
+			ppmThreads.push_back(std::thread(Renderer::exportToPPM,"Image.ppm", buffer, renderState.width, renderState.height));
 		}
 		else {
 			LOG_WARN("Failed to allocate a buffer");
@@ -366,16 +368,20 @@ namespace Renderer {
 					int nx = int(x + (renderState.width / 2.0));
 					//Pointer to depth buffer
 					float* dep = ((float*)(depth)) + (ny * renderState.width) + nx;
+					float tx = x + renderState.width / 2;
+					float ty = (renderState.height / 2) - y;
+					u32 idx = tx + (ty * renderState.width);
+					std::lock_guard<std::mutex> lock(pixelLocks[idx]);
 					if (invZ > (*dep)) {
 						//Point in camera space
 						Vector P = T;
 						//Camera space to world space
 						P = transformVertex(P, camera, RotateOrder::RO_XYZ);
-
 						Vector R = P - camera.position;
 						R = R / length(R);
 						float light = computeLight(P, N, R, t.specular, false);
-						putPixel(x, y, (color * light));
+						u32 hexColor = rgbtoHex(color * light);
+						((u32*)renderState.memory)[idx] = hexColor;
 						*dep = invZ;
 					}
 				}
@@ -1013,12 +1019,14 @@ namespace Renderer {
 			}
 		}
 		else {
-			if (tris.size())
+			if (tris.size()) {
 				drawTrianglesMultiThread(tris, drawWireframe, std::thread::hardware_concurrency());
+			}
 
 		}
 	}
 	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
+		
 		std::pair<Object*, float> intersection = closestIntersection(O, D, tMin, tMax);
 		Object* closestObject = intersection.first;
 		float closestT = intersection.second;

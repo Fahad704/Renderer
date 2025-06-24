@@ -205,6 +205,7 @@ void update(const Input& input) {
 	handleInput(input);
 	if (rayTraceMode && change) {
 		//Ray trace
+		Timer timer;
 		Renderer::clearScreen(0x000000);
 		//Ray tracing multithreaded
 		static size_t threadCount = std::thread::hardware_concurrency();
@@ -219,6 +220,8 @@ void update(const Input& input) {
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			Renderer::FXAA();
 		}
+		timer.Stop();
+		LOG_INFO("RayTracing this frame took : "+std::to_string(timer.dtms)+"ms\n");
 		change = false;
 	}
 	else if (change) {
