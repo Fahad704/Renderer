@@ -175,37 +175,75 @@ void handleInput(const Input& input) {
 	}
 }
 void init() {
-	//Spheres
-	std::vector<Sphere> spheres = {
-		{{0,0,-3},1.f,{255,0,0},100,0.4f },
-		{{-1,0,-4},1.f,{0,255,0},100,0.4f },
-		{{1,0,-4},1.f,{0,0,255},100,0.4f },
-		//{{2,1,0},0.1f,{0,0,255},100,0.4f }
+	static Mesh model = Renderer::loadOBJ("res/Models/King.obj", { 255,255,255 }, 0.f, 100.f);
+	static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 100.f);
+	scene = {
+		.spheres = std::vector<Sphere>{
+			{
+				.center = Vector{0,0,-3},
+				.radius = 1.f,
+				.color = Colour{255,0,0},
+				.specular = 100.f,
+				.reflectiveness = 0.4f,
+			},
+			{
+				.center = Vector{-1,0,-4},
+				.radius = 1.f,
+				.color = Colour{0,255,0},
+				.specular = 100.f,
+				.reflectiveness = 0.4f,
+			},
+			{
+				.center = Vector{1,0,-4},
+				.radius = 1.f,
+				.color = Colour{0,0,255},
+				.specular = 100.f,
+				.reflectiveness = 0.4f,
+			},
+			{
+				.center = Vector{2,1,0},
+				.radius = .1f,
+				.color = Colour{0,0,255},
+				.specular = 100.f,
+				.reflectiveness = 0.4f,
+			}
+		},
+		.triangles = std::vector<Triangle>{
+			//empty
+		},
+		.instances = std::vector<Instance>{
+			{
+				.mesh = &model,
+				.transform = {
+					.position = {0,-0.8,3},
+					.scale = 1.f,
+					.rotation = {0,0,0}
+				}
+				
+			},
+			{
+				.mesh = &floor,
+				.transform = {
+					.position = {0,-1.f,0},
+					.scale = 1.f,
+					.rotation = {0,0,0}
+				}
+			}
+		},
+		.lights = std::vector<Light>{
+			//--Type----------Pos----Dir--intensity//
+			{LT_AMBIENT    ,{0,0,0},{0,0,0},0.2f},
+			{LT_POINT      ,{2,1,0},{0,0,0},0.6f},
+			{LT_DIRECTIONAL,{0,0,0},{1,-4,4},0.2f},
+			{LT_DIRECTIONAL,{0,0,0},{-1,-1,4},0.2f},
+		}
 	};
-
-	std::vector<Light> lights = {
-		//--Type----------Pos----Dir--intensity//
-		{LT_AMBIENT    ,{0,0,0},{0,0,0},0.2f},
-		{LT_POINT      ,{2,1,0},{0,0,0},0.6f},
-		{LT_DIRECTIONAL,{0,0,0},{1,-4,4},0.2f},
-		{LT_DIRECTIONAL,{0,0,0},{-1,-1,4},0.2f},
-	};
-
-	std::vector<Triangle> triangles = {};
-
-	static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255,255,255 }, 0.f, 100.f);
-	std::vector<Instance> instances = {
-		{model, {0,0,0},0.1f,{0,0,0}}
-	};
-	scene = { spheres,triangles,instances,lights };
 }
 void update(const Input& input) {
 	//Start counting frame time
 	Timer timer;
 	handleInput(input);
 	if (rayTraceMode && change) {
-		//Ray trace
-		Timer timer;
 		Renderer::clearScreen(0x000000);
 		//Ray tracing multithreaded
 		static size_t threadCount = std::thread::hardware_concurrency();
@@ -221,19 +259,22 @@ void update(const Input& input) {
 			Renderer::FXAA();
 		}
 		timer.Stop();
-		LOG_INFO("RayTracing this frame took : "+std::to_string(timer.dtms)+"ms\n");
+		//LOG_INFO("RayTracing this frame took : "+std::to_string(timer.dtms)+"ms\n");
 		change = false;
 	}
 	else if (change) {
 		//Rasterize
 		Renderer::renderScene();
+		Renderer::renderAO();
+		change = false;
+		timer.Stop();
 	}
 	//Limit frame rate to reduce power consumption
-	timer.Stop();
 	if (timer.dtms < frameLimit) {
 		Sleep(frameLimit - timer.dtms);
 		timer.dtms += (frameLimit - timer.dtms);
 	}
+	fdt = timer.dtms / 90;
 	//FPS count
 	totalFrameTime += (timer.dtms * 0.001);
 	frameCount++;

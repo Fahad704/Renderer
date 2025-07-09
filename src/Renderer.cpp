@@ -586,25 +586,32 @@ namespace Renderer {
 		}
 		return true;
 	}
-	std::pair<Object*, float> closestIntersection(Vector O, Vector D, float tMin, float tMax) {
-		float closestT = INFINITY_V;
-		Object* closestObject = nullptr;
+	HitData closestIntersection(Vector O, Vector D, float tMin, float tMax) {
+		HitData hitData = {};
+		hitData.intersection = INFINITY_V;
 		//Sphere intersection
 		for (Sphere& sphere : scene.spheres) {
 			float sphereInt = intersectRaySphere(O, D, sphere);
 			float T = sphereInt;
-			if (isIn(T, tMin, tMax) && T < closestT) {
-				closestT = T;
-				closestObject = &sphere;
+			if (isIn(T, tMin, tMax) && T < hitData.intersection) {
+				hitData.intersection = T;
+				Vector P = O + (D * T);
+				hitData.normal = P - sphere.center;
+				hitData.color = sphere.color;
+				hitData.specular = sphere.specular;
+				hitData.reflectiveness = sphere.reflectiveness;
 			}
 		}
 		//Triangle
 		for (Triangle& triangle : scene.triangles)
 		{
 			float triangleInt = intersectRayTriangle(O, D, triangle);
-			if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
-				closestT = triangleInt;
-				closestObject = &triangle;
+			if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
+				hitData.intersection = triangleInt;
+				hitData.normal = triangle.getNormal();
+				hitData.color = triangle.color;
+				hitData.specular = triangle.specular;
+				hitData.reflectiveness = triangle.reflectiveness;
 			}
 		}
 		//Mesh
@@ -619,9 +626,9 @@ namespace Renderer {
 					continue;
 				}
 				else {
-					closestObject = &tempTri;
-					closestT = 0;
-					return { closestObject,closestT };
+					hitData = {};
+					hitData.intersection = 0.f;
+					return hitData;
 				}
 			}
 			else if (!RayIntersectsBox(O, D, mbb))
@@ -635,19 +642,17 @@ namespace Renderer {
 				tri.p[1] = transformVertex(triangle.p[1], instance.transform);
 				tri.p[2] = transformVertex(triangle.p[2], instance.transform);
 
-				Vector normal = tri.getNormal();
-				if (dot(normal, D) > 0) {
-					continue;
-				}
-				triangle.normal = tri.normal;
 				float triangleInt = intersectRayTriangle(O, D, tri);
-				if (isIn(triangleInt, tMin, tMax) && triangleInt < closestT) {
-					closestT = triangleInt;
-					closestObject = &triangle;
+				if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
+					hitData.intersection = triangleInt;
+					hitData.color = triangle.color;
+					hitData.normal = tri.getNormal();
+					hitData.reflectiveness = triangle.reflectiveness;
+					hitData.specular = triangle.specular;
 				}
 			}
 		}
-		return { closestObject,closestT };
+		return hitData;
 	}
 	Vector reflectRay(const Vector& R, Vector& N) {
 		return (2 * (N * dot(R, N)) - R);
@@ -670,7 +675,7 @@ namespace Renderer {
 					L = (light.pos - P);
 					tMax = length(L);
 				}
-				float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, tMax).second : INFINITY_V;
+				float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, tMax).intersection : INFINITY_V;
 				if (shadowT != INFINITY_V) {
 					continue;
 				}
@@ -1027,9 +1032,8 @@ namespace Renderer {
 	}
 	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
 		
-		std::pair<Object*, float> intersection = closestIntersection(O, D, tMin, tMax);
-		Object* closestObject = intersection.first;
-		float closestT = intersection.second;
+		HitData hitData = closestIntersection(O, D, tMin, tMax);
+		float closestT = hitData.intersection;
 		Colour bgColor = { 100,100,100 };
 		if (closestT == INFINITY_V) {
 			return bgColor;
@@ -1038,20 +1042,12 @@ namespace Renderer {
 		//P = point of the intersection
 		Vector P = O + (D * closestT);
 		//N = normal at the point
-		Vector N = {};
-		if (closestObject->getType() == Type::ST_SPHERE)
-		{
-			N = P - ((Sphere*)(closestObject))->center;
-		}
-		else if (closestObject->getType() == Type::ST_TRIANGLE)
-		{
-			N = ((Triangle*)(closestObject))->getNormal();
-		}
+		Vector N = hitData.normal;
 		//Normalizing the normal
 		N = N / length(N);
-		float light = computeLight(P, N, -D, closestObject->specular);
-		Colour localColor = (closestObject->color * light);
-		float r = closestObject->reflectiveness;
+		float light = computeLight(P, N, -D, hitData.specular);
+		Colour localColor = (hitData.color * light);
+		float r = hitData.reflectiveness;
 		if (recursionLimit <= 0 || r <= 0.f) {
 			return localColor;
 		}
@@ -1109,7 +1105,10 @@ namespace Renderer {
 			else {
 				sphereM = sphereMeshCache[sphere];
 			}
-			Instance sphereIns(sphereM, (sphere.center + Vector{ 0,-0.2f,0 }), sphere.radius * 0.4f);
+			Vector offset = Vector{ 0,-0.2f,0 };
+			float scaler = 0.4f;
+			Transform transform = { (sphere.center + offset), sphere.radius * scaler };
+			Instance sphereIns(&sphereM, transform);
 			renderMesh(*sphereIns.mesh, sphereIns.transform);
 		}
 		//Render scene triangles
@@ -1135,6 +1134,9 @@ namespace Renderer {
 				drawBox(box, ttf);
 			}
 		}
+
+	}
+	void renderAO() {
 
 	}
 };

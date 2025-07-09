@@ -2,20 +2,14 @@
 #include "Object.h"
 #include "Transform.h"
 struct Instance {
-	Mesh* mesh;
-	Transform transform;
-	Box boundingBox;
-	Instance(Mesh& mesh, const Vector& position = { 0,0,0 }, float scale = 1, const Vector& rotation = { 0,0,0 }) {
-		this->mesh = &mesh;
-		transform.position = position;
-		transform.scale = scale;
-		transform.rotation = rotation;
-		boundingBox.lowest = INFINITY;
-		boundingBox.highest = -INFINITY;
-	}
+	Mesh* mesh = nullptr;
+	Transform transform = { {0,0,0},1.f,{0,0,0} };
+	Box boundingBox = {-INFINITY,INFINITY};
 	//Returns Bounding Box in world space
 	Box getBoundingBox() {
-		if ((boundingBox.lowest == INFINITY) && (boundingBox.highest == -INFINITY)) {
+		bool boundingBoxInitialized = !((boundingBox.lowest == INFINITY) && (boundingBox.highest == -INFINITY));
+		if (!boundingBoxInitialized) {
+			//find lowest and highest point in bounding box
 			Vector lowest = { INFINITY,INFINITY,INFINITY };
 			Vector highest = { -INFINITY,-INFINITY,-INFINITY };
 			for (const Triangle& triangle : mesh->triangles) {

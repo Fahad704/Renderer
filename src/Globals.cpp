@@ -18,11 +18,12 @@ bool change = true;
 bool rayTraceMode = false;
 
 //144 fps
-float frameLimit = 6.94444444f;
+float frameLimit = 6.944444415f;
+//float frameLimit = 1.f;
 double FOV = 90;
 //sponza ideal camera
-Transform camera(Vector{ 78,54,-3 }, 1, { 0,-270,0 });
-//Transform camera(Vector{ 0,0,0 }, 1, { 0,0,0 });
+//Transform camera(Vector{ 78,54,-3 }, 1, { 0,-270,0 });
+Transform camera(Vector{ 0,0,0 }, 1, { 0,0,0 });
 Scene scene = {};
 //temp
 Triangle tempTri;

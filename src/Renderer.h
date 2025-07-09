@@ -38,7 +38,7 @@ namespace Renderer {
 	float intersectRaySphere(Vector& O, Vector& D, Sphere& sphere);
 	float intersectRayTriangle(Vector O, Vector D, Triangle triangle);
 	bool RayIntersectsBox(Vector& O, Vector& D, Box& box);
-	std::pair<Object*, float> closestIntersection(Vector O, Vector D, float tMin, float tMax);
+	HitData closestIntersection(Vector O, Vector D, float tMin, float tMax);
 	Vector reflectRay(const Vector& R, Vector& N);
 	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows = true);
 	float planeIntersection(Plane& plane, Vector& point);
@@ -53,4 +53,5 @@ namespace Renderer {
 	void rayTraceThr(int threadNum, int threadCount);
 	void rayTrace();
 	void renderScene();
+	void renderAO();
 };

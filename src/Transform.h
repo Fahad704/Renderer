@@ -1,19 +1,9 @@
 #pragma once
 #include "Vector.h"
 struct Transform {
-	Vector position;
-	float scale;
-	Vector rotation;
-	Transform() {
-		position = { 0,0,0 };
-		scale = 0;
-		rotation = 0;
-	}
-	Transform(const Vector& position, const float scale, const Vector& rotation) {
-		this->position = position;
-		this->scale = scale;
-		this->rotation = rotation;
-	}
+	Vector position = {0,0,0};
+	float scale = 0.f;
+	Vector rotation = 0;
 };
 enum class RotateOrder {
 	RO_YXZ = 0,

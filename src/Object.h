@@ -2,37 +2,31 @@
 #include "Colour.h"
 #include "Vector.h"
 #include <vector>
-//Object
-enum class Type
-{
-	ST_BASE = 0,
-	ST_SPHERE,
-	ST_TRIANGLE
+struct HitData {
+	float intersection = INFINITY_V;
+	Colour color = Colour{0,0,0};
+	Vector normal = {0,0,0};
+	float specular = -1.f;
+	float reflectiveness = 0.f;
 };
 struct Object {
+	Colour color = {0,0,0};
+	float specular = -1.f;
+	float reflectiveness = 0.f;
+};
+struct Sphere{
+	Vector center;
+	float radius;
 	Colour color;
 	float specular = -1.f;
 	float reflectiveness = 0.f;
-	virtual Type getType()
-	{
-		return Type::ST_BASE;
-	}
-};
-struct Sphere : Object {
-	float radius;
-	Vector center;
-
-	Sphere(Vector center = { 0,0,0 }, float radius = 1.f, Colour color = { 0,0,0 }, float specular = -1, float reflectiveness = 0) {
+	/*Sphere(Vector center = { 0,0,0 }, float radius = 1.f, Colour color = { 0,0,0 }, float specular = -1, float reflectiveness = 0) {
 		this->center = center;
 		this->radius = radius;
 		this->color = color;
 		this->specular = specular;
 		this->reflectiveness = reflectiveness;
-	}
-	virtual Type getType()
-	{
-		return Type::ST_SPHERE;
-	}
+	}*/
 	bool operator==(const Sphere& sphere) const {
 		return ((sphere.color == this->color) && (sphere.specular == this->specular) && (sphere.reflectiveness == this->reflectiveness));
 	}
@@ -56,10 +50,6 @@ struct Triangle : Object {
 		this->color = color;
 		this->specular = specular;
 		this->reflectiveness = reflectiveness;
-	}
-	virtual Type getType()
-	{
-		return Type::ST_TRIANGLE;
 	}
 	Vector getNormal()
 	{
