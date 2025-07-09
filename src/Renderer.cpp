@@ -1108,7 +1108,7 @@ namespace Renderer {
 			Vector offset = Vector{ 0,-0.2f,0 };
 			float scaler = 0.4f;
 			Transform transform = { (sphere.center + offset), sphere.radius * scaler };
-			Instance sphereIns(&sphereM, transform);
+			Instance sphereIns{&sphereM, transform};
 			renderMesh(*sphereIns.mesh, sphereIns.transform);
 		}
 		//Render scene triangles

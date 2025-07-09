@@ -266,7 +266,6 @@ void update(const Input& input) {
 		//Rasterize
 		Renderer::renderScene();
 		Renderer::renderAO();
-		change = false;
 		timer.Stop();
 	}
 	//Limit frame rate to reduce power consumption
