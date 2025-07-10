@@ -262,6 +262,7 @@ namespace Renderer {
 		}
 	}
 	void drawTriangle(Triangle& t, bool wireframe) {
+		//Project triangle on 2d viewport
 		Vector p1 = projectVertex(t.p[0]);
 		Vector p2 = projectVertex(t.p[1]);
 		Vector p3 = projectVertex(t.p[2]);
@@ -271,6 +272,7 @@ namespace Renderer {
 
 		Colour color = t.color;
 
+		//sort from top to bottom
 		if (p1.y > p2.y) {
 			swap(p1, p2);
 		}
@@ -282,7 +284,7 @@ namespace Renderer {
 		}
 
 		if (wireframe) {
-			//Drawing wireframe						
+			//Draw wireframe triangle
 			drawLine(p1, p2, color);
 			drawLine(p2, p3, color);
 			drawLine(p3, p1, color);
@@ -393,7 +395,7 @@ namespace Renderer {
 		//The tf transform is inverse camera tranform to convert world space box into
 		//camera space box
 		Colour red = { 255,0,0 };
-		//Front faces
+		//Points of a box
 		Vector p[8] = {
 			//Front Points
 			{ box.lowest.x, box.lowest.y, box.lowest.z },
@@ -627,6 +629,7 @@ namespace Renderer {
 				}
 				else {
 					hitData = {};
+					hitData.color = { 255,0,0 };
 					hitData.intersection = 0.f;
 					return hitData;
 				}
@@ -1137,6 +1140,6 @@ namespace Renderer {
 
 	}
 	void renderAO() {
-
+		
 	}
 };

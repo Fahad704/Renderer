@@ -146,11 +146,12 @@ void handleInput(const Input& input) {
 	}
 	if (isDown(MOUSE_BUTTON_RIGHT)) {
 		Transform tf = { {0,0,0},1,{0,float(100 * fdt),0} };
-		scene.instances[0].applyTransform(tf);
+		if(scene.instances.size())
+			scene.instances[0].applyTransform(tf);
 		change = true;
 	}
 	if (pressed(BUTTON_F)) {
-		//Anti aliasing
+		//Toggle Anti aliasing
 		sceneSettings.antiAliasing = !sceneSettings.antiAliasing;
 		if (sceneSettings.antiAliasing) {
 			LOG_INFO("Anti aliasing turned on.\n");
@@ -215,27 +216,40 @@ void init() {
 			{
 				.mesh = &model,
 				.transform = {
-					.position = {0,-0.8,3},
+					.position = {0,-1,3},
 					.scale = 1.f,
 					.rotation = {0,0,0}
 				}
-				
+
 			},
-			{
+			/*{
 				.mesh = &floor,
 				.transform = {
 					.position = {0,-1.f,0},
 					.scale = 1.f,
 					.rotation = {0,0,0}
 				}
-			}
+			}*/
 		},
 		.lights = std::vector<Light>{
-			//--Type----------Pos----Dir--intensity//
-			{LT_AMBIENT    ,{0,0,0},{0,0,0},0.2f},
-			{LT_POINT      ,{2,1,0},{0,0,0},0.6f},
-			{LT_DIRECTIONAL,{0,0,0},{1,-4,4},0.2f},
-			{LT_DIRECTIONAL,{0,0,0},{-1,-1,4},0.2f},
+			{
+				.type = LT_AMBIENT,
+				.pos = {0,0,0},
+				.direction = {0,0,0},
+				.intensity = 0.2f
+			},
+			{
+				.type = LT_POINT,
+				.pos = {2,1,0},
+				.direction = {0,0,0},
+				.intensity = 0.6f
+			},
+			{
+				.type = LT_DIRECTIONAL,
+				.pos = {0,0,0},
+				.direction = {1,-4,4},
+				.intensity = 0.2f
+			},
 		}
 	};
 }
@@ -247,13 +261,13 @@ void update(const Input& input) {
 		Renderer::clearScreen(0x000000);
 		//Ray tracing multithreaded
 		static size_t threadCount = std::thread::hardware_concurrency();
-		static std::vector<std::thread> tObjs(threadCount);
+		static std::vector<std::thread> rtThreads(threadCount);
 		for (size_t i = 0; i < threadCount; i++)
 		{
-			tObjs[i] = std::thread(Renderer::rayTraceThr, i, threadCount);
+			rtThreads[i] = std::thread(Renderer::rayTraceThr, i, threadCount);
 		}
-		for (size_t i = 0; i < tObjs.size(); i++) {
-			tObjs[i].join();
+		for (size_t i = 0; i < rtThreads.size(); i++) {
+			rtThreads[i].join();
 		}
 		if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
 			Renderer::FXAA();
@@ -268,7 +282,7 @@ void update(const Input& input) {
 		Renderer::renderAO();
 		timer.Stop();
 	}
-	//Limit frame rate to reduce power consumption
+	//Limit frame rate to 144
 	if (timer.dtms < frameLimit) {
 		Sleep(frameLimit - timer.dtms);
 		timer.dtms += (frameLimit - timer.dtms);

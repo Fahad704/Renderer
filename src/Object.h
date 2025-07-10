@@ -1,6 +1,7 @@
 #pragma once
 #include "Colour.h"
 #include "Vector.h"
+#include "Logging.h"
 #include <vector>
 struct HitData {
 	float intersection = INFINITY_V;
@@ -15,18 +16,11 @@ struct Object {
 	float reflectiveness = 0.f;
 };
 struct Sphere{
-	Vector center;
-	float radius;
-	Colour color;
+	Vector center = {0,0,0};
+	float radius = 0.f;
+	Colour color = {0,0,0};
 	float specular = -1.f;
 	float reflectiveness = 0.f;
-	/*Sphere(Vector center = { 0,0,0 }, float radius = 1.f, Colour color = { 0,0,0 }, float specular = -1, float reflectiveness = 0) {
-		this->center = center;
-		this->radius = radius;
-		this->color = color;
-		this->specular = specular;
-		this->reflectiveness = reflectiveness;
-	}*/
 	bool operator==(const Sphere& sphere) const {
 		return ((sphere.color == this->color) && (sphere.specular == this->specular) && (sphere.reflectiveness == this->reflectiveness));
 	}
