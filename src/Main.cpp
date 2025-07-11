@@ -176,7 +176,7 @@ void handleInput(const Input& input) {
 	}
 }
 void init() {
-	static Mesh model = Renderer::loadOBJ("res/Models/King.obj", { 255,255,255 }, 0.f, 100.f);
+	static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255,255,255 }, 0.f, 100.f);
 	static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 100.f);
 	scene = {
 		.spheres = std::vector<Sphere>{
@@ -216,8 +216,8 @@ void init() {
 			{
 				.mesh = &model,
 				.transform = {
-					.position = {0,-1,3},
-					.scale = 1.f,
+					.position = {0,0,0},
+					.scale = .1f,
 					.rotation = {0,0,0}
 				}
 

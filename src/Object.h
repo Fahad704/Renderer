@@ -3,17 +3,15 @@
 #include "Vector.h"
 #include "Logging.h"
 #include <vector>
-struct HitData {
-	float intersection = INFINITY_V;
-	Colour color = Colour{0,0,0};
-	Vector normal = {0,0,0};
-	float specular = -1.f;
-	float reflectiveness = 0.f;
-};
-struct Object {
+struct Material {
 	Colour color = {0,0,0};
 	float specular = -1.f;
 	float reflectiveness = 0.f;
+};
+struct HitData {
+	float intersection = INFINITY_V;
+	Vector normal = {0,0,0};
+	Material material;
 };
 struct Sphere{
 	Vector center = {0,0,0};
@@ -26,24 +24,31 @@ struct Sphere{
 	}
 };
 
-struct Triangle : Object {
+struct Triangle{
 	Vector p[3];
 	Vector normal;
+	Material material;
 	Triangle() {
 		p[0] = {};
 		p[1] = {};
 		p[2] = {};
-		color = { 255,0,0 };
-		reflectiveness = 0;
-		specular = -1;
+		material.color = { 255,0,0 };
+		material.reflectiveness = 0;
+		material.specular = -1;
 	}
 	Triangle(const Vector p[3], Vector normal = { 0,0,0 }, Colour color = { 0,0,0 }, float specular = -1, float reflectiveness = 0) {
 		this->p[0] = p[0];
 		this->p[1] = p[1];
 		this->p[2] = p[2];
-		this->color = color;
-		this->specular = specular;
-		this->reflectiveness = reflectiveness;
+		this->material.color = color;
+		this->material.specular = specular;
+		this->material.reflectiveness = reflectiveness;
+	}
+	Triangle(const Vector p[3], Vector normal = { 0,0,0 }, Material material = { Colour{0,0,0},-1.f,0.f }) {
+		this->p[0] = p[0];
+		this->p[1] = p[1];
+		this->p[2] = p[2];
+		this->material = material;
 	}
 	Vector getNormal()
 	{
@@ -93,9 +98,7 @@ struct Mesh {
 	std::vector<Face> faces;
 	std::vector<Triangle> triangles;
 	Box boundingBox;
-	Colour color;
-	float reflectiveness;
-	float specular;
+	Material material;
 	Mesh() {
 		vertices = {};
 		normals = {};
@@ -103,8 +106,7 @@ struct Mesh {
 		faces = {};
 		triangles = {};
 		boundingBox = {};
-		reflectiveness = 0;
-		specular = -1;
+		material = {};
 	}
 	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Colour color = { 0,0,0 }, float reflectiveness = 0.f, float specular = -1)
 	{
@@ -113,9 +115,9 @@ struct Mesh {
 		texture = text;
 		faces = face;
 		triangles = triangle;
-		this->color = color;
-		this->reflectiveness = reflectiveness;
-		this->specular = specular;
+		material.color = color;
+		material.reflectiveness = reflectiveness;
+		material.specular = specular;
 	}
 	void initTriangles()
 	{
@@ -131,12 +133,12 @@ struct Mesh {
 			v1 = vertices.at(face.index[0].vert - 1);
 			v2 = vertices.at(face.index[1].vert - 1);
 			v3 = vertices.at(face.index[2].vert - 1);
-			triangle.reflectiveness = reflectiveness;
-			triangle.specular = specular;
+			triangle.material.reflectiveness = material.reflectiveness;
+			triangle.material.specular = material.specular;
+			triangle.material.color = this->material.color;
 			triangle.p[0] = v1;
 			triangle.p[1] = v2;
 			triangle.p[2] = v3;
-			triangle.color = this->color;
 			triangle.normal = normals.at(face.index[0].norm - 1);
 			triangles.push_back(triangle);
 		}

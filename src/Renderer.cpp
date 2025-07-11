@@ -229,9 +229,9 @@ namespace Renderer {
 		}
 		OBJFile.close();
 		Mesh mesh = { vertexes,normals,texture,faces };
-		mesh.color = color;
-		mesh.specular = specular;
-		mesh.reflectiveness = reflectiveness;
+		mesh.material.color = color;
+		mesh.material.specular = specular;
+		mesh.material.reflectiveness = reflectiveness;
 		mesh.initTriangles();
 		timer.Stop();
 		LOG_SUCCESS("Loaded " << filename << ":" << timer.dtms << "ms");
@@ -270,7 +270,7 @@ namespace Renderer {
 		p2.z = t.p[1].z;
 		p3.z = t.p[2].z;
 
-		Colour color = t.color;
+		Colour color = t.material.color;
 
 		//sort from top to bottom
 		if (p1.y > p2.y) {
@@ -381,7 +381,7 @@ namespace Renderer {
 						P = transformVertex(P, camera, RotateOrder::RO_XYZ);
 						Vector R = P - camera.position;
 						R = R / length(R);
-						float light = computeLight(P, N, R, t.specular, false);
+						float light = computeLight(P, N, R, t.material.specular, false);
 						u32 hexColor = rgbtoHex(color * light);
 						((u32*)renderState.memory)[idx] = hexColor;
 						*dep = invZ;
@@ -437,7 +437,7 @@ namespace Renderer {
 
 			};
 			Triangle boxTris[12] = {
-				{tris[0],{0,0,-1},red},
+				{tris[0],Vector{0,0,-1},Material{red,-1.f,0.f}},
 				{tris[1],{0,0,-1},red},
 				{tris[2],{0,0,1},red},
 				{tris[3],{0,0,1},red},
@@ -599,9 +599,9 @@ namespace Renderer {
 				hitData.intersection = T;
 				Vector P = O + (D * T);
 				hitData.normal = P - sphere.center;
-				hitData.color = sphere.color;
-				hitData.specular = sphere.specular;
-				hitData.reflectiveness = sphere.reflectiveness;
+				Material material;
+				material = {sphere.color,sphere.specular,sphere.reflectiveness};
+				hitData.material = material;
 			}
 		}
 		//Triangle
@@ -611,9 +611,7 @@ namespace Renderer {
 			if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
 				hitData.intersection = triangleInt;
 				hitData.normal = triangle.getNormal();
-				hitData.color = triangle.color;
-				hitData.specular = triangle.specular;
-				hitData.reflectiveness = triangle.reflectiveness;
+				hitData.material = triangle.material;
 			}
 		}
 		//Mesh
@@ -629,7 +627,7 @@ namespace Renderer {
 				}
 				else {
 					hitData = {};
-					hitData.color = { 255,0,0 };
+					hitData.material.color = { 255,0,0 };
 					hitData.intersection = 0.f;
 					return hitData;
 				}
@@ -648,10 +646,8 @@ namespace Renderer {
 				float triangleInt = intersectRayTriangle(O, D, tri);
 				if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
 					hitData.intersection = triangleInt;
-					hitData.color = triangle.color;
+					hitData.material = triangle.material;
 					hitData.normal = tri.getNormal();
-					hitData.reflectiveness = triangle.reflectiveness;
-					hitData.specular = triangle.specular;
 				}
 			}
 		}
@@ -774,7 +770,7 @@ namespace Renderer {
 						p[invec[0]] = A;
 						p[outvec[0]] = B;
 						p[outvec[1]] = C;
-						Triangle newTri(p, (t.normal / length(t.normal)), t.color, t.specular, t.reflectiveness);
+						Triangle newTri(p, (t.normal / length(t.normal)), t.material);
 						planeClipped.push_back(newTri);
 					}
 					else if (inCount == 2) {
@@ -797,8 +793,8 @@ namespace Renderer {
 						p2[invec[0]] = newB;
 						p2[invec[1]] = C;
 						p2[outvec[0]] = A;
-						Triangle newTri1(p1, (t.normal / length(t.normal)), t.color, t.specular, t.reflectiveness);
-						Triangle newTri2(p2, (t.normal / length(t.normal)), t.color, t.specular, t.reflectiveness);
+						Triangle newTri1(p1, (t.normal / length(t.normal)), t.material);
+						Triangle newTri2(p2, (t.normal / length(t.normal)), t.material);
 						planeClipped.push_back(newTri1);
 						planeClipped.push_back(newTri2);
 					}
@@ -969,7 +965,7 @@ namespace Renderer {
 		if (!(dot(normal, PO) > 0.f) && backFaceCulling) {
 			return;
 		}
-		newTri.color = triangle.color;
+		newTri.material.color = triangle.material.color;
 
 		//Frustum culling
 		std::vector<Triangle> clippedTris = clipTriangle(newTri);
@@ -1048,9 +1044,9 @@ namespace Renderer {
 		Vector N = hitData.normal;
 		//Normalizing the normal
 		N = N / length(N);
-		float light = computeLight(P, N, -D, hitData.specular);
-		Colour localColor = (hitData.color * light);
-		float r = hitData.reflectiveness;
+		float light = computeLight(P, N, -D, hitData.material.specular);
+		Colour localColor = (hitData.material.color * light);
+		float r = hitData.material.reflectiveness;
 		if (recursionLimit <= 0 || r <= 0.f) {
 			return localColor;
 		}
