@@ -11,7 +11,7 @@ struct Material {
 struct HitData {
 	float intersection = INFINITY_V;
 	Vector normal = {0,0,0};
-	Material material;
+	Material material = {};
 };
 struct Sphere{
 	Vector center = {0,0,0};
@@ -155,7 +155,6 @@ struct Mesh {
 			if (vertex.z > highest.z)highest.z = vertex.z;
 			count++;
 		}
-
 		boundingBox.lowest = lowest;
 		boundingBox.highest = highest;
 	}
